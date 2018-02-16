@@ -22,8 +22,8 @@
 
 namespace tfnodejs {
 
-// void ExecuteOp(napi_env env, napi_value context, napi_value inputs, const char *opName);
-
+void ExecuteOp(napi_env env, napi_value context, const char* opName,
+               napi_value inputs, napi_value* result);
 }
 
 #endif  // TF_NODEJS_TFE_EXECUTE_H_

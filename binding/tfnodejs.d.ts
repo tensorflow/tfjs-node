@@ -13,15 +13,24 @@ declare class TensorHandle {
   dtype: number;
 }
 
+declare class TFEOpAttr {
+    name: string;
+    type: number;
+    value: number;
+}
+
 export const TF_FLOAT: number;
 export const TF_INT32: number;
 export const TF_BOOL: number;
 
 export const TF_Version: string;
 
+export function execute(context: Context, op: string, inputs: TensorHandle[]): TensorHandle;
+
 export interface tfnodejs {
     Context: typeof Context;
     TensorHandle: typeof TensorHandle;
+    TFEOpAttr: typeof TFEOpAttr;
 
     TF_FLOAT: typeof TF_FLOAT;
     TF_INT32: typeof TF_INT32;

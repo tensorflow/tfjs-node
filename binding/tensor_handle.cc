@@ -24,12 +24,6 @@
 
 namespace tfnodejs {
 
-struct TensorHandle {
-  TF_Tensor* tensor;
-  TFE_TensorHandle* handle;
-  napi_env env;
-};
-
 void Cleanup(napi_env env, void* data, void* hint) {
   //
   // TODO write me.
@@ -121,7 +115,6 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
 
   memcpy(TF_TensorData(handle->tensor), array_data, array_length * width);
 
-  printf("--> Bound!\n");
   // TODO - auto-ref the typed-array...
 }
 

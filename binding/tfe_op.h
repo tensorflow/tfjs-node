@@ -18,44 +18,8 @@
 #ifndef TF_NODEJS_TENSOR_BINDING_H_
 #define TF_NODEJS_TENSOR_BINDING_H_
 
-#include <node_api.h>
-#include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
-
 namespace tfnodejs {
 
-struct TensorHandle {
-  TF_Tensor* tensor;
-  TFE_TensorHandle* handle;
-  napi_env env;
-};
-
-//
-// TODO - doc me.
-//
-void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
-                      uint32_t shape_length, TF_DataType dtype);
-
-//
-// TODO - doc me.
-//
-void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
-                        napi_value typed_array_value);
-
-//
-// TODO - doc me.
-//
-void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result);
-
-//
-// TODO - doc me.
-//
-void GetTensorShape(napi_env env, napi_value wrapped_value, napi_value* result);
-
-//
-// TODO - doc me.
-//
-void GetTensorDtype(napi_env env, napi_value wrapped_value, napi_value* result);
-
-}  // namespace tfnodejs
+}
 
 #endif  // TF_NODEJS_TENSOR_BINDING_H_

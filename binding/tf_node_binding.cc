@@ -18,6 +18,7 @@
 #include <node_api.h>
 #include "tensor_handle.h"
 #include "tfe_context_env.h"
+#include "tfe_execute.h"
 #include "utils.h"
 
 namespace tfnodejs {
@@ -80,7 +81,8 @@ static napi_value SetTensorHandleBuffer(napi_env env, napi_callback_info info) {
   size_t argc = 1;
   napi_value typed_array_value;
   napi_value js_this;
-  nstatus = napi_get_cb_info(env, info, &argc, &typed_array_value, &js_this, NULL);
+  nstatus =
+      napi_get_cb_info(env, info, &argc, &typed_array_value, &js_this, NULL);
   ENSURE_NAPI_OK(nstatus);
 
   AssertValueIsTypedArray(env, typed_array_value);
@@ -122,6 +124,24 @@ static napi_value GetTensorHandleDtype(napi_env env, napi_callback_info info) {
 
   napi_value result;
   GetTensorDtype(env, js_this, &result);
+  return result;
+}
+
+static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
+  napi_status nstatus;
+
+  size_t argc = 3;
+  napi_value args[argc];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, NULL);
+  ENSURE_NAPI_OK(nstatus);
+
+  char op_name[NAPI_STRING_SIZE];
+  nstatus = napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE, NULL);
+  ENSURE_NAPI_OK(nstatus);
+
+  napi_value result;
+  ExecuteOp(env, args[0], op_name, args[2], &result);
   return result;
 }
 
@@ -174,8 +194,7 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       {"Context", NULL, NULL, NULL, NULL, context_class, napi_default, NULL},
       {"TensorHandle", NULL, NULL, NULL, NULL, tensor_handle_class,
        napi_default, NULL},
-      /* {"TFE_Execute", NULL, ExecuteFTE, NULL, NULL, NULL, napi_default,
-         NULL}, */
+      {"execute", NULL, ExecuteTFE, NULL, NULL, NULL, napi_default, NULL},
       {"TF_FLOAT", NULL, NULL, NULL, NULL, float32_type_value, napi_default,
        NULL},
       {"TF_INT32", NULL, NULL, NULL, NULL, int32_type_value, napi_default,
