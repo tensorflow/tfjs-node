@@ -23,7 +23,7 @@
 namespace tfnodejs {
 
 void ExecuteOp(napi_env env, napi_value context, const char* opName,
-               napi_value inputs, napi_value* result);
+               napi_value inputs, napi_ref tensor_handle_class_ref, napi_value* result);
 }
 
 #endif  // TF_NODEJS_TFE_EXECUTE_H_

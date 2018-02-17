@@ -23,6 +23,8 @@
 
 namespace tfnodejs {
 
+static napi_ref tensor_handle_class_ref;
+
 static napi_value NewContext(napi_env env, napi_callback_info info) {
   AssertConstructorCall(env, info);
 
@@ -47,6 +49,13 @@ static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, NULL);
   ENSURE_NAPI_OK(nstatus);
+
+  // If the constructor was created w/o any arguments - it is from an internal
+  // wrap reference. Just wrap the handle and return.
+  if (argc == 0) {
+    InitPlaceholderTensorHandle(env, js_this);
+    return js_this;
+  }
 
   napi_value shape_value = args[0];
   AssertValueIsArray(env, shape_value);
@@ -140,8 +149,10 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   nstatus = napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE, NULL);
   ENSURE_NAPI_OK(nstatus);
 
+  // TODO op-attrs here.
+
   napi_value result;
-  ExecuteOp(env, args[0], op_name, args[2], &result);
+  ExecuteOp(env, args[0], op_name, args[2], tensor_handle_class_ref, &result);
   return result;
 }
 
@@ -169,6 +180,10 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       napi_define_class(env, "TensorHandle", NAPI_AUTO_LENGTH, NewTensorHandle,
                         NULL, ARRAY_SIZE(tensor_handle_properties),
                         tensor_handle_properties, &tensor_handle_class);
+  ENSURE_NAPI_OK(nstatus);
+
+  // Class ref for Tensor Handle
+  nstatus = napi_create_reference(env, tensor_handle_class, 1, &tensor_handle_class_ref);
   ENSURE_NAPI_OK(nstatus);
 
   // TF version

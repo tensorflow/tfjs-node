@@ -27,7 +27,7 @@
 namespace tfnodejs {
 
 void ExecuteOp(napi_env env, napi_value context, const char* opName,
-               napi_value inputs, napi_value* result) {
+               napi_value inputs, napi_ref tensor_handle_class_ref, napi_value* result) {
   napi_status nstatus;
 
   // TODO - unwrap in the binding class.
@@ -67,7 +67,23 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   TFE_Execute(tfe_op, result_handles.data(), &num_retvals, tf_status.status);
   ENSURE_TF_OK(tf_status);
 
-  // TODO - rebind as TensorHandle?
+  // Wrap result in new handle
+  // TODO: Pass this instead:
+  napi_value tensor_handle_value;
+  nstatus = napi_get_reference_value(env, tensor_handle_class_ref, &tensor_handle_value);
+  ENSURE_NAPI_OK(nstatus);
+
+  nstatus = napi_new_instance(env, tensor_handle_value, 0, NULL, result);
+  ENSURE_NAPI_OK(nstatus);
+
+  // Unwrap and assign
+  TensorHandle* handle;
+  nstatus = napi_unwrap(env, *result, reinterpret_cast<void**>(&handle));
+  ENSURE_NAPI_OK(nstatus);
+
+  handle->handle = result_handles[0];
+  handle->tensor = TFE_TensorHandleResolve(result_handles[0], tf_status.status);
+  ENSURE_TF_OK(tf_status);
 }
 
 }  // namespace tfnodejs

@@ -38,6 +38,11 @@ void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
 //
 // TODO - doc me.
 //
+void InitPlaceholderTensorHandle(napi_env env, napi_value wrapped_value);
+
+//
+// TODO - doc me.
+//
 void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
                         napi_value typed_array_value);
 

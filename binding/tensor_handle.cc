@@ -81,6 +81,17 @@ void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
   ENSURE_NAPI_OK(nstatus);
 }
 
+void InitPlaceholderTensorHandle(napi_env env, napi_value wrapped_value) {
+  TensorHandle* handle = new TensorHandle();
+  handle->tensor = NULL;
+  handle->handle = NULL;
+  handle->env = env;
+
+  napi_status nstatus =
+      napi_wrap(env, wrapped_value, handle, Cleanup, NULL, NULL);
+  ENSURE_NAPI_OK(nstatus);
+}
+
 void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
                         napi_value typed_array_value) {
   napi_status nstatus;
