@@ -57,7 +57,9 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     ENSURE_TF_OK(tf_status);
   }
 
-  // For demo, hard code to 'Equal' op.
+  // For demo, hard code to 'MatMul' op.
+  TFE_OpSetAttrBool(tfe_op, "transpose_a", 0);
+  TFE_OpSetAttrBool(tfe_op, "transpose_b", 0);
   TFE_OpSetAttrType(tfe_op, "T", TF_FLOAT);
 
   int num_retvals = 1;
