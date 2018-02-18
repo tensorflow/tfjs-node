@@ -16,6 +16,7 @@
  */
 
 #include "tensor_handle.h"
+#include <cstring>
 #include <cstdlib>
 #include <iostream>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
