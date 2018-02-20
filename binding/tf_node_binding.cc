@@ -25,6 +25,19 @@ namespace tfnodejs {
 
 static napi_ref tensor_handle_class_ref;
 
+static void AssignIntProperty(napi_env env, napi_value exports,
+                              const char* name, int32_t value) {
+  napi_value js_value;
+  napi_status nstatus = napi_create_int32(env, value, &js_value);
+  ENSURE_NAPI_OK(nstatus);
+
+  napi_property_descriptor property = {name,         nullptr, nullptr,
+                                       nullptr,      nullptr, js_value,
+                                       napi_default, nullptr};
+  nstatus = napi_define_properties(env, exports, 1, &property);
+  ENSURE_NAPI_OK(nstatus);
+}
+
 static napi_value NewContext(napi_env env, napi_callback_info info) {
   AssertConstructorCall(env, info);
 
@@ -146,7 +159,8 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   ENSURE_NAPI_OK(nstatus);
 
   char op_name[NAPI_STRING_SIZE];
-  nstatus = napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE, NULL);
+  nstatus =
+      napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE, NULL);
   ENSURE_NAPI_OK(nstatus);
 
   // TODO op-attrs here.
@@ -183,7 +197,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   ENSURE_NAPI_OK(nstatus);
 
   // Class ref for Tensor Handle
-  nstatus = napi_create_reference(env, tensor_handle_class, 1, &tensor_handle_class_ref);
+  nstatus = napi_create_reference(env, tensor_handle_class, 1,
+                                  &tensor_handle_class_ref);
   ENSURE_NAPI_OK(nstatus);
 
   // TF version
@@ -191,18 +206,18 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   nstatus = napi_create_string_latin1(env, TF_Version(), -1, &tf_version);
   ENSURE_NAPI_OK(nstatus);
 
-  // TF Types supported by TFJS.
-  napi_value float32_type_value;
-  nstatus = napi_create_int32(env, TF_FLOAT, &float32_type_value);
-  ENSURE_NAPI_OK(nstatus);
+  // // TF Types supported by TFJS.
+  // napi_value float32_type_value;
+  // nstatus = napi_create_int32(env, TF_FLOAT, &float32_type_value);
+  // ENSURE_NAPI_OK(nstatus);
 
-  napi_value int32_type_value;
-  nstatus = napi_create_int32(env, TF_INT32, &int32_type_value);
-  ENSURE_NAPI_OK(nstatus);
+  // napi_value int32_type_value;
+  // nstatus = napi_create_int32(env, TF_INT32, &int32_type_value);
+  // ENSURE_NAPI_OK(nstatus);
 
-  napi_value bool_type_value;
-  nstatus = napi_create_int32(env, TF_BOOL, &bool_type_value);
-  ENSURE_NAPI_OK(nstatus);
+  // napi_value bool_type_value;
+  // nstatus = napi_create_int32(env, TF_BOOL, &bool_type_value);
+  // ENSURE_NAPI_OK(nstatus);
 
   // Set all export values list here.
   napi_property_descriptor exports_properties[] = {
@@ -210,18 +225,29 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       {"TensorHandle", NULL, NULL, NULL, NULL, tensor_handle_class,
        napi_default, NULL},
       {"execute", NULL, ExecuteTFE, NULL, NULL, NULL, napi_default, NULL},
-      {"TF_FLOAT", NULL, NULL, NULL, NULL, float32_type_value, napi_default,
-       NULL},
-      {"TF_INT32", NULL, NULL, NULL, NULL, int32_type_value, napi_default,
-       NULL},
-      {"TF_BOOL", NULL, NULL, NULL, NULL, bool_type_value, napi_default, NULL},
       {"TF_Version", NULL, NULL, NULL, NULL, tf_version, napi_default, NULL},
   };
-
-  // Properties list
   nstatus = napi_define_properties(env, exports, ARRAY_SIZE(exports_properties),
                                    exports_properties);
   ENSURE_NAPI_OK(nstatus);
+
+  // Export TF property types to JS
+#define EXPORT_INT_PROPERTY(v) AssignIntProperty(env, exports, #v, v)
+  // Types
+  EXPORT_INT_PROPERTY(TF_FLOAT);
+  EXPORT_INT_PROPERTY(TF_INT32);
+  EXPORT_INT_PROPERTY(TF_BOOL);
+
+  // Op AttrType
+  EXPORT_INT_PROPERTY(TF_ATTR_STRING);
+  EXPORT_INT_PROPERTY(TF_ATTR_INT);
+  EXPORT_INT_PROPERTY(TF_ATTR_BOOL);
+  EXPORT_INT_PROPERTY(TF_ATTR_TYPE);
+  EXPORT_INT_PROPERTY(TF_ATTR_SHAPE);
+  EXPORT_INT_PROPERTY(TF_ATTR_TENSOR);
+  EXPORT_INT_PROPERTY(TF_ATTR_PLACEHOLDER);
+  EXPORT_INT_PROPERTY(TF_ATTR_FUNC);
+#undef EXPORT_INT_PROPERTY
 
   return exports;
 }

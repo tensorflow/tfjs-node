@@ -1,6 +1,22 @@
+/**
+ * @license
+ * Copyright 2018 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
 
 declare class Context {
-    constructor();
+  constructor();
 }
 
 declare class TensorHandle {
@@ -14,27 +30,27 @@ declare class TensorHandle {
 }
 
 declare class TFEOpAttr {
-    name: string;
-    type: number;
-    value: number;
+  name: string;
+  type: number;
+  value: number;
 }
 
+// TF Types
 export const TF_FLOAT: number;
 export const TF_INT32: number;
 export const TF_BOOL: number;
 
+// TF OpAttrTypes
+export const TF_ATTR_STRING: number;
+export const TF_ATTR_INT: number;
+export const TF_ATTR_BOOL: number;
+export const TF_ATTR_TYPE: number;
+export const TF_ATTR_SHAPE: number;
+export const TF_ATTR_TENSOR: number;
+export const TF_ATTR_PLACEHOLDER: number;
+export const TF_ATTR_FUNC: number;
+
 export const TF_Version: string;
 
-export function execute(context: Context, op: string, inputs: TensorHandle[]): TensorHandle;
-
-export interface tfnodejs {
-    Context: typeof Context;
-    TensorHandle: typeof TensorHandle;
-    TFEOpAttr: typeof TFEOpAttr;
-
-    TF_FLOAT: typeof TF_FLOAT;
-    TF_INT32: typeof TF_INT32;
-    TF_BOOL: typeof TF_BOOL;
-
-    TF_Version: typeof TF_Version;
-}
+export function execute(
+    context: Context, op: string, inputs: TensorHandle[]): TensorHandle;
