@@ -26,12 +26,14 @@
 namespace tfnodejs {
 
 void Cleanup(napi_env env, void* data, void* hint) {
+  fprintf(stderr, "Cleanup()\n");
   //
   // TODO write me.
   //
 }
 
 void CleanupTensor(napi_env, void* data, void* hint) {
+  fprintf(stderr, "CleanupTensor()\n");
   //
   // TODO write me.
   //
