@@ -32,11 +32,7 @@ namespace tfnodejs {
 std::set<std::string> ATTR_NAME_SET;
 
 void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
-  // TODO - try at least printing this.
-
   napi_status nstatus;
-
-  fprintf(stderr, "HI FROM AssignOpAttr()\n");
 
   napi_value attr_name_value;
   nstatus = napi_get_named_property(env, attr_value, "name", &attr_name_value);
@@ -47,88 +43,82 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
                                        NAPI_STRING_SIZE, nullptr);
   ENSURE_NAPI_OK(nstatus);
 
-  fprintf(stderr, "attr_name_value: %s\n", attr_name_string);
+  // OpAttr will be used beyond the scope of this function call. Stash ops in a
+  // set for re-use instead of dynamically reallocating strings for operations.
+  const char* attr_name;
+  auto result = ATTR_NAME_SET.find(attr_name_string);
+  if (result == ATTR_NAME_SET.end()) {
+    auto insert_result = ATTR_NAME_SET.insert(std::string(attr_name_string));
+    // TODO assert success?
+    result = insert_result.first;
+  }
+  attr_name = (*result).c_str();
+  fprintf(stderr, "attr_name: %s\n", attr_name);
 
-  // napi_value attr_name_value;
-  // nstatus = napi_get_element(env, attr_value, 0, &attr_name_value);
-  // ENSURE_NAPI_OK(nstatus);
+  napi_value attr_type_value;
+  nstatus = napi_get_named_property(env, attr_value, "type", &attr_type_value);
+  ENSURE_NAPI_OK(nstatus);
 
+  TF_AttrType tf_attr_type;
+  nstatus = napi_get_value_int32(env, attr_type_value,
+                                 reinterpret_cast<int32_t*>(&tf_attr_type));
+  ENSURE_NAPI_OK(nstatus);
 
-  // // OpAttr will be used beyond the scope of this function call. Stash ops in a
-  // // set for re-use instead of dynamically reallocating strings for operations.
-  // const char* attr_name;
-  // auto result = ATTR_NAME_SET.find(attr_name_string);
-  // if (result == ATTR_NAME_SET.end()) {
-  //   auto insert_result =
-  //       ATTR_NAME_SET.insert(std::move(std::string(attr_name_string)));
-  //   // TODO assert success?
-  //   result = insert_result.first;
-  // }
-  // attr_name = (*result).c_str();
+  napi_value type_input_value;
+  nstatus =
+      napi_get_named_property(env, attr_value, "value", &type_input_value);
+  ENSURE_NAPI_OK(nstatus);
 
-  // napi_value attr_type_value;
-  // nstatus = napi_get_element(env, attr_value, 1, &attr_type_value);
-  // ENSURE_NAPI_OK(nstatus);
+  switch (tf_attr_type) {
+    case TF_ATTR_STRING:
+      fprintf(stderr, "Implement TF_ATTR_STRING!\n");
+      exit(1);
 
-  // TF_AttrType tf_attr_type;
-  // nstatus = napi_get_value_int32(env, attr_type_value,
-  //                                reinterpret_cast<int32_t*>(&tf_attr_type));
-  // ENSURE_NAPI_OK(nstatus);
+    case TF_ATTR_INT: {
+      int64_t value;
+      nstatus = napi_get_value_int64(env, type_input_value, &value);
+      ENSURE_NAPI_OK(nstatus);
 
-  // napi_value attr_type_input_value;
-  // nstatus = napi_get_element(env, attr_value, 2, &attr_type_input_value);
-  // ENSURE_NAPI_OK(nstatus);
+      TFE_OpSetAttrInt(tfe_op, attr_name, value);
+      break;
+    }
 
-  // switch (tf_attr_type) {
-  //   case TF_ATTR_STRING:
-  //     fprintf(stderr, "Implement TF_ATTR_STRING!\n");
-  //     exit(1);
+    case TF_ATTR_BOOL: {
+      bool value;
+      nstatus = napi_get_value_bool(env, type_input_value, &value);
+      ENSURE_NAPI_OK(nstatus);
 
-  //   case TF_ATTR_INT: {
-  //     int64_t value;
-  //     nstatus = napi_get_value_int64(env, attr_type_input_value, &value);
-  //     ENSURE_NAPI_OK(nstatus);
+      TFE_OpSetAttrBool(tfe_op, attr_name, value);
+      break;
+    }
 
-  //     TFE_OpSetAttrInt(tfe_op, attr_name, value);
-  //     break;
-  //   }
+    case TF_ATTR_TYPE: {
+      TF_DataType tf_data_type;
+      nstatus = napi_get_value_int32(env, type_input_value,
+                                     reinterpret_cast<int32_t*>(&tf_data_type));
+      ENSURE_NAPI_OK(nstatus);
 
-  //   case TF_ATTR_BOOL: {
-  //     bool value;
-  //     nstatus = napi_get_value_bool(env, attr_type_input_value, &value);
-  //     ENSURE_NAPI_OK(nstatus);
+      TFE_OpSetAttrType(tfe_op, attr_name, tf_data_type);
+      break;
+    }
 
-  //     TFE_OpSetAttrBool(tfe_op, attr_name, value);
-  //     break;
-  //   }
-
-  //   case TF_ATTR_TYPE: {
-  //     TF_DataType tf_data_type;
-  //     nstatus = napi_get_value_int32(env, attr_type_input_value,
-  //                                    reinterpret_cast<int32_t*>(&tf_data_type));
-  //     ENSURE_NAPI_OK(nstatus);
-
-  //     TFE_OpSetAttrType(tfe_op, attr_name, tf_data_type);
-  //     break;
-  //   }
-
-  //   case TF_ATTR_SHAPE:
-  //     fprintf(stderr, "Implement TF_ATTR_SHAPE!\n");
-  //     exit(1);
-  //   case TF_ATTR_TENSOR:
-  //     fprintf(stderr, "Implement TF_ATTR_TENSOR!\n");
-  //     exit(1);
-  //   case TF_ATTR_PLACEHOLDER:
-  //     fprintf(stderr, "Implement TF_ATTR_PLACEHOLDER!\n");
-  //     exit(1);
-  //   case TF_ATTR_FUNC:
-  //     fprintf(stderr, "Implement TF_ATTR_FUNC!\n");
-  //     exit(1);
-  //   default:
-  //     fprintf(stderr, "Implement TYPE!\n");
-  //     exit(1);
-  //     break;
-  // }
+    case TF_ATTR_SHAPE:
+      fprintf(stderr, "Implement TF_ATTR_SHAPE!\n");
+      exit(1);
+    case TF_ATTR_TENSOR:
+      fprintf(stderr, "Implement TF_ATTR_TENSOR!\n");
+      exit(1);
+    case TF_ATTR_PLACEHOLDER:
+      fprintf(stderr, "Implement TF_ATTR_PLACEHOLDER!\n");
+      exit(1);
+    case TF_ATTR_FUNC:
+      fprintf(stderr, "Implement TF_ATTR_FUNC!\n");
+      exit(1);
+    default:
+      fprintf(stderr, "Implement TYPE!\n");
+      exit(1);
+      break;
+  }
 }
 
 void ExecuteOp(napi_env env, napi_value context, const char* opName,
@@ -174,11 +164,6 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
 
     AssignOpAttr(env, tfe_op, cur_op_attr);
   }
-  
-  // // For demo, hard code to 'MatMul' op.
-  // TFE_OpSetAttrBool(tfe_op, "transpose_a", 0);
-  // TFE_OpSetAttrBool(tfe_op, "transpose_b", 0);
-  // TFE_OpSetAttrType(tfe_op, "T", TF_FLOAT);
 
   int num_retvals = 1;
   std::vector<TFE_TensorHandle*> result_handles;
