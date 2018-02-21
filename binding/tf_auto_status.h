@@ -29,7 +29,6 @@ namespace tfnodejs {
 class TF_AutoStatus {
  public:
   TF_AutoStatus() : status(TF_NewStatus()) {}
-
   virtual ~TF_AutoStatus() { TF_DeleteStatus(status); }
 
   TF_Status* status;
