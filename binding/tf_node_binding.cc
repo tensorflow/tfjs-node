@@ -163,12 +163,13 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
       napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE, NULL);
   ENSURE_NAPI_OK(nstatus);
 
-  // TODO op-attrs here.
-
   napi_value result;
-  fprintf(stderr, "---> Execute()\n");
-  ExecuteOp(env, args[0], op_name, args[2], args[3], tensor_handle_class_ref,
-            &result);
+  ExecuteOp(env,
+            args[0],  // TFE_Context wrapper
+            op_name,
+            args[2],  // TFEOpAttr array
+            args[3],  // TensorHandle array
+            tensor_handle_class_ref, &result);
   return result;
 }
 
