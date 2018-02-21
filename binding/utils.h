@@ -42,12 +42,9 @@ static inline void ENSURE_NAPI_OK(napi_status status) {
 
 // TODO Make this a macro
 static inline void ENSURE_TF_OK(TF_AutoStatus& status) {
-  /* ENSURE_TF_OK(status.status); */
-}
-static inline void ENSURE_TF_OK(TF_Status* status) {
-  if (TF_GetCode(status) != TF_OK) {
-    printf(">>> INVALID TF_Status: %d\n", TF_GetCode(status));
-    printf("%s\n", TF_Message(status));
+  if (TF_GetCode(status.status) != TF_OK) {
+    printf(">>> INVALID TF_Status: %d\n", TF_GetCode(status.status));
+    printf("%s\n", TF_Message(status.status));
     std::exit(1);
   }
 }
