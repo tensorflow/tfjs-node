@@ -123,7 +123,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
 void ExecuteOp(napi_env env, napi_value context, const char* opName,
                napi_value op_attr_inputs, napi_value inputs,
-               napi_ref tensor_handle_class_ref, napi_value* result) {
+               napi_value output_tensor, napi_value* result) {
   napi_status nstatus;
 
   // TODO - unwrap in the binding class.
@@ -172,19 +172,9 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   TFE_Execute(tfe_op, result_handles.data(), &num_retvals, tf_status.status);
   ENSURE_TF_OK(tf_status);
 
-  // Wrap result in new handle
-  // TODO: Pass this instead:
-  napi_value tensor_handle_value;
-  nstatus = napi_get_reference_value(env, tensor_handle_class_ref,
-                                     &tensor_handle_value);
-  ENSURE_NAPI_OK(nstatus);
-
-  nstatus = napi_new_instance(env, tensor_handle_value, 0, NULL, result);
-  ENSURE_NAPI_OK(nstatus);
-
   // Unwrap and assign
   TensorHandle* handle;
-  nstatus = napi_unwrap(env, *result, reinterpret_cast<void**>(&handle));
+  nstatus = napi_unwrap(env, output_tensor, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(nstatus);
 
   handle->handle = result_handles[0];

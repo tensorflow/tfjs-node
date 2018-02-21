@@ -55,4 +55,4 @@ export const TF_Version: string;
 
 export function execute(
     context: Context, op: string, op_attrs: TFEOpAttr[],
-    inputs: TensorHandle[]): TensorHandle;
+    inputs: TensorHandle[], output: TensorHandle): TensorHandle;

@@ -23,8 +23,6 @@
 
 namespace tfnodejs {
 
-static napi_ref tensor_handle_class_ref;
-
 static void AssignIntProperty(napi_env env, napi_value exports,
                               const char* name, int32_t value) {
   napi_value js_value;
@@ -152,11 +150,13 @@ static napi_value GetTensorHandleDtype(napi_env env, napi_callback_info info) {
 static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
-  size_t argc = 4;
+  size_t argc = 5;
   napi_value args[argc];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, NULL);
   ENSURE_NAPI_OK(nstatus);
+
+  // TODO - assert that the proper number of values is passed in.
 
   char op_name[NAPI_STRING_SIZE];
   nstatus =
@@ -169,7 +169,8 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
             op_name,
             args[2],  // TFEOpAttr array
             args[3],  // TensorHandle array
-            tensor_handle_class_ref, &result);
+            args[4],  // Output TensorHandle.
+            &result);
   return result;
 }
 
@@ -197,11 +198,6 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       napi_define_class(env, "TensorHandle", NAPI_AUTO_LENGTH, NewTensorHandle,
                         NULL, ARRAY_SIZE(tensor_handle_properties),
                         tensor_handle_properties, &tensor_handle_class);
-  ENSURE_NAPI_OK(nstatus);
-
-  // Class ref for Tensor Handle
-  nstatus = napi_create_reference(env, tensor_handle_class, 1,
-                                  &tensor_handle_class_ref);
   ENSURE_NAPI_OK(nstatus);
 
   // TF version
