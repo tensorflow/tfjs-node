@@ -152,7 +152,7 @@ static napi_value GetTensorHandleDtype(napi_env env, napi_callback_info info) {
 static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
-  size_t argc = 3;
+  size_t argc = 4;
   napi_value args[argc];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, NULL);
@@ -166,7 +166,8 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   // TODO op-attrs here.
 
   napi_value result;
-  ExecuteOp(env, args[0], op_name, args[2], tensor_handle_class_ref, &result);
+  fprintf(stderr, "---> Execute()\n");
+  ExecuteOp(env, args[0], op_name, args[2], args[3], tensor_handle_class_ref, &result);
   return result;
 }
 
@@ -205,19 +206,6 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_value tf_version;
   nstatus = napi_create_string_latin1(env, TF_Version(), -1, &tf_version);
   ENSURE_NAPI_OK(nstatus);
-
-  // // TF Types supported by TFJS.
-  // napi_value float32_type_value;
-  // nstatus = napi_create_int32(env, TF_FLOAT, &float32_type_value);
-  // ENSURE_NAPI_OK(nstatus);
-
-  // napi_value int32_type_value;
-  // nstatus = napi_create_int32(env, TF_INT32, &int32_type_value);
-  // ENSURE_NAPI_OK(nstatus);
-
-  // napi_value bool_type_value;
-  // nstatus = napi_create_int32(env, TF_BOOL, &bool_type_value);
-  // ENSURE_NAPI_OK(nstatus);
 
   // Set all export values list here.
   napi_property_descriptor exports_properties[] = {
