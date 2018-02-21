@@ -42,7 +42,7 @@ static napi_value NewContext(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
   napi_value js_this;
-  nstatus = napi_get_cb_info(env, info, 0, NULL, &js_this, NULL);
+  nstatus = napi_get_cb_info(env, info, 0, nullptr, &js_this, nullptr);
   ENSURE_NAPI_OK(nstatus);
 
   InitAndBindTFEContextEnv(env, js_this);
@@ -58,7 +58,7 @@ static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
   size_t argc = 2;
   napi_value args[argc];
   napi_value js_this;
-  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, NULL);
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK(nstatus);
 
   // If the constructor was created w/o any arguments - it is from an internal
@@ -102,7 +102,7 @@ static napi_value SetTensorHandleBuffer(napi_env env, napi_callback_info info) {
   napi_value typed_array_value;
   napi_value js_this;
   nstatus =
-      napi_get_cb_info(env, info, &argc, &typed_array_value, &js_this, NULL);
+      napi_get_cb_info(env, info, &argc, &typed_array_value, &js_this, nullptr);
   ENSURE_NAPI_OK(nstatus);
 
   AssertValueIsTypedArray(env, typed_array_value);
@@ -115,7 +115,7 @@ static napi_value GetTensorHandleData(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
   napi_value js_this;
-  nstatus = napi_get_cb_info(env, info, 0, NULL, &js_this, NULL);
+  nstatus = napi_get_cb_info(env, info, 0, nullptr, &js_this, nullptr);
   ENSURE_NAPI_OK(nstatus);
 
   napi_value result;
@@ -127,7 +127,7 @@ static napi_value GetTensorHandleShape(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
   napi_value js_this;
-  nstatus = napi_get_cb_info(env, info, 0, NULL, &js_this, NULL);
+  nstatus = napi_get_cb_info(env, info, 0, nullptr, &js_this, nullptr);
   ENSURE_NAPI_OK(nstatus);
 
   napi_value result;
@@ -139,7 +139,7 @@ static napi_value GetTensorHandleDtype(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
   napi_value js_this;
-  nstatus = napi_get_cb_info(env, info, 0, NULL, &js_this, NULL);
+  nstatus = napi_get_cb_info(env, info, 0, nullptr, &js_this, nullptr);
   ENSURE_NAPI_OK(nstatus);
 
   napi_value result;
@@ -153,14 +153,14 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   size_t argc = 5;
   napi_value args[argc];
   napi_value js_this;
-  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, NULL);
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK(nstatus);
 
   // TODO - assert that the proper number of values is passed in.
 
   char op_name[NAPI_STRING_SIZE];
   nstatus =
-      napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE, NULL);
+      napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE, nullptr);
   ENSURE_NAPI_OK(nstatus);
 
   napi_value result;
@@ -180,23 +180,23 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   // TFE Context class
   napi_value context_class;
   nstatus = napi_define_class(env, "Context", NAPI_AUTO_LENGTH, NewContext,
-                              NULL, 0, NULL, &context_class);
+                              nullptr, 0, nullptr, &context_class);
   ENSURE_NAPI_OK(nstatus);
 
   // Tensor Handle class
   napi_property_descriptor tensor_handle_properties[] = {
-      {"bindBuffer", NULL, SetTensorHandleBuffer, NULL, NULL, NULL,
-       napi_default, NULL},
-      {"data", NULL, GetTensorHandleData, NULL, NULL, NULL, napi_default, NULL},
-      {"shape", NULL, NULL, GetTensorHandleShape, NULL, NULL, napi_default,
-       NULL},
-      {"dtype", NULL, NULL, GetTensorHandleDtype, NULL, NULL, napi_default,
-       NULL}};
+      {"bindBuffer", nullptr, SetTensorHandleBuffer, nullptr, nullptr, nullptr,
+       napi_default, nullptr},
+      {"data", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr, napi_default, nullptr},
+      {"shape", nullptr, nullptr, GetTensorHandleShape, nullptr, nullptr, napi_default,
+       nullptr},
+      {"dtype", nullptr, nullptr, GetTensorHandleDtype, nullptr, nullptr, napi_default,
+       nullptr}};
 
   napi_value tensor_handle_class;
   nstatus =
       napi_define_class(env, "TensorHandle", NAPI_AUTO_LENGTH, NewTensorHandle,
-                        NULL, ARRAY_SIZE(tensor_handle_properties),
+                        nullptr, ARRAY_SIZE(tensor_handle_properties),
                         tensor_handle_properties, &tensor_handle_class);
   ENSURE_NAPI_OK(nstatus);
 
@@ -207,11 +207,11 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
 
   // Set all export values list here.
   napi_property_descriptor exports_properties[] = {
-      {"Context", NULL, NULL, NULL, NULL, context_class, napi_default, NULL},
-      {"TensorHandle", NULL, NULL, NULL, NULL, tensor_handle_class,
-       napi_default, NULL},
-      {"execute", NULL, ExecuteTFE, NULL, NULL, NULL, napi_default, NULL},
-      {"TF_Version", NULL, NULL, NULL, NULL, tf_version, napi_default, NULL},
+      {"Context", nullptr, nullptr, nullptr, nullptr, context_class, napi_default, nullptr},
+      {"TensorHandle", nullptr, nullptr, nullptr, nullptr, tensor_handle_class,
+       napi_default, nullptr},
+      {"execute", nullptr, ExecuteTFE, nullptr, nullptr, nullptr, napi_default, nullptr},
+      {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version, napi_default, nullptr},
   };
   nstatus = napi_define_properties(env, exports, ARRAY_SIZE(exports_properties),
                                    exports_properties);

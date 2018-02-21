@@ -57,7 +57,7 @@ static inline void AssertConstructorCall(napi_env env,
   napi_value js_target;
   napi_status nstatus = napi_get_new_target(env, info, &js_target);
   ENSURE_NAPI_OK(nstatus);
-  if (js_target == NULL) {
+  if (js_target == nullptr) {
     printf(">>> Function not used as a constructor\n");
     std::exit(1);
   }
