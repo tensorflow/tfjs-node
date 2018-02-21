@@ -167,7 +167,8 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
 
   napi_value result;
   fprintf(stderr, "---> Execute()\n");
-  ExecuteOp(env, args[0], op_name, args[2], args[3], tensor_handle_class_ref, &result);
+  ExecuteOp(env, args[0], op_name, args[2], args[3], tensor_handle_class_ref,
+            &result);
   return result;
 }
 

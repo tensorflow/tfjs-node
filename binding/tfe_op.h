@@ -18,8 +18,6 @@
 #ifndef TF_NODEJS_TENSOR_BINDING_H_
 #define TF_NODEJS_TENSOR_BINDING_H_
 
-namespace tfnodejs {
-
-}
+namespace tfnodejs {}
 
 #endif  // TF_NODEJS_TENSOR_BINDING_H_

@@ -16,8 +16,8 @@
  */
 
 #include "tensor_handle.h"
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 #include "tf_auto_status.h"
@@ -171,8 +171,9 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   }
 
   napi_value array_buffer_value;
-  nstatus = napi_create_external_arraybuffer(
-      env, data, byte_length, CleanupTensor, handle->tensor, &array_buffer_value);
+  nstatus =
+      napi_create_external_arraybuffer(env, data, byte_length, CleanupTensor,
+                                       handle->tensor, &array_buffer_value);
   ENSURE_NAPI_OK(nstatus);
 
   nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
