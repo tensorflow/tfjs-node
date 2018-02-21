@@ -127,8 +127,6 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
   ENSURE_NAPI_OK(nstatus);
 
   memcpy(TF_TensorData(handle->tensor), array_data, array_length * width);
-
-  // TODO - auto-ref the typed-array...
 }
 
 void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
