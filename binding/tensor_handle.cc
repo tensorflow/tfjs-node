@@ -54,8 +54,8 @@ void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
       byte_size = sizeof(uint8_t);
       break;
     default:
-      printf("--> Invalid dtype %d\n", dtype);
-      std::exit(1);
+      REPORT_UNKNOWN_TF_DATA_TYPE(dtype);
+      break;
   }
 
   // Determine the size of the buffer based on the dimensions.
@@ -118,8 +118,7 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
       width = sizeof(uint8_t);
       break;
     default:
-      printf("--> Invalid array type %d\n", array_type);
-      std::exit(1);
+      REPORT_UNKNOWN_TYPED_ARRAY_TYPE(array_type);
       break;
   }
 
@@ -152,8 +151,7 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
       array_type = napi_uint8_array;
       break;
     default:
-      printf("--> Invalid TF_Type type %d\n", TF_TensorType(handle->tensor));
-      std::exit(1);
+      REPORT_UNKNOWN_TF_DATA_TYPE(TF_TensorType(handle->tensor));
       break;
   }
 

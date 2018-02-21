@@ -114,6 +114,45 @@ inline void EnsureValueIsLessThan(uint32_t value, uint32_t max,
   }
 }
 
+#define REPORT_UNKNOWN_TF_DATA_TYPE(type) \
+  ReportUnknownTFDataType(type, __FILE__, __LINE__)
+
+inline void ReportUnknownTFDataType(TF_DataType type, const char* file,
+                                    const size_t lineNumber) {
+  fprintf(stderr, "** Unhandled TF_DataType: %d:\n", type);
+  fprintf(stderr, "- %s:%lu\n", file, lineNumber);
+  std::exit(1);
+}
+
+#define REPORT_UNKNOWN_TF_ATTR_TYPE(type) \
+  ReportUnknownTFAttrType(type, __FILE__, __LINE__)
+
+inline void ReportUnknownTFAttrType(TF_AttrType type, const char* file,
+                                    const size_t lineNumber) {
+  fprintf(stderr, "** Unhandled TF_AttrType: %d:\n", type);
+  fprintf(stderr, "- %s:%lu\n", file, lineNumber);
+  std::exit(1);
+}
+
+#define REPORT_UNKNOWN_TYPED_ARRAY_TYPE(type) \
+  ReportUnknownTypedArrayType(type, __FILE__, __LINE__)
+
+inline void ReportUnknownTypedArrayType(napi_typedarray_type type,
+                                        const char* file,
+                                        const size_t lineNumber) {
+  fprintf(stderr, "** Unhandled napi typed_array_type: %d:\n", type);
+  fprintf(stderr, "- %s:%lu\n", file, lineNumber);
+  std::exit(1);
+}
+
+#define REPORT_UNIMPLEMENTED_OPERATION(message) ReportUnimplementedOperation(message, __FILE__, __LINE__)
+
+inline void ReportUnimplementedOperation(const char* message, const char* file, const size_t lineNumber) {
+  fprintf(stderr, "** Unhandled operation: %s:\n", message);
+  fprintf(stderr, "- %s:%lu\n", file, lineNumber);
+  std::exit(1);
+}
+
 }  // namespace tfnodejs
 
 #endif  // TF_NODEJS_UTILS_H_

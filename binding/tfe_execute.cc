@@ -70,8 +70,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
   switch (tf_attr_type) {
     case TF_ATTR_STRING:
-      fprintf(stderr, "Implement TF_ATTR_STRING!\n");
-      exit(1);
+      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_STRING");
+      break;
 
     case TF_ATTR_INT: {
       int64_t value;
@@ -102,20 +102,19 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_SHAPE:
-      fprintf(stderr, "Implement TF_ATTR_SHAPE!\n");
-      exit(1);
+      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_SHAPE");
+      break;
     case TF_ATTR_TENSOR:
-      fprintf(stderr, "Implement TF_ATTR_TENSOR!\n");
-      exit(1);
+      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_TENSOR");
+      break;
     case TF_ATTR_PLACEHOLDER:
-      fprintf(stderr, "Implement TF_ATTR_PLACEHOLDER!\n");
-      exit(1);
+      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_PLACEHOLDER");
+      break;
     case TF_ATTR_FUNC:
-      fprintf(stderr, "Implement TF_ATTR_FUNC!\n");
-      exit(1);
+      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_FUNC");
+      break;
     default:
-      fprintf(stderr, "Implement TYPE!\n");
-      exit(1);
+      REPORT_UNKNOWN_TF_ATTR_TYPE(tf_attr_type);
       break;
   }
 }
@@ -125,7 +124,6 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
                napi_value output_tensor, napi_value* result) {
   napi_status nstatus;
 
-  // TODO - unwrap in the binding class.
   TFEContextEnv* context_env;
   nstatus = napi_unwrap(env, context, reinterpret_cast<void**>(&context_env));
   ENSURE_NAPI_OK(env, nstatus);
@@ -134,7 +132,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   TFE_Op* tfe_op = TFE_NewOp(context_env->context, opName, tf_status.status);
   ENSURE_TF_OK(tf_status);
 
-  // Assign input (unwrap in binding?)
+  // Assign inputs
   uint32_t inputs_length;
   nstatus = napi_get_array_length(env, inputs, &inputs_length);
   ENSURE_NAPI_OK(env, nstatus);
