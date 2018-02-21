@@ -31,9 +31,11 @@
 
 namespace tfnodejs {
 
-#define ENSURE_NAPI_OK(env, status) EnsureNapiOK(env, status, __FILE__, __LINE__)
+#define ENSURE_NAPI_OK(env, status) \
+  EnsureNapiOK(env, status, __FILE__, __LINE__)
 
-inline void EnsureNapiOK(napi_env env, napi_status status, const char* file, const size_t lineNumber) {
+inline void EnsureNapiOK(napi_env env, napi_status status, const char* file,
+                         const size_t lineNumber) {
   if (status != napi_ok) {
     const napi_extended_error_info* error_info = 0;
     napi_get_last_error_info(env, &error_info);
@@ -47,7 +49,8 @@ inline void EnsureNapiOK(napi_env env, napi_status status, const char* file, con
 
 #define ENSURE_TF_OK(status) EnsureTFOK(status, __FILE__, __LINE__)
 
-inline void EnsureTFOK(TF_AutoStatus& status, const char* file, const size_t lineNumber) {
+inline void EnsureTFOK(TF_AutoStatus& status, const char* file,
+                       const size_t lineNumber) {
   if (TF_GetCode(status.status) != TF_OK) {
     printf("** INVALID TF_Status: %d\n", TF_GetCode(status.status));
     printf("- %s\n", TF_Message(status.status));

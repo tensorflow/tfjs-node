@@ -44,7 +44,8 @@ void InitAndBindTFEContextEnv(napi_env env, napi_value value) {
   tfe_context_env->context = tfe_context;
   tfe_context_env->env = env;
 
-  ENSURE_NAPI_OK(env, napi_wrap(env, value, tfe_context_env, Cleanup, nullptr, nullptr));
+  ENSURE_NAPI_OK(
+      env, napi_wrap(env, value, tfe_context_env, Cleanup, nullptr, nullptr));
 }
 
 }  // namespace tfnodejs

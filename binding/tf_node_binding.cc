@@ -159,8 +159,8 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   // TODO - assert that the proper number of values is passed in.
 
   char op_name[NAPI_STRING_SIZE];
-  nstatus =
-      napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE, nullptr);
+  nstatus = napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE,
+                                       nullptr);
   ENSURE_NAPI_OK(env, nstatus);
 
   napi_value result;
@@ -187,11 +187,12 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_property_descriptor tensor_handle_properties[] = {
       {"bindBuffer", nullptr, SetTensorHandleBuffer, nullptr, nullptr, nullptr,
        napi_default, nullptr},
-      {"data", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr, napi_default, nullptr},
-      {"shape", nullptr, nullptr, GetTensorHandleShape, nullptr, nullptr, napi_default,
-       nullptr},
-      {"dtype", nullptr, nullptr, GetTensorHandleDtype, nullptr, nullptr, napi_default,
-       nullptr}};
+      {"data", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr,
+       napi_default, nullptr},
+      {"shape", nullptr, nullptr, GetTensorHandleShape, nullptr, nullptr,
+       napi_default, nullptr},
+      {"dtype", nullptr, nullptr, GetTensorHandleDtype, nullptr, nullptr,
+       napi_default, nullptr}};
 
   napi_value tensor_handle_class;
   nstatus =
@@ -207,11 +208,14 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
 
   // Set all export values list here.
   napi_property_descriptor exports_properties[] = {
-      {"Context", nullptr, nullptr, nullptr, nullptr, context_class, napi_default, nullptr},
+      {"Context", nullptr, nullptr, nullptr, nullptr, context_class,
+       napi_default, nullptr},
       {"TensorHandle", nullptr, nullptr, nullptr, nullptr, tensor_handle_class,
        napi_default, nullptr},
-      {"execute", nullptr, ExecuteTFE, nullptr, nullptr, nullptr, napi_default, nullptr},
-      {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version, napi_default, nullptr},
+      {"execute", nullptr, ExecuteTFE, nullptr, nullptr, nullptr, napi_default,
+       nullptr},
+      {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version,
+       napi_default, nullptr},
   };
   nstatus = napi_define_properties(env, exports, ARRAY_SIZE(exports_properties),
                                    exports_properties);

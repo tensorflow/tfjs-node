@@ -101,8 +101,9 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
   napi_typedarray_type array_type;
   size_t array_length;
   void* array_data;
-  nstatus = napi_get_typedarray_info(env, typed_array_value, &array_type,
-                                     &array_length, &array_data, nullptr, nullptr);
+  nstatus =
+      napi_get_typedarray_info(env, typed_array_value, &array_type,
+                               &array_length, &array_data, nullptr, nullptr);
   ENSURE_NAPI_OK(env, nstatus);
 
   size_t width;
