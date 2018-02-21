@@ -53,7 +53,6 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
     result = insert_result.first;
   }
   attr_name = (*result).c_str();
-  fprintf(stderr, "attr_name: %s\n", attr_name);
 
   napi_value attr_type_value;
   nstatus = napi_get_named_property(env, attr_value, "type", &attr_type_value);
