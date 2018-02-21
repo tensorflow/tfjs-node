@@ -37,7 +37,7 @@ static void AssignIntProperty(napi_env env, napi_value exports,
 }
 
 static napi_value NewContext(napi_env env, napi_callback_info info) {
-  AssertConstructorCall(env, info);
+  ENSURE_CONSTRUCTOR_CALL(env, info);
 
   napi_status nstatus;
 
@@ -50,7 +50,7 @@ static napi_value NewContext(napi_env env, napi_callback_info info) {
 }
 
 static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
-  AssertConstructorCall(env, info);
+  ENSURE_CONSTRUCTOR_CALL(env, info);
 
   napi_status nstatus;
 
@@ -69,11 +69,11 @@ static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
   }
 
   napi_value shape_value = args[0];
-  AssertValueIsArray(env, shape_value);
+  ENSURE_VALUE_IS_ARRAY(env, shape_value);
 
   uint32_t shape_length;
   nstatus = napi_get_array_length(env, shape_value, &shape_length);
-  AssertValueIsLessThan(shape_length, MAX_TENSOR_SHAPE);
+  ENSURE_VALUE_IS_LESS_THAN(shape_length, MAX_TENSOR_SHAPE);
 
   int64_t shape[shape_length];
   for (uint32_t i = 0; i < shape_length; i++) {
@@ -105,7 +105,7 @@ static napi_value SetTensorHandleBuffer(napi_env env, napi_callback_info info) {
       napi_get_cb_info(env, info, &argc, &typed_array_value, &js_this, nullptr);
   ENSURE_NAPI_OK(env, nstatus);
 
-  AssertValueIsTypedArray(env, typed_array_value);
+  ENSURE_VALUE_IS_TYPED_ARRAY(env, typed_array_value);
   BindTensorJSBuffer(env, js_this, typed_array_value);
 
   return js_this;

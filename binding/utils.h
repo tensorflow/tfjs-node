@@ -52,44 +52,56 @@ inline void EnsureNapiOK(napi_env env, napi_status status, const char* file,
 inline void EnsureTFOK(TF_AutoStatus& status, const char* file,
                        const size_t lineNumber) {
   if (TF_GetCode(status.status) != TF_OK) {
-    printf("** INVALID TF_Status: %d\n", TF_GetCode(status.status));
-    printf("- %s\n", TF_Message(status.status));
-    printf("- %s:%lu\n", file, lineNumber);
+    fprintf(stderr, "** INVALID TF_Status: %d\n", TF_GetCode(status.status));
+    fprintf(stderr, "- %s\n", TF_Message(status.status));
+    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
     std::exit(1);
   }
 }
 
-inline void AssertConstructorCall(napi_env env, napi_callback_info info) {
+#define ENSURE_CONSTRUCTOR_CALL(env, nstatus) EnsureConstructorCall(env, info, __FILE__, __LINE__)
+
+inline void EnsureConstructorCall(napi_env env, napi_callback_info info, const char* file, const size_t lineNumber) {
   napi_value js_target;
   napi_status nstatus = napi_get_new_target(env, info, &js_target);
   ENSURE_NAPI_OK(env, nstatus);
   if (js_target == nullptr) {
-    printf(">>> Function not used as a constructor\n");
+    fprintf(stderr, "** Function not used as a constructor!\n");
+    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
     std::exit(1);
   }
 }
 
-inline void AssertValueIsArray(napi_env env, napi_value value) {
+#define ENSURE_VALUE_IS_ARRAY(env, value) EnsureValueIsArray(env, value, __FILE__, __LINE__)
+
+inline void EnsureValueIsArray(napi_env env, napi_value value, const char* file, const size_t lineNumber) {
   bool is_array;
   ENSURE_NAPI_OK(env, napi_is_array(env, value, &is_array));
   if (!is_array) {
-    printf(">>> Argument is not an array!\n");
+    fprintf(stderr, "** Argument is not an array!\n");
+    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
     std::exit(1);
   }
 }
 
-inline void AssertValueIsTypedArray(napi_env env, napi_value value) {
+#define ENSURE_VALUE_IS_TYPED_ARRAY(env, value) EnsureValueIsTypedArray(env, value, __FILE__, __LINE__)
+
+inline void EnsureValueIsTypedArray(napi_env env, napi_value value, const char* file, const size_t lineNumber) {
   bool is_array;
   ENSURE_NAPI_OK(env, napi_is_typedarray(env, value, &is_array));
   if (!is_array) {
-    printf(">>> Argument is not a typed-array!\n");
+    fprintf(stderr, "** Argument is not a typed-array!\n");
+    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
     std::exit(1);
   }
 }
 
-inline void AssertValueIsLessThan(uint32_t value, uint32_t max) {
+#define ENSURE_VALUE_IS_LESS_THAN(value, max) EnsureValueIsLessThan(value, max, __FILE__, __LINE__)
+
+inline void EnsureValueIsLessThan(uint32_t value, uint32_t max, const char* file, const size_t lineNumber) {
   if (value > max) {
-    printf(">>> Argument is greater than max: %d > %d!\n", value, max);
+    fprintf(stderr, "** Argument is greater than max: %d > %d!\n", value, max);
+    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
     std::exit(1);
   }
 }
