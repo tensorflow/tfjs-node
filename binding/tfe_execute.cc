@@ -36,12 +36,12 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
   napi_value attr_name_value;
   nstatus = napi_get_named_property(env, attr_value, "name", &attr_name_value);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   char attr_name_string[NAPI_STRING_SIZE];
   nstatus = napi_get_value_string_utf8(env, attr_name_value, attr_name_string,
                                        NAPI_STRING_SIZE, nullptr);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   // OpAttr will be used beyond the scope of this function call. Stash ops in a
   // set for re-use instead of dynamically reallocating strings for operations.
@@ -56,17 +56,17 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
   napi_value attr_type_value;
   nstatus = napi_get_named_property(env, attr_value, "type", &attr_type_value);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   TF_AttrType tf_attr_type;
   nstatus = napi_get_value_int32(env, attr_type_value,
                                  reinterpret_cast<int32_t*>(&tf_attr_type));
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   napi_value type_input_value;
   nstatus =
       napi_get_named_property(env, attr_value, "value", &type_input_value);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   switch (tf_attr_type) {
     case TF_ATTR_STRING:
@@ -76,7 +76,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
     case TF_ATTR_INT: {
       int64_t value;
       nstatus = napi_get_value_int64(env, type_input_value, &value);
-      ENSURE_NAPI_OK(nstatus);
+      ENSURE_NAPI_OK(env, nstatus);
 
       TFE_OpSetAttrInt(tfe_op, attr_name, value);
       break;
@@ -85,7 +85,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
     case TF_ATTR_BOOL: {
       bool value;
       nstatus = napi_get_value_bool(env, type_input_value, &value);
-      ENSURE_NAPI_OK(nstatus);
+      ENSURE_NAPI_OK(env, nstatus);
 
       TFE_OpSetAttrBool(tfe_op, attr_name, value);
       break;
@@ -95,7 +95,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
       TF_DataType tf_data_type;
       nstatus = napi_get_value_int32(env, type_input_value,
                                      reinterpret_cast<int32_t*>(&tf_data_type));
-      ENSURE_NAPI_OK(nstatus);
+      ENSURE_NAPI_OK(env, nstatus);
 
       TFE_OpSetAttrType(tfe_op, attr_name, tf_data_type);
       break;
@@ -128,7 +128,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   // TODO - unwrap in the binding class.
   TFEContextEnv* context_env;
   nstatus = napi_unwrap(env, context, reinterpret_cast<void**>(&context_env));
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   TF_AutoStatus tf_status;
   TFE_Op* tfe_op = TFE_NewOp(context_env->context, opName, tf_status.status);
@@ -137,16 +137,16 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   // Assign input (unwrap in binding?)
   uint32_t inputs_length;
   nstatus = napi_get_array_length(env, inputs, &inputs_length);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   for (uint32_t i = 0; i < inputs_length; i++) {
     napi_value cur_input;
     nstatus = napi_get_element(env, inputs, i, &cur_input);
-    ENSURE_NAPI_OK(nstatus);
+    ENSURE_NAPI_OK(env, nstatus);
 
     TensorHandle* handle;
     nstatus = napi_unwrap(env, cur_input, reinterpret_cast<void**>(&handle));
-    ENSURE_NAPI_OK(nstatus);
+    ENSURE_NAPI_OK(env, nstatus);
 
     TFE_OpAddInput(tfe_op, handle->handle, tf_status.status);
     ENSURE_TF_OK(tf_status);
@@ -154,12 +154,12 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
 
   uint32_t op_attrs_length;
   nstatus = napi_get_array_length(env, op_attr_inputs, &op_attrs_length);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   for (uint32_t i = 0; i < op_attrs_length; i++) {
     napi_value cur_op_attr;
     nstatus = napi_get_element(env, op_attr_inputs, i, &cur_op_attr);
-    ENSURE_NAPI_OK(nstatus);
+    ENSURE_NAPI_OK(env, nstatus);
 
     AssignOpAttr(env, tfe_op, cur_op_attr);
   }
@@ -174,7 +174,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   // Unwrap and assign
   TensorHandle* handle;
   nstatus = napi_unwrap(env, output_tensor, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   handle->handle = result_handles[0];
   handle->tensor = TFE_TensorHandleResolve(result_handles[0], tf_status.status);

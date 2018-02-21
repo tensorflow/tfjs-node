@@ -80,7 +80,7 @@ void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
 
   napi_status nstatus =
       napi_wrap(env, wrapped_value, handle, Cleanup, nullptr, nullptr);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 }
 
 void InitPlaceholderTensorHandle(napi_env env, napi_value wrapped_value) {
@@ -91,7 +91,7 @@ void InitPlaceholderTensorHandle(napi_env env, napi_value wrapped_value) {
 
   napi_status nstatus =
       napi_wrap(env, wrapped_value, handle, Cleanup, nullptr, nullptr);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 }
 
 void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
@@ -103,7 +103,7 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
   void* array_data;
   nstatus = napi_get_typedarray_info(env, typed_array_value, &array_type,
                                      &array_length, &array_data, nullptr, nullptr);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   size_t width;
   switch (array_type) {
@@ -124,7 +124,7 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
 
   TensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   memcpy(TF_TensorData(handle->tensor), array_data, array_length * width);
 }
@@ -134,7 +134,7 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
 
   TensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   // Determine the type of the array
   napi_typedarray_type array_type;
@@ -170,11 +170,11 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   napi_value array_buffer_value;
   nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,
                                              nullptr, &array_buffer_value);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
                                    0, result);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 }
 
 void GetTensorShape(napi_env env, napi_value wrapped_value,
@@ -183,19 +183,19 @@ void GetTensorShape(napi_env env, napi_value wrapped_value,
 
   TensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   uint32_t num_dims = TF_NumDims(handle->tensor);
   nstatus = napi_create_array_with_length(env, num_dims, result);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   for (uint32_t i = 0; i < num_dims; i++) {
     napi_value cur_dim;
     nstatus = napi_create_int64(env, TF_Dim(handle->tensor, i), &cur_dim);
-    ENSURE_NAPI_OK(nstatus);
+    ENSURE_NAPI_OK(env, nstatus);
 
     nstatus = napi_set_element(env, *result, i, cur_dim);
-    ENSURE_NAPI_OK(nstatus);
+    ENSURE_NAPI_OK(env, nstatus);
   }
 }
 
@@ -205,11 +205,11 @@ void GetTensorDtype(napi_env env, napi_value wrapped_value,
 
   TensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 
   TF_DataType dtype = TF_TensorType(handle->tensor);
   nstatus = napi_create_int32(env, dtype, result);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
 }
 
 }  // namespace tfnodejs

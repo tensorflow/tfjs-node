@@ -31,54 +31,60 @@
 
 namespace tfnodejs {
 
-// TODO Make this a macro
-/* #define ENSURE_NAPI_OK(status) (status == napi_ok); */
-static inline void ENSURE_NAPI_OK(napi_status status) {
+#define ENSURE_NAPI_OK(env, status) EnsureNapiOK(env, status, __FILE__, __LINE__)
+
+inline void EnsureNapiOK(napi_env env, napi_status status, const char* file, const size_t lineNumber) {
   if (status != napi_ok) {
-    printf(">>> INVALID napi_status: %d\n", status);
+    const napi_extended_error_info* error_info = 0;
+    napi_get_last_error_info(env, &error_info);
+
+    fprintf(stderr, "** INVALID napi_status: %d\n", status);
+    fprintf(stderr, "- %s\n", error_info->error_message);
+    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
     std::exit(1);
   }
 }
 
-// TODO Make this a macro
-static inline void ENSURE_TF_OK(TF_AutoStatus& status) {
+#define ENSURE_TF_OK(status) EnsureTFOK(status, __FILE__, __LINE__)
+
+inline void EnsureTFOK(TF_AutoStatus& status, const char* file, const size_t lineNumber) {
   if (TF_GetCode(status.status) != TF_OK) {
-    printf(">>> INVALID TF_Status: %d\n", TF_GetCode(status.status));
-    printf("%s\n", TF_Message(status.status));
+    printf("** INVALID TF_Status: %d\n", TF_GetCode(status.status));
+    printf("- %s\n", TF_Message(status.status));
+    printf("- %s:%lu\n", file, lineNumber);
     std::exit(1);
   }
 }
 
-static inline void AssertConstructorCall(napi_env env,
-                                         napi_callback_info info) {
+inline void AssertConstructorCall(napi_env env, napi_callback_info info) {
   napi_value js_target;
   napi_status nstatus = napi_get_new_target(env, info, &js_target);
-  ENSURE_NAPI_OK(nstatus);
+  ENSURE_NAPI_OK(env, nstatus);
   if (js_target == nullptr) {
     printf(">>> Function not used as a constructor\n");
     std::exit(1);
   }
 }
 
-static inline void AssertValueIsArray(napi_env env, napi_value value) {
+inline void AssertValueIsArray(napi_env env, napi_value value) {
   bool is_array;
-  ENSURE_NAPI_OK(napi_is_array(env, value, &is_array));
+  ENSURE_NAPI_OK(env, napi_is_array(env, value, &is_array));
   if (!is_array) {
     printf(">>> Argument is not an array!\n");
     std::exit(1);
   }
 }
 
-static inline void AssertValueIsTypedArray(napi_env env, napi_value value) {
+inline void AssertValueIsTypedArray(napi_env env, napi_value value) {
   bool is_array;
-  ENSURE_NAPI_OK(napi_is_typedarray(env, value, &is_array));
+  ENSURE_NAPI_OK(env, napi_is_typedarray(env, value, &is_array));
   if (!is_array) {
     printf(">>> Argument is not a typed-array!\n");
     std::exit(1);
   }
 }
 
-static inline void AssertValueIsLessThan(uint32_t value, uint32_t max) {
+inline void AssertValueIsLessThan(uint32_t value, uint32_t max) {
   if (value > max) {
     printf(">>> Argument is greater than max: %d > %d!\n", value, max);
     std::exit(1);
