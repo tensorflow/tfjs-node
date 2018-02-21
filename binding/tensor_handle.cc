@@ -26,17 +26,16 @@
 namespace tfnodejs {
 
 void Cleanup(napi_env env, void* data, void* hint) {
-  fprintf(stderr, "Cleanup()\n");
-  //
-  // TODO write me.
-  //
-}
-
-void CleanupTensor(napi_env, void* data, void* hint) {
-  fprintf(stderr, "CleanupTensor()\n");
-  //
-  // TODO write me.
-  //
+  TensorHandle* handle = static_cast<TensorHandle*>(data);
+  if (handle->handle != nullptr) {
+    TFE_DeleteTensorHandle(handle->handle);
+    handle->handle = nullptr;
+  }
+  if (handle->tensor != nullptr) {
+    TF_DeleteTensor(handle->tensor);
+    handle->tensor = nullptr;
+  }
+  delete handle;
 }
 
 void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
@@ -171,9 +170,8 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   }
 
   napi_value array_buffer_value;
-  nstatus =
-      napi_create_external_arraybuffer(env, data, byte_length, CleanupTensor,
-                                       handle->tensor, &array_buffer_value);
+  nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,
+                                             nullptr, &array_buffer_value);
   ENSURE_NAPI_OK(nstatus);
 
   nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
