@@ -106,7 +106,7 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
                                &array_length, &array_data, nullptr, nullptr);
   ENSURE_NAPI_OK(env, nstatus);
 
-  size_t width;
+  size_t width = 0;
   switch (array_type) {
     case napi_float32_array:
       width = sizeof(float);
