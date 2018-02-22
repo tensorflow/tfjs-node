@@ -23,9 +23,7 @@
 
 namespace tfnodejs {
 
-//
 // Automatically cleans up a TF_Status instance.
-//
 class TF_AutoStatus {
  public:
   TF_AutoStatus() : status(TF_NewStatus()) {}

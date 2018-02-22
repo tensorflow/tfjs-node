@@ -145,9 +145,11 @@ inline void ReportUnknownTypedArrayType(napi_typedarray_type type,
   std::exit(1);
 }
 
-#define REPORT_UNIMPLEMENTED_OPERATION(message) ReportUnimplementedOperation(message, __FILE__, __LINE__)
+#define REPORT_UNIMPLEMENTED_OPERATION(message) \
+  ReportUnimplementedOperation(message, __FILE__, __LINE__)
 
-inline void ReportUnimplementedOperation(const char* message, const char* file, const size_t lineNumber) {
+inline void ReportUnimplementedOperation(const char* message, const char* file,
+                                         const size_t lineNumber) {
   fprintf(stderr, "** Unhandled operation: %s:\n", message);
   fprintf(stderr, "- %s:%lu\n", file, lineNumber);
   std::exit(1);

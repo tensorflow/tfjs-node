@@ -156,15 +156,13 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
                                        nullptr);
   ENSURE_NAPI_OK(env, nstatus);
 
-  napi_value result;
   ExecuteOp(env,
             args[0],  // TFE_Context wrapper
             op_name,
-            args[2],  // TFEOpAttr array
-            args[3],  // TensorHandle array
-            args[4],  // Output TensorHandle.
-            &result);
-  return result;
+            args[2],   // TFEOpAttr array
+            args[3],   // TensorHandle array
+            args[4]);  // Output TensorHandle.
+  return js_this;
 }
 
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {

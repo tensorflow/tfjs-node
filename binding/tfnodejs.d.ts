@@ -29,7 +29,7 @@ declare class TensorHandle {
   dtype: number;
 }
 
-// This probably won't work anymore...?
+// TFE Op Attr class.
 declare class TFEOpAttr {
   name: string;
   type: number;
@@ -55,4 +55,4 @@ export const TF_Version: string;
 
 export function execute(
     context: Context, op: string, op_attrs: TFEOpAttr[],
-    inputs: TensorHandle[], output: TensorHandle): TensorHandle;
+    inputs: TensorHandle[], output: TensorHandle);

@@ -23,17 +23,13 @@
 
 namespace tfnodejs {
 
-//
 // Holds a reference to a TFE_Context and napi_env.
-//
 struct TFEContextEnv {
   TFE_Context* context;
   napi_env env;
 };
 
-//
 // Creates, initializes, and binds a TFE_Context to a napi_value.
-//
 void InitAndBindTFEContextEnv(napi_env env, napi_value value);
 
 }  // namespace tfnodejs

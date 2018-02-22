@@ -121,7 +121,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
 void ExecuteOp(napi_env env, napi_value context, const char* opName,
                napi_value op_attr_inputs, napi_value inputs,
-               napi_value output_tensor, napi_value* result) {
+               napi_value output_tensor) {
   napi_status nstatus;
 
   TFEContextEnv* context_env;
