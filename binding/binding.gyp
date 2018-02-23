@@ -19,19 +19,20 @@
     'include_dirs' : [ '..', '<(tensorflow_include_dir)' ],
     'conditions' : [
       [
-        'OS=='linux'', {
-          'actions': [
-          ],
+        'OS=="linux"', {
           'libraries' : [
             '-Wl,-rpath,<@(tensorflow_lib_dir)',
             '-ltensorflow',
             '-ltensorflow_framework',
           ],
           'library_dirs' : ['<(tensorflow_lib_dir)'],
+          'variables': {
+            'tensorflow-library-target': 'linux-cpu'
+          }
         }
       ],
       [
-        'OS=='mac'', {
+        'OS=="mac"', {
           'libraries' : [
             '-Wl,-rpath,<@(tensorflow_lib_dir)',
             '-ltensorflow',
@@ -40,6 +41,22 @@
           'library_dirs' : ['<(tensorflow_lib_dir)'],
         }
       ],
+    ],
+    'actions': [
+      {
+        'action_name': 'download_libtensorflow',
+        'inputs': [
+          '<(module_root_dir)/../scripts/download-libtensorflow.sh',
+        ],
+        'outputs': [
+          '<(PRODUCT_DIR)/libtensorflow.so',
+        ],
+        'action': [
+          'sh',
+          '<@(_inputs)',
+          '<(tensorflow-library-target)',
+        ]
+      }
     ],
   }]
 }
