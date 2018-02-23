@@ -29,6 +29,9 @@
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
+// TODO(kreeger): Convert all std::exit() calls to JS exceptions and report
+// through the binding.
+
 namespace tfnodejs {
 
 #define ENSURE_NAPI_OK(env, status) \

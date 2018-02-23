@@ -163,6 +163,8 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   }
 
   int num_retvals = 1;
+  // Push one `nullptr` to get a valid pointer in the call to `TFE_Execute()`
+  // below.
   std::vector<TFE_TensorHandle*> result_handles;
   result_handles.push_back(nullptr);
 
