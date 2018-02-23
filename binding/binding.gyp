@@ -2,10 +2,6 @@
 {
   'variables' : {
     'tensorflow_include_dir' : '<(module_root_dir)/../deps/tensorflow/include',
-    'tensorflow_headers' : [
-      '<@(tensorflow_include_dir)/tensorflow/c/c_api.h',
-      '<@(tensorflow_include_dir)/tensorflow/c/eager/c_api.h',
-    ],
     'tensorflow_lib_dir' : '<(module_root_dir)/../deps/tensorflow/lib',
   },
   'targets' : [{
