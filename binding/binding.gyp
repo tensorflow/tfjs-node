@@ -39,6 +39,9 @@
             '-ltensorflow_framework',
           ],
           'library_dirs' : ['<(tensorflow_lib_dir)'],
+          'variables': {
+            'tensorflow-library-target': 'darwin'
+          }
         }
       ],
     ],
