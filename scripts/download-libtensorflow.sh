@@ -20,14 +20,14 @@ else
   exit 1
 fi
 
-TARGET_DIRECTORY="../deps/tensorflow/"
+TARGET_DIRECTORY="deps/tensorflow/"
 
 curl -L \
   $target |
   tar -C $TARGET_DIRECTORY -xz
 
 # TODO(kreeger): Drop this when the eager header ships w/ libtensorflow.
-eager_include_path="../deps/tensorflow/include/tensorflow/c/eager" 
+eager_include_path="deps/tensorflow/include/tensorflow/c/eager" 
 mkdir -p $eager_include_path 
 curl -o \
   $eager_include_path"/c_api.h" \
