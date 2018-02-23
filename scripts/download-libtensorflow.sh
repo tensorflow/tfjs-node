@@ -9,4 +9,3 @@ TARGET_DIRECTORY="deps/tensorflow/"
 curl -L \
   $CPU_LINUX |
   tar -C $TARGET_DIRECTORY -xz
-
