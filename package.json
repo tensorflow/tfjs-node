@@ -9,6 +9,16 @@
     "url": "https://github.com/tensorflow/tf-nodejs.git"
   },
   "scripts": {
-    "format": "clang-format -i -style=Google binding/*.cc binding/*.h"
+    "build": "tsc",
+    "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
+    "lint": "tslint -p . -t verbose"
+  },
+  "dependencies": {
+    "clang-format": "^1.2.2",
+    "deeplearn": "^0.5.0"
+  },
+  "devDependencies": {
+    "tslint": "^5.9.1",
+    "typescript": "^2.7.2"
   }
 }
