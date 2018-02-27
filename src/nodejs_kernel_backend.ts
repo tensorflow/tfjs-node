@@ -15,14 +15,13 @@
  * =============================================================================
  */
 
-import {ENV} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank} from 'deeplearn/dist/types';
 
 // tslint:disable-next-line:max-line-length
-import {Context, execute, TensorHandle, TF_ATTR_BOOL, TF_ATTR_TYPE, TF_BOOL, TF_FLOAT, TF_INT32} from '../binding/tfnodejs';
+import {Context, execute, TensorHandle, TF_ATTR_BOOL, TF_ATTR_TYPE, TF_BOOL, TF_FLOAT, TF_INT32} from '../.';
 
 export class NodeJSKernelBackend implements KernelBackend {
   private tensorMap = new WeakMap<DataId, TensorHandle>();
@@ -51,24 +50,10 @@ export class NodeJSKernelBackend implements KernelBackend {
         this.tensorMap.get(output.dataId));
     return output as Tensor2D;
   }
-  slice1D(x: Tensor1D, begin: number, size: number): Tensor1D {
+  slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
     throw new Error('Method not implemented.');
   }
-  slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
-      Tensor2D {
-    throw new Error('Method not implemented.');
-  }
-  slice3D(x: Tensor3D, begin: [number, number, number], size: [
-    number, number, number
-  ]): Tensor3D {
-    throw new Error('Method not implemented.');
-  }
-  slice4D(x: Tensor4D, begin: [number, number, number, number], size: [
-    number, number, number, number
-  ]): Tensor4D {
-    throw new Error('Method not implemented.');
-  }
-  reverse4D(a: Tensor4D, axis: number[]): Tensor4D {
+  reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
     throw new Error('Method not implemented.');
   }
   concat(a: Tensor2D, b: Tensor2D): Tensor2D {
@@ -116,7 +101,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   greaterEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
-  logicalNot(a: Tensor<Rank>): Tensor<Rank> {
+  logicalNot<T extends Tensor<Rank>>(a: T): T {
     throw new Error('Method not implemented.');
   }
   logicalAnd(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
@@ -193,7 +178,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   preluDer<T extends Tensor<Rank>>(x: T, alpha: T): T {
     throw new Error('Method not implemented.');
   }
-  int<R extends Rank>(x: Tensor<R>): Tensor<R> {
+  int<T extends Tensor<Rank>>(x: T): T {
     throw new Error('Method not implemented.');
   }
   clip<T extends Tensor<Rank>>(x: T, min: number, max: number): T {
@@ -391,13 +376,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   tile<T extends Tensor<Rank>>(x: T, reps: number[]): T {
     throw new Error('Method not implemented.');
   }
-  pad1D(x: Tensor1D, paddings: [number, number], constantValue: number):
-      Tensor1D {
-    throw new Error('Method not implemented.');
-  }
-  pad2D(
-      x: Tensor2D, paddings: [[number, number], [number, number]],
-      constantValue: number): Tensor2D {
+  pad<T extends Tensor<Rank>>(
+      x: T, paddings: Array<[number, number]>, constantValue: number): T {
     // TODO - pass in the actual type of X
     const opAttrs = [
       {name: 'T', type: TF_ATTR_TYPE, value: TF_FLOAT},
@@ -420,7 +400,7 @@ export class NodeJSKernelBackend implements KernelBackend {
           this.tensorMap.get(constantTensor.dataId)
         ],
         this.tensorMap.get(output.dataId));
-    return output as Tensor2D;
+    return output as T;
   }
   transpose<T extends Tensor<Rank>>(x: T, perm: number[]): T {
     throw new Error('Method not implemented.');
@@ -435,8 +415,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
   batchNormalization4D(
       x: Tensor4D, mean: Tensor1D|Tensor4D, variance: Tensor1D|Tensor4D,
-      varianceEpsilon: number, scale?: Tensor1D|Tensor4D|undefined,
-      offset?: Tensor1D|Tensor4D|undefined): Tensor4D {
+      varianceEpsilon: number, scale: Tensor1D|Tensor4D,
+      offset: Tensor1D|Tensor4D): Tensor4D {
     throw new Error('Method not implemented.');
   }
   localResponseNormalization4D(
@@ -502,5 +482,3 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
 }
-
-ENV.registerBackend('nodejs', () => new NodeJSKernelBackend());

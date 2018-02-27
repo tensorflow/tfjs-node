@@ -97,9 +97,8 @@ concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
 
-deeplearn@^0.5.0:
+deeplearn@../deeplearnjs/:
   version "0.5.0"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.5.0.tgz#015c25fb35fcbf40cf9f31d9fff7760af7a436ec"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"

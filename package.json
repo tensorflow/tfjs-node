@@ -2,7 +2,7 @@
   "name": "tf-nodejs",
   "version": "0.0.1",
   "main": "./build/Release/tfnodejs",
-  "types": "./binding/tfnodejs.d.ts",
+  "types": "./src/tfnodejs.d.ts",
   "gypfile": true,
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "clang-format": "^1.2.2",
-    "deeplearn": "^0.5.0"
+    "deeplearn": "../deeplearnjs/"
   },
   "devDependencies": {
     "ts-node": "^5.0.0",

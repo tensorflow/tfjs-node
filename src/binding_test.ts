@@ -1,5 +1,7 @@
 import * as dl from 'deeplearn';
+import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
+dl.ENV.registerBackend('nodejs', () => new NodeJSKernelBackend());
 dl.Environment.setBackend('nodejs');
 dl.ENV.engine.startScope();
 
