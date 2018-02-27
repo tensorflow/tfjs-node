@@ -461,7 +461,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     let tfDtype: number;
     switch (dtype) {
       case 'float32':
-        tfDtype = TF_FLOAT;  // symbols not working...
+        tfDtype = TF_FLOAT;
         break;
       case 'int32':
         tfDtype = TF_INT32;
