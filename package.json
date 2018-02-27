@@ -11,13 +11,15 @@
   "scripts": {
     "build": "tsc",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
-    "lint": "tslint -p . -t verbose"
+    "lint": "tslint -p . -t verbose",
+    "binding-test": "./node_modules/.bin/ts-node src/binding_test.ts"
   },
   "dependencies": {
     "clang-format": "^1.2.2",
     "deeplearn": "^0.5.0"
   },
   "devDependencies": {
+    "ts-node": "^5.0.0",
     "tslint": "^5.9.1",
     "typescript": "^2.7.2"
   }
