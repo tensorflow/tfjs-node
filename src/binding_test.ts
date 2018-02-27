@@ -3,6 +3,9 @@ import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 // TODO(kreeger): Drop the 'webgl' hack when deeplearn 0.5.1 is released to
 // allow proper registration of new backends.
+
+// TODO(kreeger): This anonymous function should throw an exception if the
+// binding is not installed.
 dl.ENV.registerBackend('webgl', () => new NodeJSKernelBackend());
 dl.Environment.setBackend('webgl');
 dl.ENV.engine.startScope();
