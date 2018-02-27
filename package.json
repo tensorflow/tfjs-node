@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "clang-format": "^1.2.2",
-    "deeplearn": "../deeplearnjs/"
+    "deeplearn": "^0.5.0"
   },
   "devDependencies": {
     "ts-node": "^5.0.0",
