@@ -15,17 +15,19 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import {ENV, Environment} from 'deeplearn/dist/environment';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
-export function register() {
-  // TODO(kreeger): Drop the 'webgl' hack when deeplearn 0.5.1 is released to
-  // allow proper registration of new backends.
+// tslint:disable-next-line:no-require-imports
+import bindings = require('bindings');
 
+export function bindTensorFlowBackend() {
   // TODO(kreeger): This anonymous function should throw an exception if the
   // binding is not installed.
-  console.log('registering new backend');
-  dl.ENV.registerBackend('webgl', () => new NodeJSKernelBackend());
-  console.log('done registering new backend');
-  dl.Environment.setBackend('webgl');
+  const nodeBinding = bindings('tfnodejs.node');
+
+  // TODO(kreeger): Drop the 'webgl' hack when deeplearn 0.5.1 is released to
+  // allow proper registration of new backends.
+  ENV.addCustomBackend('webgl', () => new NodeJSKernelBackend(nodeBinding));
+  Environment.setBackend('webgl');
 }
