@@ -14,5 +14,3 @@ dl.tidy(() => {
   console.log('matmul: ', result.dataSync());
   console.log('padded: ', padded.dataSync());
 });
-
-console.log('done');
