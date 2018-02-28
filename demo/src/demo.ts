@@ -1,13 +1,8 @@
 import * as dl from 'deeplearn';
-import {NodeJSKernelBackend} from './nodejs_kernel_backend';
+import * as tfnodejs from 'tf-nodejs';
 
-// TODO(kreeger): Drop the 'webgl' hack when deeplearn 0.5.1 is released to
-// allow proper registration of new backends.
+tfnodejs.register();
 
-// TODO(kreeger): This anonymous function should throw an exception if the
-// binding is not installed.
-dl.ENV.registerBackend('webgl', () => new NodeJSKernelBackend());
-dl.Environment.setBackend('webgl');
 dl.ENV.engine.startScope();
 
 const t1: dl.Tensor2D = dl.tensor2d([[1, 2], [3, 4]]);

@@ -1,0 +1,17 @@
+{
+  "name": "tf-nodejs-demo",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "demo": "./node_modules/.bin/ts-node src/demo.ts",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^9.4.6",
+    "tf-nodejs": "file:../.",
+    "ts-node": "^4.1.0",
+    "typescript": "^2.7.1"
+  }
+}
