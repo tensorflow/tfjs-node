@@ -66,3 +66,11 @@ describe('Exposes TF Version', () => {
     expect(binding.TF_Version).toBeDefined();
   });
 });
+
+describe('Context', () => {
+  it('should expect a constructor', () => {
+    expect(() => {
+      binding.Context();
+    }).toThrowError();
+  });
+});
