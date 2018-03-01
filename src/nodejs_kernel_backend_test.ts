@@ -23,9 +23,19 @@ bindTensorFlowBackend();
 
 describe('matMul', () => {
   it('should work', () => {
-    const t1: dl.Tensor2D = dl.tensor2d([[1, 2], [3, 4]]);
-    const t2: dl.Tensor2D = dl.tensor2d([[5, 6], [7, 8]]);
+    const t1 = dl.tensor2d([[1, 2], [3, 4]]);
+    const t2 = dl.tensor2d([[5, 6], [7, 8]]);
     const result = t1.matMul(t2);
     expect(result.dataSync()).toEqual(new Float32Array([19, 22, 43, 50]));
+  });
+});
+
+describe('pad', () => {
+  it('should work', () => {
+    const t = dl.tensor2d([[1, 1], [1, 1]]);
+    const result = dl.pad2d(t, [[1, 1], [1, 1]]);
+    expect(result.dataSync()).toEqual(new Float32Array([
+      0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0
+    ]));
   });
 });
