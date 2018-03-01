@@ -68,7 +68,7 @@ describe('Exposes TF Version', () => {
 });
 
 describe('Context', () => {
-  it('should expect a constructor', () => {
+  it('Should throw an error if not a Constructor', () => {
     expect(() => {
       binding.Context();
     }).toThrowError();
