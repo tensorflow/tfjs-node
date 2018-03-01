@@ -108,9 +108,32 @@ export class NodeJSKernelBackend implements KernelBackend {
         [this.handleMap.get(a.dataId), this.handleMap.get(b.dataId)], output);
     return this.createOutputTensor(output) as Tensor2D;
   }
+
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      {
+        name: 'T',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      },
+      // This one is actually a type list:
+      // tslint:disable-next-line:max-line-length
+      // https://cs.corp.google.com/piper///depot/google3/third_party/tensorflow/core/ops/array_ops.cc?l=1330
+      {
+        name: 'Index',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
+    ];
+    const output = new this.binding.TensorHandle();
+
+    // TODO(kreeger): Left off right here - need to create an enum for attr type
+    // list/int/etc
+    this.binding.execute(
+        this.context, 'Slice', opAttrs, [this.handleMap.get(x.dataId)], output);
+    return this.createOutputTensor(output) as T;
   }
+
   reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
     throw new Error('Method not implemented.');
   }

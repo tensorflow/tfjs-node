@@ -1,7 +1,9 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "files.associations": {
-    "*.tcc": "cpp"
+    "*.tcc": "cpp",
+    "system_error": "cpp",
+    "type_traits": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,
