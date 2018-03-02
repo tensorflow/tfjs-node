@@ -25,7 +25,7 @@ import {Context, TensorHandle, TFJSBinding} from './tfjs_binding';
 export class NodeJSKernelBackend implements KernelBackend {
   // TODO(kreeger): Drop when 0.5.1 deeplearn is released.
   slice1D(x: Tensor1D, begin: number, size: number): Tensor1D {
-    throw new Error('Method not implemented.');
+    return this.slice(x, [begin], [size]);
   }
   slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
       Tensor2D {
@@ -112,9 +112,6 @@ export class NodeJSKernelBackend implements KernelBackend {
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_FLOAT
       },
-      // This one is actually a type list:
-      // tslint:disable-next-line:max-line-length
-      // https://cs.corp.google.com/piper///depot/google3/third_party/tensorflow/core/ops/array_ops.cc?l=1330
       {
         name: 'Index',
         type: this.binding.TF_ATTR_TYPE,
@@ -123,13 +120,19 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
     const output = new this.binding.TensorHandle();
 
-    // TODO(kreeger): Left off right here - need to create an enum for attr type
-    // list/int/etc
+    // Bind tensor values
+    const beginTensor = Tensor1D.new(begin, 'int32');
+    const sizeTensor = Tensor1D.new(size, 'int32');
+
     this.binding.execute(
-        this.context, 'Slice', opAttrs, [this.handleMap.get(x.dataId)], output);
+        this.context, 'Slice', opAttrs,
+        [
+          this.handleMap.get(x.dataId), this.handleMap.get(beginTensor.dataId),
+          this.handleMap.get(sizeTensor.dataId)
+        ],
+        output);
     return this.createOutputTensor(output) as T;
   }
-
   reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
     throw new Error('Method not implemented.');
   }

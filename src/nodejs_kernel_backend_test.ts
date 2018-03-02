@@ -30,6 +30,15 @@ describe('matMul', () => {
   });
 });
 
+describe('slice', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 2, 3, 4, 5]);
+    const result = dl.slice1d(a, 1, 3);
+    expect(result.shape).toEqual([3]);
+    expect(result.dataSync()).toEqual(new Float32Array([2, 3, 4]));
+  });
+});
+
 describe('pad', () => {
   it('should work', () => {
     const t = dl.tensor2d([[1, 1], [1, 1]]);
