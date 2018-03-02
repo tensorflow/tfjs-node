@@ -54,13 +54,6 @@ export interface TFJSBinding {
   TF_ATTR_PLACEHOLDER: number;
   TF_ATTR_FUNC: number;
 
-  // TFJS OpAttrTypes
-  TFJS_ATTR_STRING_LIST: number;
-  TFJS_ATTR_INT_LIST: number;
-  TFJS_ATTR_FLOAT_LIST: number;
-  TFJS_ATTR_BOOL_LIST: number;
-  TFJS_ATTR_TYPE_LIST: number;
-
   TF_Version: string;
 
   execute(

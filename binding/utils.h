@@ -30,7 +30,7 @@
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define DEBUG_LOG(message, file, lineNumber)                             \
   do {                                                                   \
@@ -135,10 +135,10 @@ inline void ReportUnknownTFDataType(napi_env env, TF_DataType type,
 #define REPORT_UNKNOWN_TF_ATTR_TYPE(env, type) \
   ReportUnknownTFAttrType(env, type, __FILE__, __LINE__)
 
-inline void ReportUnknownTFAttrType(napi_env env, int32_t type,
+inline void ReportUnknownTFAttrType(napi_env env, TF_AttrType type,
                                     const char* file, const size_t lineNumber) {
   std::ostringstream oss;
-  oss << "Unhandled TF/TFJS AttrType: " << type;
+  oss << "Unhandled TF_AttrType: " << type;
   NapiThrowError(env, oss.str().c_str(), file, lineNumber);
 }
 

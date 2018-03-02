@@ -22,15 +22,6 @@
 
 namespace tfnodejs {
 
-// Additonal OpAttr enums needed for eager
-typedef enum TFJS_OpAttrType {
-  TFJS_ATTR_STRING_LIST = 100,
-  TFJS_ATTR_INT_LIST = 101,
-  TFJS_ATTR_FLOAT_LIST = 102,
-  TFJS_ATTR_BOOL_LIST = 103,
-  TFJS_ATTR_TYPE_LIST = 104,
-} TFJS_OpAttrType;
-
 // Executes a TFE Op based on the name, inputs, attributes, and output.
 void ExecuteOp(napi_env env, napi_value context, const char* opName,
                napi_value op_attr_inputs, napi_value inputs,

@@ -62,24 +62,6 @@ describe('Exposes TF_AttrType enum values', () => {
   });
 });
 
-describe('Exposes TFJS_OpAttrType enum values', () => {
-  it('contains TFJS_ATTR_STRING_LIST', () => {
-    expect(binding.TFJS_ATTR_STRING_LIST).toEqual(100);
-  });
-  it('contains TFJS_ATTR_INT_LIST', () => {
-    expect(binding.TFJS_ATTR_INT_LIST).toEqual(101);
-  });
-  it('contains TFJS_ATTR_FLOAT_LIST', () => {
-    expect(binding.TFJS_ATTR_FLOAT_LIST).toEqual(102);
-  });
-  it('contains TFJS_ATTR_BOOL_LIST', () => {
-    expect(binding.TFJS_ATTR_BOOL_LIST).toEqual(103);
-  });
-  it('contains TFJS_ATTR_TYPE_LIST', () => {
-    expect(binding.TFJS_ATTR_TYPE_LIST).toEqual(104);
-  });
-});
-
 describe('Exposes TF Version', () => {
   it('contains a version string', () => {
     expect(binding.TF_Version).toBeDefined();

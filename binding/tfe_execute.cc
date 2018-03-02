@@ -58,8 +58,9 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
   nstatus = napi_get_named_property(env, attr_value, "type", &attr_type_value);
   ENSURE_NAPI_OK(env, nstatus);
 
-  int32_t tf_attr_type;
-  nstatus = napi_get_value_int32(env, attr_type_value, &tf_attr_type);
+  TF_AttrType tf_attr_type;
+  nstatus = napi_get_value_int32(env, attr_type_value,
+                                 reinterpret_cast<int32_t*>(&tf_attr_type));
   ENSURE_NAPI_OK(env, nstatus);
 
   napi_value type_input_value;
@@ -112,39 +113,6 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
     case TF_ATTR_FUNC:
       REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_FUNC");
       break;
-    case TFJS_ATTR_STRING_LIST:
-      REPORT_UNIMPLEMENTED_OPERATION(env, "TFJS_ATTR_STRING_LIST");
-      break;
-    case TFJS_ATTR_INT_LIST:
-      REPORT_UNIMPLEMENTED_OPERATION(env, "TFJS_ATTR_INT_LIST");
-      break;
-    case TFJS_ATTR_FLOAT_LIST:
-      REPORT_UNIMPLEMENTED_OPERATION(env, "TFJS_ATTR_FLOAT_LIST");
-      break;
-    case TFJS_ATTR_BOOL_LIST:
-      REPORT_UNIMPLEMENTED_OPERATION(env, "TFJS_ATTR_BOOL_LIST");
-      break;
-
-    case TFJS_ATTR_TYPE_LIST: {
-      uint32_t array_length;
-      nstatus = napi_get_array_length(env, type_input_value, &array_length);
-      ENSURE_NAPI_OK(env, nstatus);
-
-      TF_DataType values[array_length];
-      for (uint32_t i = 0; i < array_length; i++) {
-        napi_value type_value;
-        nstatus = napi_get_element(env, type_input_value, i, &type_value);
-        ENSURE_NAPI_OK(env, nstatus);
-
-        nstatus = napi_get_value_int32(env, type_value,
-                                      reinterpret_cast<int32_t*>(values[i]));
-        ENSURE_NAPI_OK(env, nstatus);
-      }
-
-      TFE_OpSetAttrTypeList(tfe_op, attr_name, values, array_length);
-      break;
-    }
-
     default:
       REPORT_UNKNOWN_TF_ATTR_TYPE(env, tf_attr_type);
       break;

@@ -89,6 +89,7 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
+    // TODO - set attr type.
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
@@ -106,6 +107,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
+    // TODO - set attr type.
     const opAttrs = [
       {
         name: 'T',
