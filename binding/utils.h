@@ -31,7 +31,7 @@
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define DEBUG_LOG(message, file, lineNumber)                             \
   do {                                                                   \
@@ -40,6 +40,9 @@
   } while (0)
 
 namespace tfnodejs {
+
+#define NAPI_THROW_ERROR(env, message) \
+  NapiThrowError(env, message, __FILE__, __LINE__);
 
 inline void NapiThrowError(napi_env env, const char* message, const char* file,
                            const size_t lineNumber) {
