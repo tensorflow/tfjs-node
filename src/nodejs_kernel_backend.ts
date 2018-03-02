@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import {scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
-import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
+import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
@@ -141,8 +142,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     const output = new this.binding.TensorHandle();
 
     // Bind tensor values
-    const beginTensor = Tensor1D.new(begin, 'int32');
-    const sizeTensor = Tensor1D.new(size, 'int32');
+    const beginTensor = tensor1d(begin, 'int32');
+    const sizeTensor = tensor1d(size, 'int32');
 
     this.binding.execute(
         this.context, 'Slice', opAttrs,
@@ -487,8 +488,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
 
     // Bind tensor values
-    const paddingsTensor = Tensor2D.new([2, 2], paddings, 'int32');
-    const constantTensor = Scalar.new(constantValue, x.dtype);
+    const paddingsTensor = tensor2d(paddings, [2, 2], 'int32');
+    const constantTensor = scalar(constantValue, x.dtype);
 
     const output = new this.binding.TensorHandle();
     this.binding.execute(
