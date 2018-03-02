@@ -46,9 +46,6 @@ export const TF_ATTR_FLOAT: number;
 export const TF_ATTR_BOOL: number;
 export const TF_ATTR_TYPE: number;
 export const TF_ATTR_SHAPE: number;
-export const TF_ATTR_TENSOR: number;
-export const TF_ATTR_PLACEHOLDER: number;
-export const TF_ATTR_FUNC: number;
 
 export const TF_Version: string;
 
