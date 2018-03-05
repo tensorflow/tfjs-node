@@ -29,7 +29,7 @@ declare class TensorHandle {
 
 declare class TFEOpAttr {
   name: string;
-  dtype: number;
+  type: number;
   value: number|boolean|object|Array<number>;
 }
 
