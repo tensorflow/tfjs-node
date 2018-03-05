@@ -174,6 +174,14 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     ENSURE_NAPI_OK(env, nstatus);
 
     AssignOpAttr(env, tfe_op, cur_op_attr);
+
+    // Check to see if an exception exists, if so return a failure.
+    bool has_exception = false;
+    nstatus = napi_is_exception_pending(env, &has_exception);
+    ENSURE_NAPI_OK(env, nstatus);
+    if (has_exception) {
+      return;
+    }
   }
 
   int num_retvals = 1;
