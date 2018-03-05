@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:no-require-imports
 import bindings = require('bindings');
-import {TFJSBinding} from './tfjs_binding';
+import {TFJSBinding, TFEOpAttr, TensorHandle} from './tfjs_binding';
 const binding = bindings('tfjs_binding.node') as TFJSBinding;
 
 describe('Exposes TF_DataType enum values', () => {
@@ -144,7 +144,7 @@ describe('TensorHandle', () => {
     }).toThrowError();
   });
 
-  it('throws eception when shape does not match data', () => {
+  it('throws exception when shape does not match data', () => {
     expect(() => {
       new binding.TensorHandle([2], binding.TF_INT32)
           .bindBuffer(new Int32Array([1, 2, 3]));
@@ -159,6 +159,37 @@ describe('TensorHandle', () => {
     expect(() => {
       // tslint:disable-next-line:no-unused-expression
       new binding.TensorHandle([1], 1000);
+    }).toThrowError();
+  });
+});
+
+describe('execute()', () => {
+  // const validOpAttrs = [{
+
+  // }];
+  it('throws exception with invalid Context', () => {
+    expect(() => {
+      binding.execute(
+          null, 'Test', [] as TFEOpAttr[], [] as TensorHandle[], null);
+    }).toThrowError();
+  });
+  it('throws exception with invalid Op Name', () => {
+    expect(() => {
+      binding.execute(
+          new binding.Context(), null, [] as TFEOpAttr[], [] as TensorHandle[],
+          null);
+    }).toThrowError();
+  });
+  it('throws exception with invalid TFEOpAttr', () => {
+    expect(() => {
+      binding.execute(
+          new binding.Context(), 'Equal', null, [] as TensorHandle[], null);
+    }).toThrowError();
+  });
+  it('throws exception with invalid TFEOpAttr', () => {
+    expect(() => {
+      binding.execute(
+          new binding.Context(), 'Equal', null, [] as TensorHandle[], null);
     }).toThrowError();
   });
 });
