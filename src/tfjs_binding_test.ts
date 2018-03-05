@@ -173,6 +173,7 @@ describe('execute()', () => {
   tensorA.bindBuffer(new Float32Array([1, 2, 3, 4]));
   const tensorB = new binding.TensorHandle([2, 2], binding.TF_FLOAT);
   tensorB.bindBuffer(new Float32Array([4, 3, 2, 1]));
+  const matMulInput = [tensorA, tensorB];
 
   it('throws exception with invalid Context', () => {
     expect(() => {
@@ -203,16 +204,40 @@ describe('execute()', () => {
   it('throws exception with invalid output', () => {
     expect(() => {
       binding.execute(
-          new binding.Context(), 'MatMul', matMulOpAttrs, [tensorA, tensorB],
-          null);
+          new binding.Context(), 'MatMul', matMulOpAttrs, matMulInput, null);
     }).toThrowError();
   });
   it('throws exception with output as non-default constructor', () => {
     expect(() => {
       const result = new binding.TensorHandle([2, 2], binding.TF_FLOAT);
       binding.execute(
-          new binding.Context(), 'MatMul', matMulOpAttrs, [tensorA, tensorB],
-          result);
+          new binding.Context(), 'MatMul', matMulOpAttrs, matMulInput, result);
+    }).toThrowError();
+  });
+  it('throws exception with invalid TF_ATTR_STRING op attr', () => {
+    const context = new binding.Context();
+    const name = 'MatMul';
+    const output = new binding.TensorHandle();
+
+    expect(() => {
+      const badOpAttrs: TFEOpAttr[] =
+          [{name: 'T', type: binding.TF_ATTR_STRING, value: null}];
+      binding.execute(context, name, badOpAttrs, matMulInput, output);
+    }).toThrowError();
+    expect(() => {
+      const badOpAttrs: TFEOpAttr[] =
+          [{name: 'T', type: binding.TF_ATTR_STRING, value: 1}];
+      binding.execute(context, name, badOpAttrs, matMulInput, output);
+    }).toThrowError();
+    expect(() => {
+      const badOpAttrs: TFEOpAttr[] =
+          [{name: 'T', type: binding.TF_ATTR_STRING, value: new Object()}];
+      binding.execute(context, name, badOpAttrs, matMulInput, output);
+    }).toThrowError();
+    expect(() => {
+      const badOpAttrs: TFEOpAttr[] =
+          [{name: 'T', type: binding.TF_ATTR_STRING, value: [1, 2, 3]}];
+      binding.execute(context, name, badOpAttrs, matMulInput, output);
     }).toThrowError();
   });
   it('should work for matmul', () => {
