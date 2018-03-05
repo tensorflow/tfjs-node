@@ -51,9 +51,9 @@ inline void NapiThrowError(napi_env env, const char* message, const char* file,
 }
 
 #define ENSURE_NAPI_OK(env, status) \
-  if(!EnsureNapiOK(env, status, __FILE__, __LINE__)) return;
+  if (!EnsureNapiOK(env, status, __FILE__, __LINE__)) return;
 #define ENSURE_NAPI_OK_RETVAL(env, status, retval) \
-  if(!EnsureNapiOK(env, status, __FILE__, __LINE__)) return retval;
+  if (!EnsureNapiOK(env, status, __FILE__, __LINE__)) return retval;
 
 inline bool EnsureNapiOK(napi_env env, napi_status status, const char* file,
                          const size_t lineNumber) {
@@ -133,8 +133,9 @@ inline bool EnsureValueIsTypedArray(napi_env env, napi_value value,
 
 #define ENSURE_VALUE_IS_LESS_THAN(env, value, max) \
   if (!EnsureValueIsLessThan(env, value, max, __FILE__, __LINE__)) return;
-#define ENSURE_VALUE_IS_LESS_THAN_RETVAL(env, value, max, retval) \
-  if (!EnsureValueIsLessThan(env, value, max, __FILE__, __LINE__)) return retval;
+#define ENSURE_VALUE_IS_LESS_THAN_RETVAL(env, value, max, retval)  \
+  if (!EnsureValueIsLessThan(env, value, max, __FILE__, __LINE__)) \
+    return retval;
 
 inline bool EnsureValueIsLessThan(napi_env env, uint32_t value, uint32_t max,
                                   const char* file, const size_t lineNumber) {

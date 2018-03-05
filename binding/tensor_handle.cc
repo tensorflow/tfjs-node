@@ -115,7 +115,8 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
                                &array_length, &array_data, nullptr, nullptr);
   ENSURE_NAPI_OK(env, nstatus);
 
-  // Double check the underlying TF_Tensor type matches the supplied typed-array.
+  // Double check the underlying TF_Tensor type matches the supplied
+  // typed-array.
   TF_DataType dtype = TF_TensorType(handle->tensor);
   size_t width = 0;
   switch (array_type) {
