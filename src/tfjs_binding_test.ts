@@ -164,9 +164,16 @@ describe('TensorHandle', () => {
 });
 
 describe('execute()', () => {
-  // const validOpAttrs = [{
+  const matMulOpAttrs = [
+    {name: 'transpose_a', type: binding.TF_ATTR_BOOL, value: false},
+    {name: 'transpose_b', type: binding.TF_ATTR_BOOL, value: false},
+    {name: 'T', type: binding.TF_ATTR_TYPE, value: binding.TF_FLOAT}
+  ];
+  const tensorA = new binding.TensorHandle([2, 2], binding.TF_FLOAT);
+  tensorA.bindBuffer(new Float32Array([1, 2, 3, 4]));
+  const tensorB = new binding.TensorHandle([2, 2], binding.TF_FLOAT);
+  tensorB.bindBuffer(new Float32Array([4, 3, 2, 1]));
 
-  // }];
   it('throws exception with invalid Context', () => {
     expect(() => {
       binding.execute(
@@ -186,10 +193,33 @@ describe('execute()', () => {
           new binding.Context(), 'Equal', null, [] as TensorHandle[], null);
     }).toThrowError();
   });
-  it('throws exception with invalid TFEOpAttr', () => {
+  it('throws excpetion with invalid inputs', () => {
     expect(() => {
       binding.execute(
-          new binding.Context(), 'Equal', null, [] as TensorHandle[], null);
+          new binding.Context(), 'MatMul', matMulOpAttrs, [] as TensorHandle[],
+          null);
     }).toThrowError();
+  });
+  it('throws exception with invalid output', () => {
+    expect(() => {
+      binding.execute(
+          new binding.Context(), 'MatMul', matMulOpAttrs, [tensorA, tensorB],
+          null);
+    }).toThrowError();
+  });
+  it('throws exception with output as non-default constructor', () => {
+    expect(() => {
+      const result = new binding.TensorHandle([2, 2], binding.TF_FLOAT);
+      binding.execute(
+          new binding.Context(), 'MatMul', matMulOpAttrs, [tensorA, tensorB],
+          result);
+    }).toThrowError();
+  });
+  it('should work for matmul', () => {
+    const output = new binding.TensorHandle();
+    binding.execute(
+        new binding.Context(), 'MatMul', matMulOpAttrs, [tensorA, tensorB],
+        output);
+    expect(output.dataSync()).toEqual(new Float32Array([8, 5, 20, 13]));
   });
 });

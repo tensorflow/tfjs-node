@@ -31,7 +31,7 @@
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define DEBUG_LOG(message, file, lineNumber)                             \
   do {                                                                   \
