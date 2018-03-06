@@ -31,25 +31,16 @@ struct TensorHandle {
 
 // Initializes a `TensorHandle` object with the napi_env set, but null TF/TFE
 // pointers
-void InitPlaceholderTensorHandle(napi_env env, napi_value wrapped_value);
-
-// Initializes a `TensorHandle` object and wraps underlying TF/TFE pointers.
-void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
-                      uint32_t shape_length, TF_DataType dtype);
+void InitTensorHandle(napi_env env, napi_value wrapped_value);
 
 // Binds a JS typed-array to the wrapped TF/TFE pointers.
-void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
+void BindTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
+                        uint32_t shape_length, TF_DataType dtype,
                         napi_value typed_array_value);
 
 // Returns a typed-array as a `napi_value` with the data associated with the
 // TF/TFE pointers.
 void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result);
-
-// Returns an array as a `napi_value` with shape of the Tensor.
-void GetTensorShape(napi_env env, napi_value wrapped_value, napi_value* result);
-
-// Returns a type as a `napi_value` with the type of the Tensor.
-void GetTensorDtype(napi_env env, napi_value wrapped_value, napi_value* result);
 
 }  // namespace tfnodejs
 

@@ -23,6 +23,16 @@ import {DataType, Rank} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
+class TensorInfo {
+  shape: number[];
+  dtype: number;
+
+  constructor(shape: number[], dtype: number) {
+    this.shape = shape;
+    this.dtype = dtype;
+  }
+}
+
 export class NodeJSKernelBackend implements KernelBackend {
   // TODO(kreeger): Drop when 0.5.1 deeplearn is released.
   slice1D(x: Tensor1D, begin: number, size: number): Tensor1D {
@@ -56,6 +66,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
   // END DROP
 
+  private shapeMap = new WeakMap<DataId, TensorInfo>();
   private handleMap = new WeakMap<DataId, TensorHandle>();
   private context: Context;
 
@@ -544,9 +555,21 @@ export class NodeJSKernelBackend implements KernelBackend {
   disposeData(dataId: object): void {
     // throw new Error('Method not implemented.');
   }
+
   write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
-    this.handleMap.get(dataId).bindBuffer(values);
+    if (!this.shapeMap.has(dataId)) {
+      throw new Error(`Tensor ${dataId} was not registered!`);
+    }
+    if (!this.handleMap.has(dataId)) {
+      this.handleMap.set(dataId, new this.binding.TensorHandle());
+    } else {
+      // TODO - delete this thing or reuse?
+    }
+
+    const info = this.shapeMap.get(dataId);
+    this.handleMap.get(dataId).bindBuffer(info.shape, info.dtype, values);
   }
+
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): Tensor3D {
@@ -555,11 +578,16 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   register(dataId: object, shape: number[], dtype: 'float32'|'int32'|'bool'):
       void {
-    if (this.handleMap.has(dataId)) {
-      return;
+    if (this.shapeMap.has(dataId)) {
+      throw new Error(`Tensor ${dataId} is already registered!`);
     }
-    this.handleMap.set(
-        dataId, new this.binding.TensorHandle(shape, this.getTFDType(dtype)));
+    this.shapeMap.set(dataId, new TensorInfo(shape, this.getTFDType(dtype)));
+    // if (this.handleMap.has(dataId)) {
+    //   return;
+    // }
+    // this.handleMap.set(
+    //     dataId, new this.binding.TensorHandle(shape,
+    //     this.getTFDType(dtype)));
   }
 
   memory(): {unreliable: boolean;} {
