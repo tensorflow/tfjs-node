@@ -24,7 +24,6 @@
 namespace tfnodejs {
 
 struct TensorHandle {
-  TF_Tensor* tensor;  // Drop this.
   TFE_TensorHandle* handle;
   napi_env env;
 };

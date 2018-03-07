@@ -123,7 +123,6 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
-    // TODO - set attr type.
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
@@ -137,14 +136,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
-    // TODO - set attr type.
     const opAttrs = [
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      },
-      {
+      this.createTypeOpAttr('T', x), {
         name: 'Index',
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_INT32
@@ -562,8 +555,6 @@ export class NodeJSKernelBackend implements KernelBackend {
     }
     if (!this.handleMap.has(dataId)) {
       this.handleMap.set(dataId, new this.binding.TensorHandle());
-    } else {
-      // TODO - delete this thing or reuse?
     }
 
     const info = this.shapeMap.get(dataId);
@@ -582,12 +573,6 @@ export class NodeJSKernelBackend implements KernelBackend {
       throw new Error(`Tensor ${dataId} is already registered!`);
     }
     this.shapeMap.set(dataId, new TensorInfo(shape, this.getTFDType(dtype)));
-    // if (this.handleMap.has(dataId)) {
-    //   return;
-    // }
-    // this.handleMap.set(
-    //     dataId, new this.binding.TensorHandle(shape,
-    //     this.getTFDType(dtype)));
   }
 
   memory(): {unreliable: boolean;} {

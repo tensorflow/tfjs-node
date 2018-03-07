@@ -28,19 +28,19 @@ namespace tfnodejs {
 void Cleanup(napi_env env, void* data, void* hint) {
   TensorHandle* handle = static_cast<TensorHandle*>(data);
   if (handle->handle != nullptr) {
+    TF_AutoStatus tf_status;
+    TF_Tensor* tensor = TFE_TensorHandleResolve(handle->handle, tf_status.status);
+    if (TF_GetCode(tf_status.status) == TF_OK) {
+      TF_DeleteTensor(tensor);
+    }
     TFE_DeleteTensorHandle(handle->handle);
     handle->handle = nullptr;
-  }
-  if (handle->tensor != nullptr) {
-    TF_DeleteTensor(handle->tensor);
-    handle->tensor = nullptr;
   }
   delete handle;
 }
 
 void InitTensorHandle(napi_env env, napi_value wrapped_value) {
   TensorHandle* handle = new TensorHandle();
-  handle->tensor = nullptr;
   handle->handle = nullptr;
   handle->env = env;
 
@@ -58,11 +58,11 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
-  if (handle->tensor != nullptr) {
-    // TODO - delete this Tensor before use.
-  }
   if (handle->handle != nullptr) {
-    // TODO - delete this before use?
+    // TODO(kreeger): Check to see if the handle can be reused if shape and
+    // dtype match.
+    TFE_DeleteTensorHandle(handle->handle);
+    handle->handle = nullptr;
   }
 
   napi_typedarray_type array_type;
@@ -109,20 +109,27 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
     buffer_length *= shape[i];
   }
 
-  // Allocate a place holder Tensor. Data will be bound to this later.
+  // Ensure the shape matches the length of the passed in typed-array.
+  if (buffer_length != array_length) {
+    NAPI_THROW_ERROR(env, "Shape does not match typed-array in bindData()");
+    return;
+  }
+
+  // Allocate and memcpy JS data to Tensor.
+  // TODO(kreeger): Check to see if the Deallocator param can be used to
+  // automatically cleanup with JS runtime.
   TF_Tensor* tensor =
       TF_AllocateTensor(dtype, shape, shape_length, buffer_length * width);
+  memcpy(TF_TensorData(tensor), array_data, array_length * width);
 
   TF_AutoStatus tf_status;
   TFE_TensorHandle* tfe_handle = TFE_NewTensorHandle(tensor, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
-  memcpy(TF_TensorData(tensor), array_data, array_length * width);
-
-  // TODO - delete the TF_Tensor here - only get it back on dataSync()!
-  // Set new TF/TFE pointers on the handle.
-  handle->tensor = tensor;
+  // Reference the new TFE_TensorHandle to the wrapped object.
   handle->handle = tfe_handle;
+
+  TF_DeleteTensor(tensor);
 }
 
 void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
@@ -132,15 +139,20 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
-  // TODO - get the TF_Tensor pointer here form the TFE_TensorHandle pointer
-  if (handle->tensor == nullptr) {
-    NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in dataSync()");
+  if (handle->handle == nullptr) {
+    NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle in dataSync()");
     return;
   }
 
+  // TFE_TensorHandle keeps memory on the device, resolving to a TF_Tensor will
+  // pull memory into the host CPU.
+  TF_AutoStatus tf_status;
+  TF_Tensor* tensor = TFE_TensorHandleResolve(handle->handle, tf_status.status);
+  ENSURE_TF_OK(env, tf_status);
+
   // Determine the type of the array
   napi_typedarray_type array_type;
-  switch (TF_TensorType(handle->tensor)) {
+  switch (TF_TensorType(tensor)) {
     case TF_FLOAT:
       array_type = napi_float32_array;
       break;
@@ -151,23 +163,23 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
       array_type = napi_uint8_array;
       break;
     default:
-      REPORT_UNKNOWN_TF_DATA_TYPE(env, TF_TensorType(handle->tensor));
+      REPORT_UNKNOWN_TF_DATA_TYPE(env, TF_TensorType(tensor));
       return;
   }
 
   // Determine the length of the array based on the shape of the tensor.
   size_t length = 0;
-  uint32_t num_dims = TF_NumDims(handle->tensor);
+  uint32_t num_dims = TF_NumDims(tensor);
   for (uint32_t i = 0; i < num_dims; i++) {
     if (i == 0) {
-      length = TF_Dim(handle->tensor, i);
+      length = TF_Dim(tensor, i);
     } else {
-      length *= TF_Dim(handle->tensor, i);
+      length *= TF_Dim(tensor, i);
     }
   }
 
-  void* data = TF_TensorData(handle->tensor);
-  size_t byte_length = TF_TensorByteSize(handle->tensor);
+  void* data = TF_TensorData(tensor);
+  size_t byte_length = TF_TensorByteSize(tensor);
 
   napi_value array_buffer_value;
   nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,
@@ -177,6 +189,8 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
                                    0, result);
   ENSURE_NAPI_OK(env, nstatus);
+
+  TF_DeleteTensor(tensor);
 }
 
 void GetTensorShape(napi_env env, napi_value wrapped_value,
@@ -188,7 +202,7 @@ void GetTensorShape(napi_env env, napi_value wrapped_value,
   ENSURE_NAPI_OK(env, nstatus);
 
   if (handle->handle == nullptr) {
-    NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in shape");
+    NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle used in shape");
     return;
   }
 
@@ -221,7 +235,7 @@ void GetTensorDtype(napi_env env, napi_value wrapped_value,
   ENSURE_NAPI_OK(env, nstatus);
 
   if (handle->handle == nullptr) {
-    NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in dtype");
+    NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle used in dtype");
     return;
   }
 
