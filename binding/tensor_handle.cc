@@ -119,6 +119,7 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
 
   memcpy(TF_TensorData(tensor), array_data, array_length * width);
 
+  // TODO - delete the TF_Tensor here - only get it back on dataSync()!
   // Set new TF/TFE pointers on the handle.
   handle->tensor = tensor;
   handle->handle = tfe_handle;
@@ -131,6 +132,7 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
+  // TODO - get the TF_Tensor pointer here form the TFE_TensorHandle pointer
   if (handle->tensor == nullptr) {
     NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in dataSync()");
     return;

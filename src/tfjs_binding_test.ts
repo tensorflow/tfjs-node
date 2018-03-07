@@ -100,19 +100,23 @@ describe('TensorHandle', () => {
     expect(handle.dataSync()).toEqual(new Int32Array([1, 2]));
   });
 
-  it('reuses handles with different shape',
-     () => {
-         //
-         // todo(kreeger): write me.
-         //
-     });
+  it('reuses handles with different shape', () => {
+    const handle = new binding.TensorHandle();
+    handle.bindBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
+    expect(handle.dataSync()).toEqual(new Int32Array([1, 2]));
 
-  it('reuses handles with different dtype',
-     () => {
-         //
-         // todo(kreeger): write me.
-         //
-     });
+    handle.bindBuffer([2], binding.TF_FLOAT, new Float32Array([3, 4]));
+    expect(handle.dataSync()).toEqual(new Float32Array([3, 4]));
+  });
+
+  it('reuses handles with different dtype', () => {
+    const handle = new binding.TensorHandle();
+    handle.bindBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
+    expect(handle.dataSync()).toEqual(new Int32Array([1, 2]));
+
+    handle.bindBuffer([4], binding.TF_INT32, new Int32Array([3, 4, 5, 6]));
+    expect(handle.dataSync()).toEqual(new Int32Array([3, 4, 5, 6]));
+  });
 
   it('throws exception when shape does not match data', () => {
     expect(() => {
