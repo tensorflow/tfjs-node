@@ -29,7 +29,8 @@ void Cleanup(napi_env env, void* data, void* hint) {
   TensorHandle* handle = static_cast<TensorHandle*>(data);
   if (handle->handle != nullptr) {
     TF_AutoStatus tf_status;
-    TF_Tensor* tensor = TFE_TensorHandleResolve(handle->handle, tf_status.status);
+    TF_Tensor* tensor =
+        TFE_TensorHandleResolve(handle->handle, tf_status.status);
     if (TF_GetCode(tf_status.status) == TF_OK) {
       TF_DeleteTensor(tensor);
     }
