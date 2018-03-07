@@ -62,15 +62,15 @@ static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
   return js_this;
 }
 
-static napi_value BindTensorHandleBuffer(napi_env env, napi_callback_info info) {
+static napi_value BindTensorHandleBuffer(napi_env env,
+                                         napi_callback_info info) {
   napi_status nstatus;
 
   // Binding buffer takes 3 params: shape, dtype, buffer.
   size_t argc = 3;
   napi_value args[argc];
   napi_value js_this;
-  nstatus =
-      napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
   if (argc < 3) {
@@ -113,6 +113,30 @@ static napi_value GetTensorHandleData(napi_env env, napi_callback_info info) {
   return result;
 }
 
+static napi_value GetTensorHandleShape(napi_env env, napi_callback_info info) {
+  napi_status nstatus;
+
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, 0, nullptr, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  napi_value result;
+  GetTensorShape(env, js_this, &result);
+  return result;
+}
+
+static napi_value GetTensorHandleDtype(napi_env env, napi_callback_info info) {
+  napi_status nstatus;
+
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, 0, nullptr, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  napi_value result;
+  GetTensorDtype(env, js_this, &result);
+  return result;
+}
+
 static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
@@ -152,7 +176,12 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       {"bindBuffer", nullptr, BindTensorHandleBuffer, nullptr, nullptr, nullptr,
        napi_default, nullptr},
       {"dataSync", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr,
+       napi_default, nullptr},
+      {"shape", nullptr, nullptr, GetTensorHandleShape, nullptr, nullptr,
+       napi_default, nullptr},
+      {"dtype", nullptr, nullptr, GetTensorHandleDtype, nullptr, nullptr,
        napi_default, nullptr}};
+  ;
 
   napi_value tensor_handle_class;
   nstatus =

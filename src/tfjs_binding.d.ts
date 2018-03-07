@@ -23,6 +23,9 @@ declare class TensorHandle {
       shape: number[], dtype: number,
       buffer: Float32Array|Int32Array|Uint8Array): void;
   dataSync(): Float32Array|Int32Array|Uint8Array;
+
+  shape: number[];
+  dtype: number;
 }
 
 declare class TFEOpAttr {

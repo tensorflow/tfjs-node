@@ -110,13 +110,14 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   }
 
   // Allocate a place holder Tensor. Data will be bound to this later.
-  TF_Tensor* tensor = TF_AllocateTensor(dtype, shape, shape_length, buffer_length * width);
+  TF_Tensor* tensor =
+      TF_AllocateTensor(dtype, shape, shape_length, buffer_length * width);
 
   TF_AutoStatus tf_status;
   TFE_TensorHandle* tfe_handle = TFE_NewTensorHandle(tensor, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
-  memcpy(TF_TensorData(handle->tensor), array_data, array_length * width);
+  memcpy(TF_TensorData(tensor), array_data, array_length * width);
 
   // Set new TF/TFE pointers on the handle.
   handle->tensor = tensor;
@@ -173,6 +174,57 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
 
   nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
                                    0, result);
+  ENSURE_NAPI_OK(env, nstatus);
+}
+
+void GetTensorShape(napi_env env, napi_value wrapped_value,
+                    napi_value* result) {
+  napi_status nstatus;
+
+  TensorHandle* handle;
+  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
+  ENSURE_NAPI_OK(env, nstatus);
+
+  if (handle->handle == nullptr) {
+    NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in shape");
+    return;
+  }
+
+  TF_AutoStatus tf_status;
+  uint32_t num_dims = TFE_TensorHandleNumDims(handle->handle, tf_status.status);
+  ENSURE_TF_OK(env, tf_status);
+
+  nstatus = napi_create_array_with_length(env, num_dims, result);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  for (uint32_t i = 0; i < num_dims; i++) {
+    napi_value cur_dim;
+    nstatus = napi_create_int64(
+        env, TFE_TensorHandleDim(handle->handle, i, tf_status.status),
+        &cur_dim);
+    ENSURE_TF_OK(env, tf_status);
+    ENSURE_NAPI_OK(env, nstatus);
+
+    nstatus = napi_set_element(env, *result, i, cur_dim);
+    ENSURE_NAPI_OK(env, nstatus);
+  }
+}
+
+void GetTensorDtype(napi_env env, napi_value wrapped_value,
+                    napi_value* result) {
+  napi_status nstatus;
+
+  TensorHandle* handle;
+  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
+  ENSURE_NAPI_OK(env, nstatus);
+
+  if (handle->handle == nullptr) {
+    NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in dtype");
+    return;
+  }
+
+  TF_DataType dtype = TFE_TensorHandleDataType(handle->handle);
+  nstatus = napi_create_int32(env, dtype, result);
   ENSURE_NAPI_OK(env, nstatus);
 }
 
