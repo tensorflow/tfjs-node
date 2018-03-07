@@ -23,15 +23,10 @@ import {DataType, Rank} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
-class TensorInfo {
-  shape: number[];
-  dtype: number;
-
-  constructor(shape: number[], dtype: number) {
-    this.shape = shape;
-    this.dtype = dtype;
-  }
-}
+type TensorInfo = {
+  shape: number[],
+  dtype: number
+};
 
 export class NodeJSKernelBackend implements KernelBackend {
   // TODO(kreeger): Drop when 0.5.1 deeplearn is released.
@@ -567,12 +562,12 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
 
-  register(dataId: object, shape: number[], dtype: 'float32'|'int32'|'bool'):
+  register(dataId: object, tShape: number[], dtype: 'float32'|'int32'|'bool'):
       void {
     if (this.shapeMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} is already registered!`);
     }
-    this.shapeMap.set(dataId, new TensorInfo(shape, this.getTFDType(dtype)));
+    this.shapeMap.set(dataId, {shape: tShape, dtype: this.getTFDType(dtype)});
   }
 
   memory(): {unreliable: boolean;} {
