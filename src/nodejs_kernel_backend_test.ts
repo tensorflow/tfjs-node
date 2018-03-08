@@ -74,6 +74,30 @@ describe('relu', () => {
   });
 });
 
+describe('add', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 1]);
+    const b = dl.tensor1d([2, 2]);
+    expect(a.add(b).dataSync()).toEqual(new Float32Array([3, 3]));
+  });
+});
+
+describe('sub', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([2, 2]);
+    const b = dl.tensor1d([1, 1]);
+    expect(a.sub(b).dataSync()).toEqual(new Float32Array([1, 1]));
+  });
+});
+
+describe('div', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 4]);
+    const b = dl.tensor1d([2, 2]);
+    expect(a.div(b).dataSync()).toEqual(new Float32Array([2, 2]));
+  });
+});
+
 describe('multiply', () => {
   it('should work', () => {
     const a = dl.tensor1d([2, 2]);
