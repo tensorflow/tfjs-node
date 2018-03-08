@@ -19,7 +19,7 @@ import {scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
-import {DataType, Rank} from 'deeplearn/dist/types';
+import {DataType, Rank, upcastType} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -84,11 +84,11 @@ export class NodeJSKernelBackend implements KernelBackend {
     return inputs;
   }
 
-  private createTypeOpAttr(attrName: string, tensor: Tensor): TFEOpAttr {
+  private createTypeOpAttr(attrName: string, dtype: DataType): TFEOpAttr {
     return {
       name: attrName,
       type: this.binding.TF_ATTR_TYPE,
-      value: this.getTFDType(tensor.dtype)
+      value: this.getTFDType(dtype)
     };
   }
 
@@ -97,7 +97,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
-      this.createTypeOpAttr('T', a)
+      this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
     ];
     const output = new this.binding.TensorHandle();
     this.binding.execute(
@@ -107,7 +107,7 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
     const opAttrs = [
-      this.createTypeOpAttr('T', x), {
+      this.createTypeOpAttr('T', x.dtype), {
         name: 'Index',
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_INT32
@@ -141,7 +141,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // Find the higher tensor?
-    const opAttrs = [this.createTypeOpAttr('T', a)];
+    const opAttrs = [this.createTypeOpAttr('T', a.dtype)];
     const output = new this.binding.TensorHandle();
     this.binding.execute(
         this.context, 'Mul', opAttrs, this.getInputTensors([a, b]), output);
@@ -234,7 +234,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
   relu<T extends Tensor<Rank>>(x: T): T {
-    const opAttrs = [this.createTypeOpAttr('T', x)];
+    const opAttrs = [this.createTypeOpAttr('T', x.dtype)];
     const output = new this.binding.TensorHandle();
     this.binding.execute(
         this.context, 'Relu', opAttrs, this.getInputTensors([x]), output);
@@ -459,7 +459,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   pad<T extends Tensor<Rank>>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
     const opAttrs = [
-      this.createTypeOpAttr('T', x), {
+      this.createTypeOpAttr('T', x.dtype), {
         name: 'Tpaddings',
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_INT32
