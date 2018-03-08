@@ -73,6 +73,15 @@ describe('relu', () => {
   });
 });
 
+describe('reverse', () => {
+  it('should work', () => {
+    const input = dl.tensor1d([1, 2, 3, 4, 5]);
+    const result = dl.reverse(input);
+    expect(result.shape).toEqual(input.shape);
+    expectArraysClose(result, [5, 4, 3, 2, 1]);
+  });
+});
+
 describe('add', () => {
   it('should work', () => {
     const a = dl.tensor1d([1, 1]);

@@ -125,9 +125,16 @@ export class NodeJSKernelBackend implements KernelBackend {
 
     return this.execute('Slice', opAttrs, [x, beginTensor, sizeTensor]) as T;
   }
+
   reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      this.createTypeOpAttr('Tidx', 'int32'),
+      this.createTypeOpAttr('T', a.dtype)
+    ];
+    const axisTensor = tensor1d(axis, 'int32');
+    return this.execute('ReverseV2', opAttrs, [a, axisTensor]) as T;
   }
+
   concat(a: Tensor2D, b: Tensor2D): Tensor2D {
     throw new Error('Method not implemented.');
   }
