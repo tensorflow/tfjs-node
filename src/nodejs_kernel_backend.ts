@@ -226,7 +226,11 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
   relu<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', x)];
+    const output = new this.binding.TensorHandle();
+    this.binding.execute(
+        this.context, 'Relu', opAttrs, [this.handleMap.get(x.dataId)], output);
+    return this.createOutputTensor(output) as T;
   }
   elu<T extends Tensor<Rank>>(x: T): T {
     throw new Error('Method not implemented.');

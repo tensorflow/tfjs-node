@@ -16,6 +16,8 @@
  */
 
 import * as dl from 'deeplearn';
+import {expectArraysClose} from 'deeplearn/dist/test_util';
+
 import {bindTensorFlowBackend} from '.';
 
 // BeforeEach?
@@ -63,5 +65,20 @@ describe('pad', () => {
     expect(result.dataSync()).toEqual(new Float32Array([
       0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0
     ]));
+  });
+});
+
+describe('relu', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, -2, 0, 3, -0.1]);
+    const result = dl.relu(a);
+    expectArraysClose(result, [1, 0, 0, 3, 0]);
+  });
+
+  it('propagates NaNs, float32', () => {
+    const a = dl.tensor1d([1, -2, 0, 3, -0.1, NaN]);
+    const result = dl.relu(a);
+    expect(result.dtype).toBe('float32');
+    expectArraysClose(result, [1, 0, 0, 3, 0, NaN]);
   });
 });
