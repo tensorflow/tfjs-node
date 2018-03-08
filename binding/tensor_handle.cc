@@ -205,7 +205,6 @@ void GetTensorData(napi_env env, napi_value context_value,
     target_handle = TFE_TensorHandleCopyToDevice(
         handle->handle, context_env->context, nullptr, tf_status.status);
     ENSURE_TF_OK(env, tf_status);
-
     cleanup_handle = true;
   }
 
