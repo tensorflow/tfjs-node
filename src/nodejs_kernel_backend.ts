@@ -76,6 +76,14 @@ export class NodeJSKernelBackend implements KernelBackend {
     return Tensor.make(handle.shape, {dataId: newId}, dtype);
   }
 
+  private getInputTensors(tensors: Tensor[]): TensorHandle[] {
+    const inputs: TensorHandle[] = [];
+    for (let i = 0; i < tensors.length; i++) {
+      inputs.push(this.handleMap.get(tensors[i].dataId));
+    }
+    return inputs;
+  }
+
   private createTypeOpAttr(attrName: string, tensor: Tensor): TFEOpAttr {
     return {
       name: attrName,
@@ -93,8 +101,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
     const output = new this.binding.TensorHandle();
     this.binding.execute(
-        this.context, 'MatMul', opAttrs,
-        [this.handleMap.get(a.dataId), this.handleMap.get(b.dataId)], output);
+        this.context, 'MatMul', opAttrs, this.getInputTensors([a, b]), output);
     return this.createOutputTensor(output) as Tensor2D;
   }
 
@@ -114,11 +121,7 @@ export class NodeJSKernelBackend implements KernelBackend {
 
     this.binding.execute(
         this.context, 'Slice', opAttrs,
-        [
-          this.handleMap.get(x.dataId), this.handleMap.get(beginTensor.dataId),
-          this.handleMap.get(sizeTensor.dataId)
-        ],
-        output);
+        this.getInputTensors([x, beginTensor, sizeTensor]), output);
     return this.createOutputTensor(output) as T;
   }
   reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
@@ -137,7 +140,12 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // Find the higher tensor?
+    const opAttrs = [this.createTypeOpAttr('T', a)];
+    const output = new this.binding.TensorHandle();
+    this.binding.execute(
+        this.context, 'Mul', opAttrs, this.getInputTensors([a, b]), output);
+    return this.createOutputTensor(output) as Tensor<Rank>;
   }
   divide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     throw new Error('Method not implemented.');
@@ -229,7 +237,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     const opAttrs = [this.createTypeOpAttr('T', x)];
     const output = new this.binding.TensorHandle();
     this.binding.execute(
-        this.context, 'Relu', opAttrs, [this.handleMap.get(x.dataId)], output);
+        this.context, 'Relu', opAttrs, this.getInputTensors([x]), output);
     return this.createOutputTensor(output) as T;
   }
   elu<T extends Tensor<Rank>>(x: T): T {
@@ -465,12 +473,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     const output = new this.binding.TensorHandle();
     this.binding.execute(
         this.context, 'PadV2', opAttrs,
-        [
-          this.handleMap.get(x.dataId),
-          this.handleMap.get(paddingsTensor.dataId),
-          this.handleMap.get(constantTensor.dataId)
-        ],
-        output);
+        this.getInputTensors([x, paddingsTensor, constantTensor]), output);
     return this.createOutputTensor(output) as T;
   }
   transpose<T extends Tensor<Rank>>(x: T, perm: number[]): T {
