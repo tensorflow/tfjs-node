@@ -16,6 +16,7 @@
  */
 
 #include "tensor_handle.h"
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -27,9 +28,16 @@
 
 namespace tfnodejs {
 
+static const std::string CPU_DEVICE_0("cpu:0");
+
 bool IsCPUDevice(std::string& device_name) {
-  printf(" * device name: %s\n", device_name.c_str());
-  return false;
+  if (CPU_DEVICE_0.size() > device_name.size()) {
+    return false;
+  }
+  std::transform(device_name.begin(), device_name.end(), device_name.begin(),
+                 ::tolower);
+  return std::equal(CPU_DEVICE_0.rbegin(), CPU_DEVICE_0.rend(),
+                    device_name.rbegin());
 }
 
 void Cleanup(napi_env env, void* data, void* hint) {
@@ -187,6 +195,8 @@ void GetTensorData(napi_env env, napi_value context_value,
       std::string(TFE_TensorHandleDeviceName(handle->handle, tf_status.status));
   ENSURE_TF_OK(env, tf_status);
 
+  // If the handle is running on a non-CPU device, copy the handle to the device
+  // before attempting to read from the tensor buffer.
   bool cleanup_handle = false;
   TFE_TensorHandle* target_handle;
   if (IsCPUDevice(device_name)) {
