@@ -19,11 +19,18 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <string>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 #include "tf_auto_status.h"
+#include "tfe_context_env.h"
 #include "utils.h"
 
 namespace tfnodejs {
+
+bool IsCPUDevice(std::string& device_name) {
+  printf(" * device name: %s\n", device_name.c_str());
+  return false;
+}
 
 void Cleanup(napi_env env, void* data, void* hint) {
   TensorHandle* handle = static_cast<TensorHandle*>(data);
@@ -133,8 +140,19 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   TF_DeleteTensor(tensor);
 }
 
-void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
+void GetTensorData(napi_env env, napi_value context_value,
+                   napi_value wrapped_value, napi_value* result) {
   napi_status nstatus;
+
+  TFEContextEnv* context_env;
+  nstatus =
+      napi_unwrap(env, context_value, reinterpret_cast<void**>(&context_env));
+  ENSURE_NAPI_OK(env, nstatus);
+
+  if (context_env->context == nullptr) {
+    NAPI_THROW_ERROR(env, "Invalid TFE_Context in dataSync()");
+    return;
+  }
 
   TensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
@@ -163,11 +181,25 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
       return;
   }
 
-  // TODO(kreeger): This will only work for CPU device. Use
-  // TFE_TensorHandleCopyToDevice() to work for non-CPU only platforms:
-  // https://github.com/tensorflow/tfjs-node/issues/25
   TF_AutoStatus tf_status;
-  TF_Tensor* tensor = TFE_TensorHandleResolve(handle->handle, tf_status.status);
+
+  std::string device_name =
+      std::string(TFE_TensorHandleDeviceName(handle->handle, tf_status.status));
+  ENSURE_TF_OK(env, tf_status);
+
+  bool cleanup_handle = false;
+  TFE_TensorHandle* target_handle;
+  if (IsCPUDevice(device_name)) {
+    target_handle = handle->handle;
+  } else {
+    target_handle = TFE_TensorHandleCopyToDevice(
+        handle->handle, context_env->context, nullptr, tf_status.status);
+    ENSURE_TF_OK(env, tf_status);
+
+    cleanup_handle = true;
+  }
+
+  TF_Tensor* tensor = TFE_TensorHandleResolve(target_handle, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
   // Determine the length of the array based on the shape of the tensor.
@@ -194,6 +226,10 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   ENSURE_NAPI_OK(env, nstatus);
 
   TF_DeleteTensor(tensor);
+
+  if (cleanup_handle) {
+    TFE_DeleteTensorHandle(target_handle);
+  }
 }
 
 void GetTensorShape(napi_env env, napi_value wrapped_value,
