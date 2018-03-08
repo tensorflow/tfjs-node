@@ -136,10 +136,20 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   concat(a: Tensor2D, b: Tensor2D): Tensor2D {
+    // TODO(kreeger): Need to figure out how to attach a list of values in TFE.
+    // const opAttrs = [
+    //   {name: 'N', type: this.binding.TF_ATTR_INT, value: 2},
+    //   this.createTypeOpAttr('Tidx', 'int32'),
+    //   this.createTypeOpAttr('T', a.dtype)
+    // ];
+    // const axisTensor = tensor1d([0], 'int32');
+    // return this.execute('ConcatV2', opAttrs, [a, b, axisTensor]) as Tensor2D;
     throw new Error('Method not implemented.');
   }
+
   neg<T extends Tensor<Rank>>(a: T): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', a.dtype)];
+    return this.execute('Neg', opAttrs, [a]) as T;
   }
   add(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];

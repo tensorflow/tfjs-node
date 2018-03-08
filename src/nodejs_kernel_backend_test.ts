@@ -82,6 +82,14 @@ describe('reverse', () => {
   });
 });
 
+describe('neg', () => {
+  it('should work', () => {
+    const input = dl.tensor1d([1, 2, 3, 4, 5]);
+    const result = dl.neg(input);
+    expectArraysClose(result, [-1, -2, -3, -4, -5]);
+  });
+});
+
 describe('add', () => {
   it('should work', () => {
     const a = dl.tensor1d([1, 1]);
