@@ -32,8 +32,8 @@ struct TensorHandle {
 // pointers
 void InitTensorHandle(napi_env env, napi_value wrapped_value);
 
-// Binds a JS typed-array to the wrapped TF/TFE pointers.
-void BindTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
+// Copies a JS typed-array to the wrapped TF/TFE pointers.
+void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
                         uint32_t shape_length, TF_DataType dtype,
                         napi_value typed_array_value);
 

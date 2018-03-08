@@ -28,12 +28,6 @@ namespace tfnodejs {
 void Cleanup(napi_env env, void* data, void* hint) {
   TensorHandle* handle = static_cast<TensorHandle*>(data);
   if (handle->handle != nullptr) {
-    TF_AutoStatus tf_status;
-    TF_Tensor* tensor =
-        TFE_TensorHandleResolve(handle->handle, tf_status.status);
-    if (TF_GetCode(tf_status.status) == TF_OK) {
-      TF_DeleteTensor(tensor);
-    }
     TFE_DeleteTensorHandle(handle->handle);
     handle->handle = nullptr;
   }
@@ -50,7 +44,7 @@ void InitTensorHandle(napi_env env, napi_value wrapped_value) {
   ENSURE_NAPI_OK(env, nstatus);
 }
 
-void BindTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
+void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
                         uint32_t shape_length, TF_DataType dtype,
                         napi_value typed_array_value) {
   napi_status nstatus;
@@ -104,14 +98,20 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
       return;
   }
 
+  // Double check that width matches TF data type size:
+  if (width != TF_DataTypeSize(dtype)) {
+    NAPI_THROW_ERROR(env, "Byte size of elements differs between JS VM and TF");
+    return;
+  }
+
   // Determine the size of the buffer based on the dimensions.
-  uint32_t buffer_length = 1;
-  for (uint32_t i = 0; i < shape_length; i++) {
-    buffer_length *= shape[i];
+  size_t num_elements = 1;
+  for (size_t i = 0; i < shape_length; i++) {
+    num_elements *= shape[i];
   }
 
   // Ensure the shape matches the length of the passed in typed-array.
-  if (buffer_length != array_length) {
+  if (num_elements != array_length) {
     NAPI_THROW_ERROR(env, "Shape does not match typed-array in bindData()");
     return;
   }
@@ -119,9 +119,9 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   // Allocate and memcpy JS data to Tensor.
   // TODO(kreeger): Check to see if the Deallocator param can be used to
   // automatically cleanup with JS runtime.
-  TF_Tensor* tensor =
-      TF_AllocateTensor(dtype, shape, shape_length, buffer_length * width);
-  memcpy(TF_TensorData(tensor), array_data, array_length * width);
+  const size_t byte_size = num_elements * width;
+  TF_Tensor* tensor = TF_AllocateTensor(dtype, shape, shape_length, byte_size);
+  memcpy(TF_TensorData(tensor), array_data, byte_size);
 
   TF_AutoStatus tf_status;
   TFE_TensorHandle* tfe_handle = TFE_NewTensorHandle(tensor, tf_status.status);
@@ -145,15 +145,9 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
     return;
   }
 
-  // TFE_TensorHandle keeps memory on the device, resolving to a TF_Tensor will
-  // pull memory into the host CPU.
-  TF_AutoStatus tf_status;
-  TF_Tensor* tensor = TFE_TensorHandleResolve(handle->handle, tf_status.status);
-  ENSURE_TF_OK(env, tf_status);
-
   // Determine the type of the array
   napi_typedarray_type array_type;
-  switch (TF_TensorType(tensor)) {
+  switch (TFE_TensorHandleDataType(handle->handle)) {
     case TF_FLOAT:
       array_type = napi_float32_array;
       break;
@@ -164,9 +158,17 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
       array_type = napi_uint8_array;
       break;
     default:
-      REPORT_UNKNOWN_TF_DATA_TYPE(env, TF_TensorType(tensor));
+      REPORT_UNKNOWN_TF_DATA_TYPE(env,
+                                  TFE_TensorHandleDataType(handle->handle));
       return;
   }
+
+  // TODO(kreeger): This will only work for CPU device. Use
+  // TFE_TensorHandleCopyToDevice() to work for non-CPU only platforms:
+  // https://github.com/tensorflow/tfjs-node/issues/25
+  TF_AutoStatus tf_status;
+  TF_Tensor* tensor = TFE_TensorHandleResolve(handle->handle, tf_status.status);
+  ENSURE_TF_OK(env, tf_status);
 
   // Determine the length of the array based on the shape of the tensor.
   size_t length = 0;

@@ -553,7 +553,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     }
 
     const info = this.shapeMap.get(dataId);
-    this.handleMap.get(dataId).bindBuffer(info.shape, info.dtype, values);
+    this.handleMap.get(dataId).copyBuffer(info.shape, info.dtype, values);
   }
 
   fromPixels(

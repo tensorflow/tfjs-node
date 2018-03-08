@@ -62,7 +62,7 @@ static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
   return js_this;
 }
 
-static napi_value BindTensorHandleBuffer(napi_env env,
+static napi_value CopyTensorHandleBuffer(napi_env env,
                                          napi_callback_info info) {
   napi_status nstatus;
 
@@ -95,7 +95,7 @@ static napi_value BindTensorHandleBuffer(napi_env env,
   napi_value typed_array_value = args[2];
   ENSURE_VALUE_IS_TYPED_ARRAY_RETVAL(env, typed_array_value, js_this);
 
-  BindTensorJSBuffer(env, js_this, shape_vector.data(), shape_vector.size(),
+  CopyTensorJSBuffer(env, js_this, shape_vector.data(), shape_vector.size(),
                      dtype, typed_array_value);
 
   return js_this;
@@ -173,7 +173,7 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
 
   // Tensor Handle class
   napi_property_descriptor tensor_handle_properties[] = {
-      {"bindBuffer", nullptr, BindTensorHandleBuffer, nullptr, nullptr, nullptr,
+      {"copyBuffer", nullptr, CopyTensorHandleBuffer, nullptr, nullptr, nullptr,
        napi_default, nullptr},
       {"dataSync", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr,
        napi_default, nullptr},

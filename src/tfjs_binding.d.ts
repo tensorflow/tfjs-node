@@ -19,7 +19,7 @@ declare class Context { constructor(); }
 
 declare class TensorHandle {
   constructor();
-  bindBuffer(
+  copyBuffer(
       shape: number[], dtype: number,
       buffer: Float32Array|Int32Array|Uint8Array): void;
   dataSync(): Float32Array|Int32Array|Uint8Array;
