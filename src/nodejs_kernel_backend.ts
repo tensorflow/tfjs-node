@@ -181,14 +181,6 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   argMin(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    // TODO(kreeger): Fix me.
-    // const opAttrs = [
-    //   this.createTypeOpAttr('T', x.dtype),
-    //   this.createTypeOpAttr('Tidx', 'int32'),
-    //   this.createTypeOpAttr('output_type', 'int33')
-    // ];
-    // const axisTensor = scalar(0, 'int32');
-    // return this.execute('ArgMin', opAttrs, [x, axisTensor]) as Tensor<Rank>;
     throw new Error('Method not implemented.');
   }
   argMax(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {

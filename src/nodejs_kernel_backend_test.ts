@@ -141,15 +141,6 @@ describe('sum', () => {
   });
 });
 
-// TODO(kreeger): Make this work
-// describe('argMin', () => {
-//   it('should work', () => {
-//     const a = dl.tensor1d([1, 0, 3, 2]);
-//     const result = dl.argMin(a);
-//     expect(result.get()).toBe(1);
-//   });
-// });
-
 describe('equal', () => {
   it('should work', () => {
     const a = dl.tensor1d([4, 2]);
