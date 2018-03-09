@@ -71,7 +71,7 @@ export class NodeJSKernelBackend implements KernelBackend {
         dtype = 'bool';
         break;
       default:
-        throw new Error('Unknown dtype enum `${handle.dtype}`');
+        throw new Error(`Unknown dtype enum ${handle.dtype}`);
     }
     return Tensor.make(handle.shape, {dataId: newId}, dtype);
   }
@@ -152,22 +152,22 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   add(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Add', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('Add', opAttrs, [a, b]);
   }
 
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Sub', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('Sub', opAttrs, [a, b]);
   }
 
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Mul', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('Mul', opAttrs, [a, b]);
   }
 
   divide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Div', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('Div', opAttrs, [a, b]);
   }
 
   sum(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
@@ -177,7 +177,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('Tidx', 'int32')
     ];
     const axisTensor = tensor1d(axes, 'int32');
-    return this.execute('Sum', opAttrs, [x, axisTensor]) as Tensor<Rank>;
+    return this.execute('Sum', opAttrs, [x, axisTensor]);
   }
 
   argMin(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
@@ -189,32 +189,32 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   equal(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Equal', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('Equal', opAttrs, [a, b]);
   }
 
   notEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('NotEqual', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('NotEqual', opAttrs, [a, b]);
   }
 
   less(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Less', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('Less', opAttrs, [a, b]);
   }
 
   lessEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('LessEqual', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('LessEqual', opAttrs, [a, b]);
   }
 
   greater(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Greater', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('Greater', opAttrs, [a, b]);
   }
 
   greaterEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('GreaterEqual', opAttrs, [a, b]) as Tensor<Rank>;
+    return this.execute('GreaterEqual', opAttrs, [a, b]);
   }
 
   logicalNot<T extends Tensor<Rank>>(a: T): T {
@@ -222,11 +222,11 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   logicalAnd(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    return this.execute('LogicalAnd', [], [a, b]) as Tensor<Rank>;
+    return this.execute('LogicalAnd', [], [a, b]);
   }
 
   logicalOr(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    return this.execute('LogicalOr', [], [a, b]) as Tensor<Rank>;
+    return this.execute('LogicalOr', [], [a, b]);
   }
 
   logicalXor(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
@@ -238,6 +238,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       dtype: 'float32'|'int32'|'bool'): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
+
   topKValues<T extends Tensor<Rank>>(x: T, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
