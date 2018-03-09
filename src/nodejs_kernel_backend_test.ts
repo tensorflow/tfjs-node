@@ -16,6 +16,7 @@
  */
 
 import * as dl from 'deeplearn';
+// tslint:disable-next-line:max-line-length
 import {expectArraysClose, expectArraysEqual, expectNumbersClose} from 'deeplearn/dist/test_util';
 
 import {bindTensorFlowBackend} from '.';
@@ -228,5 +229,56 @@ describe('minimum', () => {
     expect(result.shape).toEqual(a.shape);
     expect(result.dtype).toBe('int32');
     expectArraysEqual(result, [1, 3, 1, 3]);
+  });
+});
+
+describe('max', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
+    expectNumbersClose(dl.max(a).get(), 100);
+  });
+});
+
+describe('maximum', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 5, 2, 3], 'int32');
+    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
+    const result = dl.maximum(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expect(result.dtype).toBe('int32');
+    expectArraysEqual(result, [2, 5, 2, 4]);
+  });
+});
+
+describe('ceil', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1.5, 2.1, -1.4]);
+    const r = dl.ceil(a);
+    expectNumbersClose(r.get(0), 2);
+    expectNumbersClose(r.get(1), 3);
+    expectNumbersClose(r.get(2), -1);
+  });
+});
+
+describe('floor', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1.5, 2.1, -1.4]);
+    const r = dl.floor(a);
+    expectNumbersClose(r.get(0), 1);
+    expectNumbersClose(r.get(1), 2);
+    expectNumbersClose(r.get(2), -2);
+  });
+});
+
+describe('pow', () => {
+  it('should work', () => {
+    const a = dl.tensor2d([1, -2, -3, 0, 7, 1], [2, 3]);
+    const b = dl.tensor2d([5, 3, 4, 5, 2, -3], [2, 3]);
+    const expected = [1, -8, 81, 0, 49, 1];
+    const result = dl.pow(a, b);
+
+    expect(result.shape).toEqual([2, 3]);
+    expectArraysClose(result, expected, 0.01);
   });
 });

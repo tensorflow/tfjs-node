@@ -84,6 +84,14 @@ export class NodeJSKernelBackend implements KernelBackend {
     return inputs;
   }
 
+  private createReductionOpAttrs(tensor: Tensor): TFEOpAttr[] {
+    return [
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: true},
+      this.createTypeOpAttr('T', tensor.dtype),
+      this.createTypeOpAttr('Tidx', 'int32')
+    ];
+  }
+
   private createTypeOpAttr(attrName: string, dtype: DataType): TFEOpAttr {
     return {
       name: attrName,
@@ -102,6 +110,8 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
@@ -151,33 +161,36 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   add(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Add', opAttrs, [a, b]);
   }
 
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Sub', opAttrs, [a, b]);
   }
 
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Mul', opAttrs, [a, b]);
   }
 
   divide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Div', opAttrs, [a, b]);
   }
 
   sum(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    const opAttrs = [
-      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: true},
-      this.createTypeOpAttr('T', x.dtype),
-      this.createTypeOpAttr('Tidx', 'int32')
-    ];
     const axisTensor = tensor1d(axes, 'int32');
-    return this.execute('Sum', opAttrs, [x, axisTensor]);
+    return this.execute('Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
   }
 
   argMin(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
@@ -188,31 +201,43 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   equal(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Equal', opAttrs, [a, b]);
   }
 
   notEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('NotEqual', opAttrs, [a, b]);
   }
 
   less(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Less', opAttrs, [a, b]);
   }
 
   lessEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('LessEqual', opAttrs, [a, b]);
   }
 
   greater(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Greater', opAttrs, [a, b]);
   }
 
   greaterEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('GreaterEqual', opAttrs, [a, b]);
   }
@@ -246,35 +271,46 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   min(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    const opAttrs = [
-      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: true},
-      this.createTypeOpAttr('T', x.dtype),
-      this.createTypeOpAttr('Tidx', 'int32')
-    ];
     const axesTensor = tensor1d(axes, 'int32');
-    return this.execute('Min', opAttrs, [x, axesTensor]);
+    return this.execute('Min', this.createReductionOpAttrs(x), [x, axesTensor]);
   }
 
   minimum(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Minimum', opAttrs, [a, b]);
   }
 
   max(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const axesTensor = tensor1d(axes, 'int32');
+    return this.execute('Max', this.createReductionOpAttrs(x), [x, axesTensor]);
   }
+
   maximum(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Maximum', opAttrs, [a, b]);
   }
+
   ceil<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', x.dtype)];
+    return this.execute('Ceil', opAttrs, [x]) as T;
   }
+
   floor<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', x.dtype)];
+    return this.execute('Floor', opAttrs, [x]) as T;
   }
+
   pow<T extends Tensor<Rank>>(a: T, b: Tensor<Rank>): T {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Pow', opAttrs, [a, b]) as T;
   }
+
   exp<T extends Tensor<Rank>>(x: T): T {
     throw new Error('Method not implemented.');
   }
