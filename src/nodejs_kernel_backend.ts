@@ -92,11 +92,13 @@ export class NodeJSKernelBackend implements KernelBackend {
     };
   }
 
-  private execute(name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]):
-      Tensor {
+  private execute(
+      name: string, opAttrs: TFEOpAttr[], inputs: Tensor[],
+      debug?: boolean): Tensor {
     const output = new this.binding.TensorHandle();
     this.binding.execute(
-        this.context, name, opAttrs, this.getInputTensors(inputs), output);
+        this.context, name, opAttrs, this.getInputTensors(inputs), output,
+        debug);
     return this.createOutputTensor(output);
   }
 
@@ -151,25 +153,37 @@ export class NodeJSKernelBackend implements KernelBackend {
     const opAttrs = [this.createTypeOpAttr('T', a.dtype)];
     return this.execute('Neg', opAttrs, [a]) as T;
   }
+
   add(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Add', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Sub', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Mul', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   divide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Div', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   sum(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: true},
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tidx', 'int32')
+    ];
+    const axisTensor = tensor1d(axes, 'int32');
+    return this.execute('Sum', opAttrs, [x, axisTensor]) as Tensor<Rank>;
   }
+
   argMin(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }

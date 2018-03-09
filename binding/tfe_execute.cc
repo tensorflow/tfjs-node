@@ -126,7 +126,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
 void ExecuteOp(napi_env env, napi_value context, const char* opName,
                napi_value op_attr_inputs, napi_value inputs,
-               napi_value output_tensor) {
+               napi_value output_tensor, bool debug) {
   napi_status nstatus;
 
   TFEContextEnv* context_env;
@@ -198,6 +198,22 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   // Swap pointer on the output tensor handle. This handle is ensured to have
   // nullptr for all references so no cleanup is needed.
   handle->handle = result_handles[0];
+
+  if (debug) {
+    // If debug mode, resolve the TF_Tensor now and print stats
+    // TF_Tensor* tf_tensor = TFE_TensorHandleResolve(handle->handle, tf_status);
+    // ENSURE_TF_OK(env, tf_status);
+
+    int num_dims = TFE_TensorHandleNumDims(handle->handle, tf_status.status);
+    ENSURE_TF_OK(env, tf_status);
+
+    TF_DataType data_type = TFE_TensorHandleDataType(handle->handle);
+
+    ENSURE_TF_OK(env, tf_status);
+
+    printf("  * dtype: %d\n", data_type);
+    printf("  * num dims: %d\n", num_dims);
+  }
 }
 
 }  // namespace tfnodejs

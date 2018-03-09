@@ -106,6 +106,14 @@ describe('sub', () => {
   });
 });
 
+describe('multiply', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([2, 2]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.mul(b), [4, 4]);
+  });
+});
+
 describe('div', () => {
   it('should work', () => {
     const a = dl.tensor1d([4, 4]);
@@ -114,10 +122,10 @@ describe('div', () => {
   });
 });
 
-describe('multiply', () => {
+describe('sum', () => {
   it('should work', () => {
-    const a = dl.tensor1d([2, 2]);
-    const b = dl.tensor1d([2, 2]);
-    expectArraysClose(a.mul(b), [4, 4]);
+    const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
+    const result = dl.sum(a);
+    expect(result.get()).toEqual(7);
   });
 });
