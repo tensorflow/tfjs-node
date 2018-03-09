@@ -16,7 +16,7 @@
  */
 
 import * as dl from 'deeplearn';
-import {expectArraysClose} from 'deeplearn/dist/test_util';
+import {expectArraysClose, expectArraysEqual, expectNumbersClose} from 'deeplearn/dist/test_util';
 
 import {bindTensorFlowBackend} from '.';
 
@@ -209,5 +209,24 @@ describe('logicalOr', () => {
     const a = dl.tensor1d([1, 0, 0], 'bool');
     const b = dl.tensor1d([0, 1, 0], 'bool');
     expectArraysClose(a.logicalOr(b), [1, 1, 0]);
+  });
+});
+
+describe('min', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
+    expectNumbersClose(dl.min(a).get(), -7);
+  });
+});
+
+describe('minimum', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 5, 2, 3], 'int32');
+    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
+    const result = dl.minimum(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expect(result.dtype).toBe('int32');
+    expectArraysEqual(result, [1, 3, 1, 3]);
   });
 });

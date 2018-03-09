@@ -238,19 +238,28 @@ export class NodeJSKernelBackend implements KernelBackend {
       dtype: 'float32'|'int32'|'bool'): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
-
   topKValues<T extends Tensor<Rank>>(x: T, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
   topKIndices(x: Tensor<Rank>, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
+
   min(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: true},
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tidx', 'int32')
+    ];
+    const axesTensor = tensor1d(axes, 'int32');
+    return this.execute('Min', opAttrs, [x, axesTensor]);
   }
+
   minimum(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Minimum', opAttrs, [a, b]);
   }
+
   max(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
