@@ -100,6 +100,11 @@ export class NodeJSKernelBackend implements KernelBackend {
     };
   }
 
+  private executeSingleInput(name: string, input: Tensor): Tensor {
+    const opAttrs = [this.createTypeOpAttr('T', input.dtype)];
+    return this.execute(name, opAttrs, [input]);
+  }
+
   private execute(name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]):
       Tensor {
     const output = new this.binding.TensorHandle();
@@ -156,8 +161,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   neg<T extends Tensor<Rank>>(a: T): T {
-    const opAttrs = [this.createTypeOpAttr('T', a.dtype)];
-    return this.execute('Neg', opAttrs, [a]) as T;
+    return this.executeSingleInput('Neg', a) as T;
   }
 
   add(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
@@ -295,13 +299,11 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   ceil<T extends Tensor<Rank>>(x: T): T {
-    const opAttrs = [this.createTypeOpAttr('T', x.dtype)];
-    return this.execute('Ceil', opAttrs, [x]) as T;
+    return this.executeSingleInput('Ceil', x) as T;
   }
 
   floor<T extends Tensor<Rank>>(x: T): T {
-    const opAttrs = [this.createTypeOpAttr('T', x.dtype)];
-    return this.execute('Floor', opAttrs, [x]) as T;
+    return this.executeSingleInput('Floor', x) as T;
   }
 
   pow<T extends Tensor<Rank>>(a: T, b: Tensor<Rank>): T {
@@ -312,78 +314,101 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   exp<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Exp', x) as T;
   }
+
   log<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Log', x) as T;
   }
+
   sqrt<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Sqrt', x) as T;
   }
+
   square<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Square', x) as T;
   }
+
   relu<T extends Tensor<Rank>>(x: T): T {
-    const opAttrs = [this.createTypeOpAttr('T', x.dtype)];
-    return this.execute('Relu', opAttrs, [x]) as T;
+    return this.executeSingleInput('Relu', x) as T;
   }
+
   elu<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Elu', x) as T;
   }
+
   eluDer<T extends Tensor<Rank>>(x: T): T {
     throw new Error('Method not implemented.');
   }
+
   selu<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Selu', x) as T;
   }
+
   leakyRelu<T extends Tensor<Rank>>(x: T, alpha: number): T {
     throw new Error('Method not implemented.');
   }
+
   prelu<T extends Tensor<Rank>>(x: T, alpha: T): T {
     throw new Error('Method not implemented.');
   }
+
   preluDer<T extends Tensor<Rank>>(x: T, alpha: T): T {
     throw new Error('Method not implemented.');
   }
+
   int<T extends Tensor<Rank>>(x: T): T {
     throw new Error('Method not implemented.');
   }
+
   clip<T extends Tensor<Rank>>(x: T, min: number, max: number): T {
     throw new Error('Method not implemented.');
   }
+
   abs<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Abs', x) as T;
   }
+
   sigmoid<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Sigmoid', x) as T;
   }
+
   sin<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Sin', x) as T;
   }
+
   cos<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Cos', x) as T;
   }
+
   tan<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Tan', x) as T;
   }
+
   asin<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Asin', x) as T;
   }
+
   acos<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Acos', x) as T;
   }
+
   atan<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Atan', x) as T;
   }
+
   sinh<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Sinh', x) as T;
   }
+
   cosh<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Cosh', x) as T;
   }
+
   tanh<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Tanh', x) as T;
   }
+
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
     throw new Error('Method not implemented.');
   }
