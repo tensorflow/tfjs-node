@@ -25,7 +25,7 @@ namespace tfnodejs {
 // Executes a TFE Op based on the name, inputs, attributes, and output.
 void ExecuteOp(napi_env env, napi_value context, const char* opName,
                napi_value op_attr_inputs, napi_value inputs,
-               napi_value output_tensor, bool debug);
+               napi_value output_tensor);
 }  // namespace tfnodejs
 
 #endif  // TF_NODEJS_TFE_EXECUTE_H_

@@ -140,7 +140,7 @@ static napi_value GetTensorHandleDtype(napi_env env, napi_callback_info info) {
 static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
-  size_t argc = 6;
+  size_t argc = 5;
   napi_value args[argc];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
@@ -153,22 +153,12 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
                                        nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
-  bool debug = false;
-  if (argc == 6) {
-    // If 6 args, the execute needs to be debugged.
-    nstatus = napi_get_value_bool(env, args[5], &debug);
-    if (nstatus != napi_ok) {
-      debug = false;
-    }
-  }
-
   ExecuteOp(env,
             args[0],  // TFE_Context wrapper
             op_name,
             args[2],   // TFEOpAttr array
             args[3],   // TensorHandle array
-            args[4],   // Output TensorHandle.
-            debug);
+            args[4]);  // Output TensorHandle.
   return js_this;
 }
 

@@ -129,3 +129,83 @@ describe('sum', () => {
     expect(result.get()).toEqual(7);
   });
 });
+
+// TODO(kreeger): Make this work
+// describe('argMin', () => {
+//   it('should work', () => {
+//     const a = dl.tensor1d([1, 0, 3, 2]);
+//     const result = dl.argMin(a);
+//     expect(result.get()).toBe(1);
+//   });
+// });
+
+describe('equal', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 2]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.equal(b), [0, 1]);
+  });
+});
+
+describe('notEqual', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 2]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.notEqual(b), [1, 0]);
+  });
+});
+
+describe('less', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 1]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.less(b), [0, 1]);
+  });
+});
+
+describe('lessEqual', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 1, 3]);
+    const b = dl.tensor1d([2, 2, 3]);
+    expectArraysClose(a.lessEqual(b), [0, 1, 1]);
+  });
+});
+
+describe('greater', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 1]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.greater(b), [1, 0]);
+  });
+});
+
+describe('greaterEqual', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 1, 3]);
+    const b = dl.tensor1d([2, 2, 3]);
+    expectArraysClose(a.greaterEqual(b), [1, 0, 1]);
+  });
+});
+
+describe('logicalNot', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([0, 1, 1], 'bool');
+    expectArraysClose(dl.logicalNot(a), [1, 0, 0]);
+  });
+});
+
+describe('logicalAnd', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 0, 1], 'bool');
+    const b = dl.tensor1d([0, 1, 1], 'bool');
+    expectArraysClose(a.logicalAnd(b), [0, 0, 1]);
+  });
+});
+
+describe('logicalOr', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 0, 0], 'bool');
+    const b = dl.tensor1d([0, 1, 0], 'bool');
+    expectArraysClose(a.logicalOr(b), [1, 1, 0]);
+  });
+});
