@@ -34,6 +34,14 @@ void Cleanup(napi_env env, void* data, void* hint) {
   delete handle;
 }
 
+size_t CalcTensorLength(uint32_t& shape_length, int64_t* shape) {
+  size_t num_elements = 1;
+  for (size_t i = 0; i < shape_length; i++) {
+    num_elements *= shape[i];
+  }
+  return num_elements;
+}
+
 void InitTensorHandle(napi_env env, napi_value wrapped_value) {
   TensorHandle* handle = new TensorHandle();
   handle->handle = nullptr;
@@ -105,10 +113,7 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   }
 
   // Determine the size of the buffer based on the dimensions.
-  size_t num_elements = 1;
-  for (size_t i = 0; i < shape_length; i++) {
-    num_elements *= shape[i];
-  }
+  size_t num_elements = CalcTensorLength(shape_length, shape);
 
   // Ensure the shape matches the length of the passed in typed-array.
   if (num_elements != array_length) {
@@ -194,6 +199,53 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   ENSURE_NAPI_OK(env, nstatus);
 
   TF_DeleteTensor(tensor);
+}
+
+void UpcastTensorData(napi_env env, napi_value wrapped_value,
+                      napi_value dtype_value) {
+  napi_status nstatus;
+
+  TensorHandle* handle;
+  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
+  ENSURE_NAPI_OK(env, nstatus);
+
+  if (handle->handle == nullptr) {
+    NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle in dataSync()");
+    return;
+  }
+
+  TF_AutoStatus tf_status;
+  TF_DataType oldType = TFE_TensorHandleDataType(handle->handle);
+
+  uint32_t shape_length =
+      TFE_TensorHandleNumDims(handle->handle, tf_status.status);
+  ENSURE_TF_OK(env, tf_status);
+
+  int64_t shape[shape_length];
+  for (uint32_t i = 0; i < shape_length; i++) {
+    shape[i] = TFE_TensorHandleDim(handle->handle, i, tf_status.status);
+    ENSURE_TF_OK(env, tf_status);
+  }
+
+  size_t num_elements = CalcTensorLength(shape_length, shape);
+
+  for (size_t i = 0; i < num_elements; i++) {
+    //
+    // TODO(kreeger): Left off right here.
+    //
+  }
+
+  switch (oldType) {
+    case TF_FLOAT:
+      break;
+    case TF_INT32:
+      break;
+    case TF_BOOL:
+      break;
+    default:
+      REPORT_UNKNOWN_TF_DATA_TYPE(env, oldType);
+      return;
+  }
 }
 
 void GetTensorShape(napi_env env, napi_value wrapped_value,

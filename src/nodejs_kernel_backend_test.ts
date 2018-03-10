@@ -101,6 +101,12 @@ describe('add', () => {
     const b = dl.tensor1d([2, 2]);
     expectArraysClose(a.add(b), [3, 3]);
   });
+
+  it('should handle mismatched types', () => {
+    const a = dl.tensor1d([1, 1], 'float32');
+    const b = dl.tensor1d([2, 2], 'int32');
+    expectArraysClose(a.add(b), [3, 3]);
+  });
 });
 
 describe('sub', () => {

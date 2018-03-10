@@ -41,6 +41,9 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
 // TF/TFE pointers.
 void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result);
 
+void UpcastTensorData(napi_env, napi_value wrapped_value,
+                      napi_value dtype_value);
+
 // Returns an array as a `napi_value` with shape of the Tensor.
 void GetTensorShape(napi_env env, napi_value wrapped_value, napi_value* result);
 
