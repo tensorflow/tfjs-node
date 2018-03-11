@@ -113,8 +113,8 @@ static napi_value GetTensorHandleData(napi_env env, napi_callback_info info) {
   return result;
 }
 
-static napi_value UpcastTensorHandleData(napi_env env,
-                                         napi_callback_info info) {
+static napi_value UpcastTensorHandleForOpExecute(napi_env env,
+                                                 napi_callback_info info) {
   napi_status nstatus;
 
   size_t argc = 1;
@@ -132,7 +132,7 @@ static napi_value UpcastTensorHandleData(napi_env env,
   nstatus = napi_get_value_int32(env, dtype_arg, &dtype_int32_val);
   TF_DataType dtype = static_cast<TF_DataType>(dtype_int32_val);
 
-  UpcastTensorData(env, js_this, dtype);
+  UpcastTempHandleData(env, js_this, dtype);
   return js_this;
 }
 
@@ -200,8 +200,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
        napi_default, nullptr},
       {"dataSync", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr,
        napi_default, nullptr},
-      {"upcastType", nullptr, UpcastTensorHandleData, nullptr, nullptr, nullptr,
-       napi_default, nullptr},
+      {"upcastForOpExecute", nullptr, UpcastTensorHandleForOpExecute, nullptr,
+       nullptr, nullptr, napi_default, nullptr},
       {"shape", nullptr, nullptr, GetTensorHandleShape, nullptr, nullptr,
        napi_default, nullptr},
       {"dtype", nullptr, nullptr, GetTensorHandleDtype, nullptr, nullptr,

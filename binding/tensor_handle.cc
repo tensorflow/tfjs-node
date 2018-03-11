@@ -201,9 +201,8 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   TF_DeleteTensor(tensor);
 }
 
-// TODO - rename this method (TempUpcastTensorData?).
-void UpcastTensorData(napi_env env, napi_value wrapped_value,
-                      TF_DataType data_type) {
+void UpcastTempHandleData(napi_env env, napi_value wrapped_value,
+                          TF_DataType data_type) {
   napi_status nstatus;
 
   TensorHandle* handle;

@@ -96,9 +96,9 @@ export class NodeJSKernelBackend implements KernelBackend {
     if (a.dtype !== b.dtype) {
       const dtype = upcastType(a.dtype, b.dtype);
       if (a.dtype !== dtype) {
-        this.handleMap.get(a.dataId).upcastType(this.getTFDType(dtype));
+        this.handleMap.get(a.dataId).upcastForOpExecute(this.getTFDType(dtype));
       } else {
-        this.handleMap.get(b.dataId).upcastType(this.getTFDType(dtype));
+        this.handleMap.get(b.dataId).upcastForOpExecute(this.getTFDType(dtype));
       }
       return dtype;
     } else {

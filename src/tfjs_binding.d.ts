@@ -26,8 +26,7 @@ declare class TensorHandle {
 
   dataSync(): Float32Array|Int32Array|Uint8Array;
 
-  // TODO - rename this method.
-  upcastType(type: number): void;
+  upcastForOpExecute(type: number): void;
 
   shape: number[];
   dtype: number;
