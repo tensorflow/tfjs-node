@@ -18,7 +18,9 @@
     "ratio": "cpp",
     "tuple": "cpp",
     "vector": "cpp",
-    "__locale": "cpp"
+    "__locale": "cpp",
+    "__split_buffer": "cpp",
+    "string": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,

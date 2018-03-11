@@ -153,6 +153,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   nstatus = napi_get_array_length(env, inputs, &inputs_length);
   ENSURE_NAPI_OK(env, nstatus);
 
+  std::vector<TensorHandle*> cleanupHandles;
   for (uint32_t i = 0; i < inputs_length; i++) {
     napi_value cur_input;
     nstatus = napi_get_element(env, inputs, i, &cur_input);
@@ -162,7 +163,15 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     nstatus = napi_unwrap(env, cur_input, reinterpret_cast<void**>(&handle));
     ENSURE_NAPI_OK(env, nstatus);
 
-    TFE_OpAddInput(tfe_op, handle->handle, tf_status.status);
+    TFE_TensorHandle* tfe_handle;
+    if (handle->tempHandle == nullptr) {
+      tfe_handle = handle->handle;
+    } else {
+      tfe_handle = handle->tempHandle;
+      cleanupHandles.push_back(handle);
+    }
+
+    TFE_OpAddInput(tfe_op, tfe_handle, tf_status.status);
     ENSURE_TF_OK(env, tf_status);
   }
 
@@ -198,6 +207,12 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   // Swap pointer on the output tensor handle. This handle is ensured to have
   // nullptr for all references so no cleanup is needed.
   handle->handle = result_handles[0];
+
+  // Cleanup any temp handles that were used for uptyping.
+  for (size_t i = 0; i < cleanupHandles.size(); i++) {
+    TFE_DeleteTensorHandle(cleanupHandles[i]->tempHandle);
+    cleanupHandles[i]->tempHandle = nullptr;
+  }
 }
 
 }  // namespace tfnodejs

@@ -24,7 +24,10 @@
 namespace tfnodejs {
 
 struct TensorHandle {
+  // Main handle pointer.
   TFE_TensorHandle* handle;
+  // Temp handle pointer used for uptyping during Ops.
+  TFE_TensorHandle* tempHandle;
   napi_env env;
 };
 
@@ -41,8 +44,9 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
 // TF/TFE pointers.
 void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result);
 
+// TODO - doc me.
 void UpcastTensorData(napi_env, napi_value wrapped_value,
-                      napi_value dtype_value);
+                      TF_DataType data_type);
 
 // Returns an array as a `napi_value` with shape of the Tensor.
 void GetTensorShape(napi_env env, napi_value wrapped_value, napi_value* result);

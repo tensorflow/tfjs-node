@@ -309,6 +309,11 @@ export class NodeJSKernelBackend implements KernelBackend {
   pow<T extends Tensor<Rank>>(a: T, b: Tensor<Rank>): T {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
+    console.log(`a.dtype: ${a.dtype} b.dtype: ${b.dtype}`);
+    if (a.dtype === 'float32' && b.dtype === 'int32') {
+      console.log('... uptyping!');
+      this.handleMap.get(b.dataId).upcastType(this.binding.TF_FLOAT);
+    }
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Pow', opAttrs, [a, b]) as T;
   }
