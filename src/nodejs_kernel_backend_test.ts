@@ -31,6 +31,12 @@ describe('matMul', () => {
     const result = t1.matMul(t2);
     expectArraysClose(result, [19, 22, 43, 50]);
   });
+  it('should work', () => {
+    const t1 = dl.tensor2d([[1, 2], [3, 4]]);
+    const t2 = dl.tensor2d([[5, 6], [7, 8]], [2, 2], 'int32');
+    const result = t1.matMul(t2);
+    expectArraysClose(result, [19, 22, 43, 50]);
+  });
 });
 
 describe('slice tensor1d', () => {
@@ -101,12 +107,6 @@ describe('add', () => {
     const b = dl.tensor1d([2, 2]);
     expectArraysClose(a.add(b), [3, 3]);
   });
-
-  // it('should handle mismatched types', () => {
-  //   const a = dl.tensor1d([1, 1], 'float32');
-  //   const b = dl.tensor1d([2, 2], 'int32');
-  //   expectArraysClose(a.add(b), [3, 3]);
-  // });
 });
 
 describe('sub', () => {
@@ -129,6 +129,11 @@ describe('div', () => {
   it('should work', () => {
     const a = dl.tensor1d([4, 4]);
     const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.div(b), [2, 2]);
+  });
+  it('should work with same rank and shape w/ different types', () => {
+    const a = dl.tensor1d([4, 4]);
+    const b = dl.tensor1d([2, 2], 'int32');
     expectArraysClose(a.div(b), [2, 2]);
   });
 });

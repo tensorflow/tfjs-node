@@ -92,6 +92,20 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
   }
 
+  private maybeUpcastType(a: Tensor, b: Tensor): DataType {
+    if (a.dtype !== b.dtype) {
+      const dtype = upcastType(a.dtype, b.dtype);
+      if (a.dtype !== dtype) {
+        this.handleMap.get(a.dataId).upcastType(this.getTFDType(dtype));
+      } else {
+        this.handleMap.get(b.dataId).upcastType(this.getTFDType(dtype));
+      }
+      return dtype;
+    } else {
+      return a.dtype;
+    }
+  }
+
   private createTypeOpAttr(attrName: string, dtype: DataType): TFEOpAttr {
     return {
       name: attrName,
@@ -115,12 +129,10 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
-      this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
+      this.createTypeOpAttr('T', this.maybeUpcastType(a, b))
     ];
     return this.execute('MatMul', opAttrs, [a, b]) as Tensor2D;
   }
@@ -165,30 +177,22 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   add(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Add', opAttrs, [a, b]);
   }
 
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Sub', opAttrs, [a, b]);
   }
 
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Mul', opAttrs, [a, b]);
   }
 
   divide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
-    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs = [this.createTypeOpAttr('T', this.maybeUpcastType(a, b))];
     return this.execute('Div', opAttrs, [a, b]);
   }
 
@@ -205,43 +209,31 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   equal(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Equal', opAttrs, [a, b]);
   }
 
   notEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('NotEqual', opAttrs, [a, b]);
   }
 
   less(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Less', opAttrs, [a, b]);
   }
 
   lessEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('LessEqual', opAttrs, [a, b]);
   }
 
   greater(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Greater', opAttrs, [a, b]);
   }
 
   greaterEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('GreaterEqual', opAttrs, [a, b]);
   }
@@ -280,8 +272,6 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   minimum(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Minimum', opAttrs, [a, b]);
   }
@@ -292,8 +282,6 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   maximum(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Maximum', opAttrs, [a, b]);
   }
@@ -307,14 +295,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   pow<T extends Tensor<Rank>>(a: T, b: Tensor<Rank>): T {
-    // TODO(kreeger): Tensors must be up-typed before Op execution:
-    // https://github.com/tensorflow/tfjs-node/issues/32
-    console.log(`a.dtype: ${a.dtype} b.dtype: ${b.dtype}`);
-    if (a.dtype === 'float32' && b.dtype === 'int32') {
-      console.log('... uptyping!');
-      this.handleMap.get(b.dataId).upcastType(this.binding.TF_FLOAT);
-    }
-    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    const opAttrs = [this.createTypeOpAttr('T', this.maybeUpcastType(a, b))];
     return this.execute('Pow', opAttrs, [a, b]) as T;
   }
 
