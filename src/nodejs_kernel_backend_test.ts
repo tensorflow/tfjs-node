@@ -285,6 +285,7 @@ describe('pow', () => {
     expect(result.shape).toEqual([2, 3]);
     expectArraysClose(result, expected, 0.01);
   });
+
   it('broadcasting same rank Tensors different shape', () => {
     const a = dl.tensor2d([1, 2, -3, -4], [2, 2]);
     const b = dl.tensor2d([2, 1], [2, 1], 'int32');
