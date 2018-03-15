@@ -131,11 +131,6 @@ describe('div', () => {
     const b = dl.tensor1d([2, 2]);
     expectArraysClose(a.div(b), [2, 2]);
   });
-  it('should work with same rank and shape w/ different types', () => {
-    const a = dl.tensor1d([4, 4]);
-    const b = dl.tensor1d([2, 2], 'int32');
-    expectArraysClose(a.div(b), [2, 2]);
-  });
 });
 
 describe('sum', () => {
