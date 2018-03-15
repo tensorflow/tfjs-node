@@ -31,7 +31,7 @@ describe('matMul', () => {
     const result = t1.matMul(t2);
     expectArraysClose(result, [19, 22, 43, 50]);
   });
-  it('should work', () => {
+  it('should work with different dtypes', () => {
     const t1 = dl.tensor2d([[1, 2], [3, 4]]);
     const t2 = dl.tensor2d([[5, 6], [7, 8]], [2, 2], 'int32');
     const result = t1.matMul(t2);

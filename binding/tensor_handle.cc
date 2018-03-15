@@ -213,7 +213,6 @@ void UpcastTempHandleData(napi_env env, napi_value wrapped_value,
     NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle in dataSync()");
     return;
   }
-  // Double check that tempHandle is nullptr
   if (handle->tempHandle != nullptr) {
     NAPI_THROW_ERROR(env, "Temp handle is not nullptr");
     return;
@@ -238,7 +237,9 @@ void UpcastTempHandleData(napi_env env, napi_value wrapped_value,
 
   size_t num_elements = CalcTensorLength(shape_length, shape);
 
-  // TODO - this will need the new device finder thing...
+  // TODO(kreeger): This will only work for CPU device. Use
+  // TFE_TensorHandleCopyToDevice() to work for non-CPU only platforms:
+  // https://github.com/tensorflow/tfjs-node/issues/25
   TF_Tensor* tensor = TFE_TensorHandleResolve(handle->handle, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
