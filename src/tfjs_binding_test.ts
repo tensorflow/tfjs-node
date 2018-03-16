@@ -207,6 +207,22 @@ describe('TensorHandle', () => {
       t.upcastForOpExecute(binding.TF_FLOAT);
     }).toThrowError();
   });
+
+  it('exception upcasting twice w/o execute', () => {
+    const t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_INT32, new Int32Array([1, 2, 3, 4]));
+    t.upcastForOpExecute(binding.TF_FLOAT);
+    expect(() => {
+      t.upcastForOpExecute(binding.TF_FLOAT);
+    }).toThrowError();
+  });
+
+  it('exception with unused tensor handle', () => {
+    const t = new binding.TensorHandle();
+    expect(() => {
+      t.upcastForOpExecute(binding.TF_FLOAT);
+    }).toThrowError();
+  });
 });
 
 describe('execute()', () => {
