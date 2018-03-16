@@ -31,6 +31,12 @@ describe('matMul', () => {
     const result = t1.matMul(t2);
     expectArraysClose(result, [19, 22, 43, 50]);
   });
+  it('should work with different dtypes', () => {
+    const t1 = dl.tensor2d([[1, 2], [3, 4]]);
+    const t2 = dl.tensor2d([[5, 6], [7, 8]], [2, 2], 'int32');
+    const result = t1.matMul(t2);
+    expectArraysClose(result, [19, 22, 43, 50]);
+  });
 });
 
 describe('slice tensor1d', () => {
@@ -273,6 +279,18 @@ describe('pow', () => {
 
     expect(result.shape).toEqual([2, 3]);
     expectArraysClose(result, expected, 0.01);
+  });
+
+  it('broadcasting same rank Tensors different shape', () => {
+    const a = dl.tensor2d([1, 2, -3, -4], [2, 2]);
+    const b = dl.tensor2d([2, 1], [2, 1], 'int32');
+
+    const result = dl.pow(a, b);
+
+    expect(result.shape).toEqual([2, 2]);
+    const expected = [1, 4, -3, -4];
+
+    expectArraysClose(result, expected);
   });
 });
 

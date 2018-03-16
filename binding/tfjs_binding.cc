@@ -113,6 +113,29 @@ static napi_value GetTensorHandleData(napi_env env, napi_callback_info info) {
   return result;
 }
 
+static napi_value UpcastTensorHandleForOpExecute(napi_env env,
+                                                 napi_callback_info info) {
+  napi_status nstatus;
+
+  size_t argc = 1;
+  napi_value dtype_arg;
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, &dtype_arg, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  if (argc == 0) {
+    NAPI_THROW_ERROR(env, "Invalid number of arguments passed to upcastType()");
+    return js_this;
+  }
+
+  int32_t dtype_int32_val;
+  nstatus = napi_get_value_int32(env, dtype_arg, &dtype_int32_val);
+  TF_DataType dtype = static_cast<TF_DataType>(dtype_int32_val);
+
+  UpcastTempHandleData(env, js_this, dtype);
+  return js_this;
+}
+
 static napi_value GetTensorHandleShape(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
@@ -177,6 +200,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
        napi_default, nullptr},
       {"dataSync", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr,
        napi_default, nullptr},
+      {"upcastForOpExecute", nullptr, UpcastTensorHandleForOpExecute, nullptr,
+       nullptr, nullptr, napi_default, nullptr},
       {"shape", nullptr, nullptr, GetTensorHandleShape, nullptr, nullptr,
        napi_default, nullptr},
       {"dtype", nullptr, nullptr, GetTensorHandleDtype, nullptr, nullptr,

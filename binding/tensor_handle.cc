@@ -34,6 +34,14 @@ void Cleanup(napi_env env, void* data, void* hint) {
   delete handle;
 }
 
+size_t CalcTensorLength(uint32_t& shape_length, int64_t* shape) {
+  size_t num_elements = 1;
+  for (size_t i = 0; i < shape_length; i++) {
+    num_elements *= shape[i];
+  }
+  return num_elements;
+}
+
 void InitTensorHandle(napi_env env, napi_value wrapped_value) {
   TensorHandle* handle = new TensorHandle();
   handle->handle = nullptr;
@@ -105,10 +113,7 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   }
 
   // Determine the size of the buffer based on the dimensions.
-  size_t num_elements = 1;
-  for (size_t i = 0; i < shape_length; i++) {
-    num_elements *= shape[i];
-  }
+  size_t num_elements = CalcTensorLength(shape_length, shape);
 
   // Ensure the shape matches the length of the passed in typed-array.
   if (num_elements != array_length) {
@@ -194,6 +199,110 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   ENSURE_NAPI_OK(env, nstatus);
 
   TF_DeleteTensor(tensor);
+}
+
+void UpcastTempHandleData(napi_env env, napi_value wrapped_value,
+                          TF_DataType data_type) {
+  napi_status nstatus;
+
+  TensorHandle* handle;
+  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
+  ENSURE_NAPI_OK(env, nstatus);
+
+  if (handle->handle == nullptr) {
+    NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle in dataSync()");
+    return;
+  }
+  if (handle->tempHandle != nullptr) {
+    NAPI_THROW_ERROR(env, "Temp handle is not nullptr");
+    return;
+  }
+
+  TF_AutoStatus tf_status;
+  TF_DataType oldType = TFE_TensorHandleDataType(handle->handle);
+  if (oldType == TF_FLOAT) {
+    NAPI_THROW_ERROR(env, "TF_FLOAT can not be uptyped.");
+    return;
+  }
+
+  uint32_t shape_length =
+      TFE_TensorHandleNumDims(handle->handle, tf_status.status);
+  ENSURE_TF_OK(env, tf_status);
+
+  int64_t shape[shape_length];
+  for (uint32_t i = 0; i < shape_length; i++) {
+    shape[i] = TFE_TensorHandleDim(handle->handle, i, tf_status.status);
+    ENSURE_TF_OK(env, tf_status);
+  }
+
+  size_t num_elements = CalcTensorLength(shape_length, shape);
+
+  // TODO(kreeger): This will only work for CPU device. Use
+  // TFE_TensorHandleCopyToDevice() to work for non-CPU only platforms:
+  // https://github.com/tensorflow/tfjs-node/issues/25
+  TF_Tensor* tensor = TFE_TensorHandleResolve(handle->handle, tf_status.status);
+  ENSURE_TF_OK(env, tf_status);
+
+  void* uptyped_data;
+  size_t width;
+
+  switch (oldType) {
+    case TF_INT32: {
+      if (data_type != TF_FLOAT) {
+        NAPI_THROW_ERROR(env, "TF_INT32 can only be uptyped to TF_FLOAT");
+        return;
+      }
+      std::vector<float> float_values;
+      int32_t* buffer = static_cast<int32_t*>(TF_TensorData(tensor));
+      for (size_t i = 0; i < num_elements; i++) {
+        float_values.push_back(static_cast<float>(buffer[i]));
+      }
+      width = sizeof(float);
+      uptyped_data = float_values.data();
+      break;
+    }
+    case TF_BOOL: {
+      uint8_t* buffer = static_cast<uint8_t*>(TF_TensorData(tensor));
+      if (data_type == TF_INT32) {
+        std::vector<int32_t> int32_values;
+        for (size_t i = 0; i < num_elements; i++) {
+          int32_values.push_back(static_cast<int32_t>(buffer[i]));
+        }
+        width = sizeof(int32_t);
+        uptyped_data = int32_values.data();
+      } else if (data_type == TF_FLOAT) {
+        std::vector<float> float_values;
+        for (size_t i = 0; i < num_elements; i++) {
+          float_values.push_back(static_cast<float>(buffer[i]));
+        }
+        width = sizeof(float);
+        uptyped_data = float_values.data();
+      } else {
+        NAPI_THROW_ERROR(
+            env, "TF_BOOL can only be uptyped to TF_INT32 and TF_FLOAT");
+        return;
+      }
+      break;
+    }
+    default:
+      REPORT_UNKNOWN_TF_DATA_TYPE(env, oldType);
+      return;
+  }
+
+  const size_t byte_size = num_elements * width;
+
+  TF_Tensor* newTensor =
+      TF_AllocateTensor(data_type, shape, shape_length, byte_size);
+  memcpy(TF_TensorData(newTensor), uptyped_data, byte_size);
+
+  TFE_TensorHandle* tfe_handle =
+      TFE_NewTensorHandle(newTensor, tf_status.status);
+  ENSURE_TF_OK(env, tf_status);
+
+  // Mark the temp handle - this handle will be cleaned up in an execute() call.
+  handle->tempHandle = tfe_handle;
+
+  TF_DeleteTensor(newTensor);
 }
 
 void GetTensorShape(napi_env env, napi_value wrapped_value,
