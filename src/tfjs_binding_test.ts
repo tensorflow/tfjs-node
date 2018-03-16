@@ -135,12 +135,83 @@ describe('TensorHandle', () => {
       new binding.TensorHandle().copyBuffer([1], 1000, new Int32Array([1]));
     }).toThrowError();
   });
+
+  it('upcasts bool', () => {
+    const data = new Uint8Array([1, 0, 1, 0]);
+
+    // BOOL -> BOOL (exception)
+    let t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_BOOL, data);
+    expect(() => {
+      t.upcastForOpExecute(binding.TF_BOOL);
+    }).toThrowError();
+
+    // BOOL -> INT32
+    t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_BOOL, data);
+    t.upcastForOpExecute(binding.TF_INT32);
+    expect(t.dtype).toEqual(binding.TF_BOOL);
+
+    // BOOL -> FLOAT32
+    t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_BOOL, data);
+    t.upcastForOpExecute(binding.TF_FLOAT);
+    expect(t.dtype).toEqual(binding.TF_BOOL);
+  });
+
+  it('upcasts int32', () => {
+    const data = new Int32Array([1, 2, 3, 4]);
+
+    // INT32 -> BOOL (exception)
+    let t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_INT32, data);
+    expect(() => {
+      t.upcastForOpExecute(binding.TF_BOOL);
+    }).toThrowError();
+
+    // INT32 -> INT32 (exception)
+    t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_INT32, data);
+    expect(() => {
+      t.upcastForOpExecute(binding.TF_INT32);
+    }).toThrowError();
+
+    // INT32 -> FLOAT32
+    t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_INT32, data);
+    t.upcastForOpExecute(binding.TF_FLOAT);
+    expect(t.dtype).toEqual(binding.TF_INT32);
+  });
+
+  it('upcasts float32', () => {
+    const data = new Float32Array([1, 2, 3, 4]);
+
+    // FLOAT32 -> BOOL (exception)
+    let t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_FLOAT, data);
+    expect(() => {
+      t.upcastForOpExecute(binding.TF_BOOL);
+    }).toThrowError();
+
+    // FLOAT32 -> INT32 (exception)
+    t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_FLOAT, data);
+    expect(() => {
+      t.upcastForOpExecute(binding.TF_INT32);
+    }).toThrowError();
+
+    // FLOAT32 -> FLOAT32 (exception)
+    t = new binding.TensorHandle();
+    t.copyBuffer([2, 2], binding.TF_FLOAT, data);
+    expect(() => {
+      t.upcastForOpExecute(binding.TF_FLOAT);
+    }).toThrowError();
+  });
 });
 
 describe('execute()', () => {
   const context = new binding.Context();
   const name = 'MatMul';
-  const output = new binding.TensorHandle();
   const matMulOpAttrs = [
     {name: 'transpose_a', type: binding.TF_ATTR_BOOL, value: false},
     {name: 'transpose_b', type: binding.TF_ATTR_BOOL, value: false},
@@ -186,6 +257,7 @@ describe('execute()', () => {
   });
 
   it('throws exception with invalid TF_ATTR_STRING op attr', () => {
+    const output = new binding.TensorHandle();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_STRING, value: null}];
@@ -214,6 +286,7 @@ describe('execute()', () => {
   });
 
   it('throws exception with invalid TF_ATTR_INT op attr', () => {
+    const output = new binding.TensorHandle();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_INT, value: null}];
@@ -242,6 +315,7 @@ describe('execute()', () => {
   });
 
   it('throws exception with invalid TF_ATTR_FLOAT op attr', () => {
+    const output = new binding.TensorHandle();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_FLOAT, value: null}];
@@ -270,6 +344,7 @@ describe('execute()', () => {
   });
 
   it('throws exception with invalid TF_ATTR_BOOL op attr', () => {
+    const output = new binding.TensorHandle();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_BOOL, value: null}];
@@ -298,6 +373,7 @@ describe('execute()', () => {
   });
 
   it('throws exception with invalid TF_ATTR_TYPE op attr', () => {
+    const output = new binding.TensorHandle();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_TYPE, value: null}];
@@ -321,6 +397,7 @@ describe('execute()', () => {
   });
 
   it('throws exception with invalid TF_ATTR_SHAPE op attr', () => {
+    const output = new binding.TensorHandle();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_TYPE, value: null}];
@@ -339,7 +416,20 @@ describe('execute()', () => {
   });
 
   it('should work for matmul', () => {
+    const output = new binding.TensorHandle();
     binding.execute(context, name, matMulOpAttrs, matMulInput, output);
     expect(output.dataSync()).toEqual(new Float32Array([8, 5, 20, 13]));
+  });
+
+  it('should support upcast for matmul', () => {
+    const output = new binding.TensorHandle();
+    const c = new binding.TensorHandle();
+    c.copyBuffer([2, 2], binding.TF_INT32, new Int32Array([4, 3, 2, 1]));
+    c.upcastForOpExecute(binding.TF_FLOAT);
+
+    binding.execute(context, name, matMulOpAttrs, [tensorA, c], output);
+    expect(output.dataSync()).toEqual(new Float32Array([8, 5, 20, 13]));
+
+    expect(c.dtype).toEqual(binding.TF_INT32);
   });
 });

@@ -221,7 +221,7 @@ void UpcastTempHandleData(napi_env env, napi_value wrapped_value,
   TF_AutoStatus tf_status;
   TF_DataType oldType = TFE_TensorHandleDataType(handle->handle);
   if (oldType == TF_FLOAT) {
-    // TF_FLOAT is not uptyped in the binding.
+    NAPI_THROW_ERROR(env, "TF_FLOAT can not be uptyped.");
     return;
   }
 
