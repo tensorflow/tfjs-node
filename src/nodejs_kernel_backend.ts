@@ -19,7 +19,7 @@ import {scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
-import {DataType, Rank} from 'deeplearn/dist/types';
+import {DataType, Rank, upcastType} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -71,116 +71,197 @@ export class NodeJSKernelBackend implements KernelBackend {
         dtype = 'bool';
         break;
       default:
-        throw new Error('Unknown dtype enum `${handle.dtype}`');
+        throw new Error(`Unknown dtype enum ${handle.dtype}`);
     }
     return Tensor.make(handle.shape, {dataId: newId}, dtype);
   }
 
-  private createTypeOpAttr(attrName: string, tensor: Tensor): TFEOpAttr {
+  private getInputTensors(tensors: Tensor[]): TensorHandle[] {
+    const inputs: TensorHandle[] = [];
+    for (let i = 0; i < tensors.length; i++) {
+      inputs.push(this.handleMap.get(tensors[i].dataId));
+    }
+    return inputs;
+  }
+
+  private createReductionOpAttrs(tensor: Tensor): TFEOpAttr[] {
+    return [
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: true},
+      this.createTypeOpAttr('T', tensor.dtype),
+      this.createTypeOpAttr('Tidx', 'int32')
+    ];
+  }
+
+  private createTypeOpAttr(attrName: string, dtype: DataType): TFEOpAttr {
     return {
       name: attrName,
       type: this.binding.TF_ATTR_TYPE,
-      value: this.getTFDType(tensor.dtype)
+      value: this.getTFDType(dtype)
     };
+  }
+
+  private executeSingleInput(name: string, input: Tensor): Tensor {
+    const opAttrs = [this.createTypeOpAttr('T', input.dtype)];
+    return this.execute(name, opAttrs, [input]);
+  }
+
+  private execute(name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]):
+      Tensor {
+    const output = new this.binding.TensorHandle();
+    this.binding.execute(
+        this.context, name, opAttrs, this.getInputTensors(inputs), output);
+    return this.createOutputTensor(output);
   }
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
-      this.createTypeOpAttr('T', a)
+      this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
     ];
-    const output = new this.binding.TensorHandle();
-    this.binding.execute(
-        this.context, 'MatMul', opAttrs,
-        [this.handleMap.get(a.dataId), this.handleMap.get(b.dataId)], output);
-    return this.createOutputTensor(output) as Tensor2D;
+    return this.execute('MatMul', opAttrs, [a, b]) as Tensor2D;
   }
 
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
     const opAttrs = [
-      this.createTypeOpAttr('T', x), {
+      this.createTypeOpAttr('T', x.dtype), {
         name: 'Index',
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_INT32
       }
     ];
-    const output = new this.binding.TensorHandle();
 
     // Bind tensor values
     const beginTensor = tensor1d(begin, 'int32');
     const sizeTensor = tensor1d(size, 'int32');
 
-    this.binding.execute(
-        this.context, 'Slice', opAttrs,
-        [
-          this.handleMap.get(x.dataId), this.handleMap.get(beginTensor.dataId),
-          this.handleMap.get(sizeTensor.dataId)
-        ],
-        output);
-    return this.createOutputTensor(output) as T;
+    return this.execute('Slice', opAttrs, [x, beginTensor, sizeTensor]) as T;
   }
+
   reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      this.createTypeOpAttr('Tidx', 'int32'),
+      this.createTypeOpAttr('T', a.dtype)
+    ];
+    const axisTensor = tensor1d(axis, 'int32');
+    return this.execute('ReverseV2', opAttrs, [a, axisTensor]) as T;
   }
+
   concat(a: Tensor2D, b: Tensor2D): Tensor2D {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      {name: 'N', type: this.binding.TF_ATTR_INT, value: 2},
+      this.createTypeOpAttr('Tidx', 'int32'),
+      this.createTypeOpAttr('T', a.dtype)
+    ];
+    const axisTensor = scalar(0, 'int32');
+    return this.execute('ConcatV2', opAttrs, [a, b, axisTensor]) as Tensor2D;
   }
+
   neg<T extends Tensor<Rank>>(a: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Neg', a) as T;
   }
+
   add(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Add', opAttrs, [a, b]);
   }
+
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Sub', opAttrs, [a, b]);
   }
+
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Mul', opAttrs, [a, b]);
   }
+
   divide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Div', opAttrs, [a, b]);
   }
+
   sum(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const axisTensor = tensor1d(axes, 'int32');
+    return this.execute('Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
   }
+
   argMin(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
   argMax(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
+
   equal(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Equal', opAttrs, [a, b]);
   }
+
   notEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('NotEqual', opAttrs, [a, b]);
   }
+
   less(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Less', opAttrs, [a, b]);
   }
+
   lessEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('LessEqual', opAttrs, [a, b]);
   }
+
   greater(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Greater', opAttrs, [a, b]);
   }
+
   greaterEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('GreaterEqual', opAttrs, [a, b]);
   }
+
   logicalNot<T extends Tensor<Rank>>(a: T): T {
-    throw new Error('Method not implemented.');
+    return this.execute('LogicalNot', [], [a]) as T;
   }
+
   logicalAnd(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    return this.execute('LogicalAnd', [], [a, b]);
   }
+
   logicalOr(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    return this.execute('LogicalOr', [], [a, b]);
   }
+
   logicalXor(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
+
   where(
       condition: Tensor<Rank>, a: Tensor<Rank>, b: Tensor<Rank>,
       dtype: 'float32'|'int32'|'bool'): Tensor<Rank> {
@@ -192,99 +273,142 @@ export class NodeJSKernelBackend implements KernelBackend {
   topKIndices(x: Tensor<Rank>, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
+
   min(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const axesTensor = tensor1d(axes, 'int32');
+    return this.execute('Min', this.createReductionOpAttrs(x), [x, axesTensor]);
   }
+
   minimum(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Minimum', opAttrs, [a, b]);
   }
+
   max(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const axesTensor = tensor1d(axes, 'int32');
+    return this.execute('Max', this.createReductionOpAttrs(x), [x, axesTensor]);
   }
+
   maximum(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Maximum', opAttrs, [a, b]);
   }
+
   ceil<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Ceil', x) as T;
   }
+
   floor<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Floor', x) as T;
   }
+
   pow<T extends Tensor<Rank>>(a: T, b: Tensor<Rank>): T {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Tensors must be up-typed before Op execution:
+    // https://github.com/tensorflow/tfjs-node/issues/32
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Pow', opAttrs, [a, b]) as T;
   }
+
   exp<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Exp', x) as T;
   }
+
   log<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Log', x) as T;
   }
+
   sqrt<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Sqrt', x) as T;
   }
+
   square<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Square', x) as T;
   }
+
   relu<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Relu', x) as T;
   }
+
   elu<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Elu', x) as T;
   }
+
   eluDer<T extends Tensor<Rank>>(x: T): T {
     throw new Error('Method not implemented.');
   }
+
   selu<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Selu', x) as T;
   }
+
   leakyRelu<T extends Tensor<Rank>>(x: T, alpha: number): T {
     throw new Error('Method not implemented.');
   }
+
   prelu<T extends Tensor<Rank>>(x: T, alpha: T): T {
     throw new Error('Method not implemented.');
   }
+
   preluDer<T extends Tensor<Rank>>(x: T, alpha: T): T {
     throw new Error('Method not implemented.');
   }
+
   int<T extends Tensor<Rank>>(x: T): T {
     throw new Error('Method not implemented.');
   }
+
   clip<T extends Tensor<Rank>>(x: T, min: number, max: number): T {
     throw new Error('Method not implemented.');
   }
+
   abs<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Abs', x) as T;
   }
+
   sigmoid<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Sigmoid', x) as T;
   }
+
   sin<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Sin', x) as T;
   }
+
   cos<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Cos', x) as T;
   }
+
   tan<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Tan', x) as T;
   }
+
   asin<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Asin', x) as T;
   }
+
   acos<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Acos', x) as T;
   }
+
   atan<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Atan', x) as T;
   }
+
   sinh<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Sinh', x) as T;
   }
+
   cosh<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Cosh', x) as T;
   }
+
   tanh<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    return this.executeSingleInput('Tanh', x) as T;
   }
+
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
     throw new Error('Method not implemented.');
   }
@@ -447,7 +571,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   pad<T extends Tensor<Rank>>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
     const opAttrs = [
-      this.createTypeOpAttr('T', x), {
+      this.createTypeOpAttr('T', x.dtype), {
         name: 'Tpaddings',
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_INT32
@@ -458,16 +582,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     const paddingsTensor = tensor2d(paddings, [2, 2], 'int32');
     const constantTensor = scalar(constantValue, x.dtype);
 
-    const output = new this.binding.TensorHandle();
-    this.binding.execute(
-        this.context, 'PadV2', opAttrs,
-        [
-          this.handleMap.get(x.dataId),
-          this.handleMap.get(paddingsTensor.dataId),
-          this.handleMap.get(constantTensor.dataId)
-        ],
-        output);
-    return this.createOutputTensor(output) as T;
+    return this.execute(
+               'PadV2', opAttrs, [x, paddingsTensor, constantTensor]) as T;
   }
   transpose<T extends Tensor<Rank>>(x: T, perm: number[]): T {
     throw new Error('Method not implemented.');
