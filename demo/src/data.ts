@@ -130,17 +130,10 @@ export function createDataset(): MnsitDataset {
   return new MnsitDataset([[28, 28, 1], [10]]);
 }
 
-async function loadTest() {
-  const dataset = createDataset();
-  await dataset.fetchData();
-
-  console.log(`dataset: ${dataset.getData().length}`);
-
-  // Examine a random image:
-  const idx = 7;
+function testPrint(dataset: MnsitDataset, index: number) {
   const images = dataset.getData()[0];
-  const data = images[idx].dataSync();
-  console.log(`--- Label: ${dataset.getData()[1][idx].dataSync()}`);
+  const data = images[index].dataSync();
+  console.log(`--- Label: ${dataset.getData()[1][index].dataSync()}`);
   let test = '';
   for (let i = 0; i < data.length; i++) {
     if (i !== 0 && i % 28 === 0) {
@@ -154,6 +147,17 @@ async function loadTest() {
       test += ' ' + data[i].toFixed(1);
     }
   }
+}
+
+async function loadTest() {
+  const dataset = createDataset();
+  await dataset.fetchData();
+
+  console.log(`dataset: ${dataset.getData().length}`);
+
+  // Examine a random image:
+  testPrint(dataset, 20);
+  testPrint(dataset, 7);
 
   await setTimeout(() => {}, 5000);
 }
