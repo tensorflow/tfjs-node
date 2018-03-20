@@ -17,6 +17,7 @@
 
 import * as dl from 'deeplearn';
 import * as tf from 'tfjs-node';
+import {createDataset} from './data';
 
 const HIDDEN_1 = 128;
 const HIDDEN_2 = 32;
@@ -25,26 +26,35 @@ const NUM_CLASSES = 10;
 const IMAGE_SIZE = 28;
 const IMAGE_PIXELS = IMAGE_SIZE * IMAGE_SIZE;
 
+// first layer weights
 const weights1 = dl.truncatedNormal(
                      [IMAGE_PIXELS, HIDDEN_1], null,
                      1.0 / Math.sqrt(IMAGE_PIXELS)) as dl.Tensor2D;
 const biases1 = dl.zeros([HIDDEN_1]);
 
+// second layer weights
 const weights2 =
     dl.truncatedNormal([HIDDEN_1, HIDDEN_2], null, 1.0 / Math.sqrt(HIDDEN_1)) as
     dl.Tensor2D;
 const biases2 = dl.zeros([HIDDEN_2]);
 
+// third layer weights
 const weights3 = dl.truncatedNormal(
                      [HIDDEN_2, NUM_CLASSES], null,
                      1.0 / Math.sqrt(HIDDEN_2)) as dl.Tensor2D;
 const biases3 = dl.zeros([NUM_CLASSES]);
 
-function model(): dl.Tensor2D {
+// Hyperparameters.
+const LEARNING_RATE = .1;
+// const BATCH_SIZE = 64;
+// const TRAIN_STEPS = 100;
+
+const optimizer = dl.train.sgd(LEARNING_RATE);
+
+function model(inputImages: dl.Tensor2D): dl.Tensor2D {
   const hidden1 = dl.tidy(() => {
     // TODO - bind and actually pass in images:
-    const images = dl.tensor2d([IMAGE_SIZE, IMAGE_SIZE]);
-    return dl.relu(dl.matMul(images, weights1).add(biases1));
+    return dl.relu(dl.matMul(inputImages, weights1).add(biases1));
   }) as dl.Tensor2D;
 
   const hidden2 = dl.tidy(() => {
@@ -61,8 +71,15 @@ function loss(labels: dl.Tensor2D, ys: dl.Tensor2D) {
   return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
 }
 
-function runTraining(trainSteps: number) {
-  for (let i = 0; i < trainSteps; i++) {
+function runTraining() {
+  const data = createDataset();
+  console.log(data);
+
+  for (let i = 0; i < 10; i++) {
+    //
+    // TODO - need to cast to Tensor2D...
+    //
+
     // const cost = optimizer.minimize(() => {
     //   const batch = data.nextTrainBatch(BATCH_SIZE);
     //   return loss(batch.labels, model(batch.xs));

@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:max-line-length
 import {equal} from 'assert';
-import {InMemoryDataset, Tensor, tensor1d} from 'deeplearn';
+import {InMemoryDataset, Tensor, tensor1d, tensor2d} from 'deeplearn';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {createGunzip} from 'zlib';
@@ -76,7 +76,7 @@ function loadImages(filename: string): Promise<Tensor[]> {
       for (let i = 0; i < recordBytes; i++) {
         array[i] = buffer.readUInt8(index++);
       }
-      images.push(tensor1d(array));
+      images.push(tensor2d(array, [28, 28]));
     }
 
     equal(images.length, headerValues[1]);
@@ -134,9 +134,10 @@ async function loadTest() {
   console.log(`dataset: ${dataset.getData().length}`);
 
   // Examine a random image:
+  const idx = 7;
   const images = dataset.getData()[0];
-  const data = images[9].dataSync();
-  console.log(`--- Label: ${dataset.getData()[1][9].dataSync()}`);
+  const data = images[idx].dataSync();
+  console.log(`--- Label: ${dataset.getData()[1][idx].dataSync()}`);
   let test = '';
   for (let i = 0; i < data.length; i++) {
     if (i !== 0 && i % 28 === 0) {
@@ -144,13 +145,19 @@ async function loadTest() {
       test = '';
     }
 
-    test += ' ' + data[i];
-    if (data[i] < 10) {
-      test += '00';
-    } else if (data[i] < 100) {
-      test += '0';
+    if (data[i] === 0) {
+      test += '    ';
+    } else {
+      test += ' ' + data[i];
+      if (data[i] < 10) {
+        test += '00';
+      } else if (data[i] < 100) {
+        test += '0';
+      }
     }
   }
+
+  await setTimeout(() => {}, 5000);
 }
 
 loadTest();
