@@ -69,12 +69,15 @@ function loadImages(filename: string): Promise<Tensor[]> {
     equal(headerValues[2], 28);
     equal(headerValues[3], 28);
 
+    const downsize = 1.0 / 255.0;
+    // const downsize = tensor2d(new Float32Array([1.0 / 255.0]));
+
     const images = [];
     let index = headerBytes;
     while (index < buffer.byteLength) {
-      const array = new Uint8Array(recordBytes);
+      const array = new Float32Array(recordBytes);
       for (let i = 0; i < recordBytes; i++) {
-        array[i] = buffer.readUInt8(index++);
+        array[i] = buffer.readUInt8(index++) * downsize;
       }
       images.push(tensor2d(array, [28, 28]));
     }
@@ -104,7 +107,7 @@ function loadLabels(filename: string): Promise<Tensor[]> {
       for (let i = 0; i < recordBytes; i++) {
         array[i] = buffer.readUInt8(index++);
       }
-      labels.push(tensor1d(array));
+      labels.push(tensor1d(array, 'int32'));
     }
 
     equal(labels.length, headerValues[1]);
@@ -146,14 +149,9 @@ async function loadTest() {
     }
 
     if (data[i] === 0) {
-      test += '    ';
+      test += '     ';
     } else {
-      test += ' ' + data[i];
-      if (data[i] < 10) {
-        test += '00';
-      } else if (data[i] < 100) {
-        test += '0';
-      }
+      test += ' ' + data[i].toFixed(1);
     }
   }
 
