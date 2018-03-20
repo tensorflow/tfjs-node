@@ -43,5 +43,6 @@
   "editor.wrappingIndent": "none",
   "typescript.tsdk": "node_modules/typescript/lib",
   "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format",
-  "python.linting.enabled": false
+  "python.linting.enabled": false,
+  "python.linting.pylintEnabled": false
 }
