@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {createWriteStream, existsSync} from 'fs';
+// tslint:disable-next-line:max-line-length
+import {equal} from 'assert';
+import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {createGunzip} from 'zlib';
 
@@ -41,10 +43,71 @@ function downloadFile(filename: string): Promise<string> {
   });
 }
 
+function loadHeaderValues(buffer: Buffer, headerLength: number): number[] {
+  const headerValues = [];
+  for (let i = 0; i < headerLength / 4; i++) {
+    // Header data is stored in-order (aka BE)
+    headerValues[i] = buffer.readUInt32BE(i * 4);
+  }
+  return headerValues;
+}
+
+function loadImages(filename: string) {
+  const buffer = readFileSync(filename);
+
+  const headerBytes = 16;
+  const recordBytes = 28 * 28;
+
+  const headerValues = loadHeaderValues(buffer, headerBytes);
+  equal(headerValues[0], 2051);
+  equal(headerValues[1], 60000);
+  equal(headerValues[2], 28);
+  equal(headerValues[3], 28);
+
+  const images = [];
+  let index = headerBytes;
+  while (index < buffer.byteLength) {
+    const array = new Uint8Array(recordBytes);
+    for (let i = 0; i < recordBytes; i++) {
+      array[i] = buffer.readUInt8(index++);
+    }
+    images.push(array);
+  }
+
+  equal(images.length, headerValues[1]);
+}
+
+function loadLabels(filename: string) {
+  const buffer = readFileSync(filename);
+
+  const headerBytes = 8;
+  const recordBytes = 1;
+
+  const headerValues = loadHeaderValues(buffer, headerBytes);
+  equal(headerValues[0], 2049);
+  equal(headerValues[1], 60000);
+
+  const labels = [];
+  let index = headerBytes;
+  while (index < buffer.byteLength) {
+    const array = new Uint8Array(recordBytes);
+    for (let i = 0; i < recordBytes; i++) {
+      array[i] = buffer.readUInt8(index++);
+    }
+    labels.push(array);
+  }
+
+  equal(labels.length, headerValues[1]);
+}
+
 async function downloadTrain() {
   await Promise.all(
       [downloadFile(TRAIN_IMAGES_FILE), downloadFile(TRAIN_LABELS_FILE)]);
   console.log('--- done');
+
+  console.log('');
+  loadImages(TRAIN_IMAGES_FILE);
+  loadLabels(TRAIN_LABELS_FILE);
 }
 
 downloadTrain();
