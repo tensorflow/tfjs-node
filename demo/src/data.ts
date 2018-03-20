@@ -17,6 +17,7 @@
 
 // tslint:disable-next-line:max-line-length
 import {equal} from 'assert';
+import {InMemoryDataset, Tensor, tensor1d} from 'deeplearn';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {createGunzip} from 'zlib';
@@ -34,8 +35,9 @@ function downloadFile(filename: string): Promise<string> {
       const file = createWriteStream(filename);
       console.log('  * Downloading from ', url);
       get(url, (response) => {
-        response.pipe(createGunzip()).pipe(file);
-        response.on('end', () => {
+        const unzip = createGunzip();
+        response.pipe(unzip).pipe(file);
+        unzip.on('end', () => {
           resolve();
         });
       });
@@ -52,62 +54,103 @@ function loadHeaderValues(buffer: Buffer, headerLength: number): number[] {
   return headerValues;
 }
 
-function loadImages(filename: string) {
-  const buffer = readFileSync(filename);
+function loadImages(filename: string): Promise<Tensor[]> {
+  return new Promise<Tensor[]>(async (resolve, reject) => {
+    await downloadFile(filename);
 
-  const headerBytes = 16;
-  const recordBytes = 28 * 28;
+    const buffer = readFileSync(filename);
 
-  const headerValues = loadHeaderValues(buffer, headerBytes);
-  equal(headerValues[0], 2051);
-  equal(headerValues[1], 60000);
-  equal(headerValues[2], 28);
-  equal(headerValues[3], 28);
+    const headerBytes = 16;
+    const recordBytes = 28 * 28;
 
-  const images = [];
-  let index = headerBytes;
-  while (index < buffer.byteLength) {
-    const array = new Uint8Array(recordBytes);
-    for (let i = 0; i < recordBytes; i++) {
-      array[i] = buffer.readUInt8(index++);
+    const headerValues = loadHeaderValues(buffer, headerBytes);
+    equal(headerValues[0], 2051);
+    equal(headerValues[1], 60000);
+    equal(headerValues[2], 28);
+    equal(headerValues[3], 28);
+
+    const images = [];
+    let index = headerBytes;
+    while (index < buffer.byteLength) {
+      const array = new Uint8Array(recordBytes);
+      for (let i = 0; i < recordBytes; i++) {
+        array[i] = buffer.readUInt8(index++);
+      }
+      images.push(tensor1d(array));
     }
-    images.push(array);
-  }
 
-  equal(images.length, headerValues[1]);
+    equal(images.length, headerValues[1]);
+    resolve(images);
+  });
 }
 
-function loadLabels(filename: string) {
-  const buffer = readFileSync(filename);
+function loadLabels(filename: string): Promise<Tensor[]> {
+  return new Promise<Tensor[]>(async (resolve, reject) => {
+    await downloadFile(filename);
 
-  const headerBytes = 8;
-  const recordBytes = 1;
+    const buffer = readFileSync(filename);
 
-  const headerValues = loadHeaderValues(buffer, headerBytes);
-  equal(headerValues[0], 2049);
-  equal(headerValues[1], 60000);
+    const headerBytes = 8;
+    const recordBytes = 1;
 
-  const labels = [];
-  let index = headerBytes;
-  while (index < buffer.byteLength) {
-    const array = new Uint8Array(recordBytes);
-    for (let i = 0; i < recordBytes; i++) {
-      array[i] = buffer.readUInt8(index++);
+    const headerValues = loadHeaderValues(buffer, headerBytes);
+    equal(headerValues[0], 2049);
+    equal(headerValues[1], 60000);
+
+    const labels = [];
+    let index = headerBytes;
+    while (index < buffer.byteLength) {
+      const array = new Uint8Array(recordBytes);
+      for (let i = 0; i < recordBytes; i++) {
+        array[i] = buffer.readUInt8(index++);
+      }
+      labels.push(tensor1d(array));
     }
-    labels.push(array);
+
+    equal(labels.length, headerValues[1]);
+    resolve(labels);
+  });
+}
+
+export class MnsitDataset extends InMemoryDataset {
+  fetchData(): Promise<void> {
+    return new Promise(async (resolve) => {
+      this.dataset = await Promise.all(
+          [loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE)]);
+      console.log('-- loaded all images and labels');
+      resolve();
+    });
   }
-
-  equal(labels.length, headerValues[1]);
 }
 
-async function downloadTrain() {
-  await Promise.all(
-      [downloadFile(TRAIN_IMAGES_FILE), downloadFile(TRAIN_LABELS_FILE)]);
-  console.log('--- done');
-
-  console.log('');
-  loadImages(TRAIN_IMAGES_FILE);
-  loadLabels(TRAIN_LABELS_FILE);
+export function createDataset(): MnsitDataset {
+  return new MnsitDataset([[28, 28, 1], [10]]);
 }
 
-downloadTrain();
+async function loadTest() {
+  const dataset = createDataset();
+  await dataset.fetchData();
+
+  console.log(`dataset: ${dataset.getData().length}`);
+
+  // Examine a random image:
+  const images = dataset.getData()[0];
+  const data = images[9].dataSync();
+  console.log(`--- Label: ${dataset.getData()[1][9].dataSync()}`);
+  let test = '';
+  for (let i = 0; i < data.length; i++) {
+    if (i !== 0 && i % 28 === 0) {
+      console.log(test);
+      test = '';
+    }
+
+    test += ' ' + data[i];
+    if (data[i] < 10) {
+      test += '00';
+    } else if (data[i] < 100) {
+      test += '0';
+    }
+  }
+}
+
+loadTest();
