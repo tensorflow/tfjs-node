@@ -115,12 +115,6 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
-    console.log('a.debug():', this.handleMap.get(a.dataId));
-    this.handleMap.get(a.dataId).debug();
-
-    console.log('b.debug():', this.handleMap.get(b.dataId));
-    this.handleMap.get(b.dataId).debug();
-
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [
@@ -133,8 +127,11 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
     const opAttrs = [
-      this.createTypeOpAttr('T', x.dtype),
-      this.createTypeOpAttr('Index', 'int32')
+      this.createTypeOpAttr('T', x.dtype), {
+        name: 'Index',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
     ];
 
     // Bind tensor values
@@ -573,14 +570,17 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
   pad<T extends Tensor<Rank>>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype), {
+        name: 'Tpaddings',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
+    ];
+
     // Bind tensor values
     const paddingsTensor = tensor2d(paddings, [2, 2], 'int32');
     const constantTensor = scalar(constantValue, x.dtype);
-
-    const opAttrs = [
-      this.createTypeOpAttr('T', x.dtype),
-      this.createTypeOpAttr('Tpaddings', paddingsTensor.dtype)
-    ];
 
     return this.execute(
                'PadV2', opAttrs, [x, paddingsTensor, constantTensor]) as T;
@@ -613,19 +613,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
       Tensor2D {
-    const depthTensor = scalar(depth, 'int32');
-    const onValueTensor = scalar(onValue, 'int32');
-    const offValueTensor = scalar(offValue, 'int32');
-
-    const opAttrs = [
-      {name: 'axis', type: this.binding.TF_ATTR_INT, value: -1},
-      this.createTypeOpAttr('T', indices.dtype),
-      this.createTypeOpAttr('TI', indices.dtype)
-    ];
-
-    return this.execute('OneHot', opAttrs, [
-      indices, depthTensor, onValueTensor, offValueTensor
-    ]) as Tensor2D;
+    throw new Error('Method not implemented.');
   }
   dispose(): void {
     throw new Error('Method not implemented.');
@@ -637,7 +625,6 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.handleMap.get(dataId).dataSync();
   }
   disposeData(dataId: object): void {
-    // console.log('disposeData(): ', dataId);
     // throw new Error('Method not implemented.');
   }
 

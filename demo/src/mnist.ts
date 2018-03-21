@@ -19,6 +19,8 @@ import * as dl from 'deeplearn';
 import * as tf from 'tfjs-node';
 import {createDataset} from './data';
 
+tf.bindTensorFlowBackend();
+
 const HIDDEN_1 = 128;
 const HIDDEN_2 = 32;
 
@@ -53,6 +55,7 @@ const optimizer = dl.train.sgd(LEARNING_RATE);
 
 function model(inputImages: dl.Tensor2D): dl.Tensor2D {
   const hidden1 = dl.tidy(() => {
+    console.log('weights1', weights1);
     return dl.relu(dl.matMul(inputImages, weights1).add(biases1));
   }) as dl.Tensor2D;
 
@@ -87,5 +90,4 @@ async function runTraining() {
   console.log(`loss[0]: ${cost.dataSync()}`);
 }
 
-// tf.bindTensorFlowBackend();
 runTraining();
