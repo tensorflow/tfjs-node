@@ -53,7 +53,6 @@ const optimizer = dl.train.sgd(LEARNING_RATE);
 
 function model(inputImages: dl.Tensor2D): dl.Tensor2D {
   const hidden1 = dl.tidy(() => {
-    console.log('--- TEST: ', weights1.dataSync());
     return dl.relu(dl.matMul(inputImages, weights1).add(biases1));
   }) as dl.Tensor2D;
 
@@ -88,5 +87,5 @@ async function runTraining() {
   console.log(`loss[0]: ${cost.dataSync()}`);
 }
 
-tf.bindTensorFlowBackend();
+// tf.bindTensorFlowBackend();
 runTraining();
