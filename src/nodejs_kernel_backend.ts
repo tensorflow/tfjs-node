@@ -417,11 +417,18 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
-    //
-    // TODO(kreeger): Implement this.
-    //
-    // throw new Error('Method not implemented.');
-    return x;
+    const resultValues = new Float32Array(x.size);
+    const values = x.dataSync();
+    for (let i = 0; i < values.length; ++i) {
+      const value = values[i];
+      resultValues[i] = value > 0 ? 1 : alpha;
+      // if (isValNaN(value, x.dtype)) {
+      //   resultValues[i] = getNaN(x.dtype);
+      // } else {
+      //   resultValues[i] = value > 0 ? 1 : alpha;
+      // }
+    }
+    return Tensor.make(x.shape, {values: resultValues}) as T;
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
