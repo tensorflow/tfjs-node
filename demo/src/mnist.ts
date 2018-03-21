@@ -16,7 +16,9 @@
  */
 
 import * as dl from 'deeplearn';
+import {Environment} from 'deeplearn';
 import * as tf from 'tfjs-node';
+
 import {createDataset} from './data';
 
 tf.bindTensorFlowBackend();
@@ -72,6 +74,7 @@ function model(inputImages: dl.Tensor2D): dl.Tensor2D {
 }
 
 function loss(labels: dl.Tensor2D, ys: dl.Tensor2D) {
+  console.log(`labels: ${labels.dtype}, ys: ${ys.dtype}`);
   return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
 }
 

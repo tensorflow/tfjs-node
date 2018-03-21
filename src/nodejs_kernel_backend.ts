@@ -113,6 +113,16 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.createOutputTensor(output);
   }
 
+  // Custom ops:
+  cast<T extends Tensor<Rank>>(x: T, dtype: DataType): T {
+    const opAttrs = [
+      this.createTypeOpAttr('SrcT', x.dtype),
+      this.createTypeOpAttr('DstT', dtype)
+    ];
+    return this.execute('Cast', opAttrs, [x]) as T;
+  }
+  // End Custom ops
+
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
