@@ -20,6 +20,7 @@ import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank, upcastType} from 'deeplearn/dist/types';
+import {getNaN, isValNaN} from 'deeplearn/dist/util';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -422,11 +423,11 @@ export class NodeJSKernelBackend implements KernelBackend {
     for (let i = 0; i < values.length; ++i) {
       const value = values[i];
       resultValues[i] = value > 0 ? 1 : alpha;
-      // if (isValNaN(value, x.dtype)) {
-      //   resultValues[i] = getNaN(x.dtype);
-      // } else {
-      //   resultValues[i] = value > 0 ? 1 : alpha;
-      // }
+      if (isValNaN(value, x.dtype)) {
+        resultValues[i] = getNaN(x.dtype);
+      } else {
+        resultValues[i] = value > 0 ? 1 : alpha;
+      }
     }
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }

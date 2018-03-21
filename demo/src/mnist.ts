@@ -72,7 +72,11 @@ function model(inputImages: dl.Tensor2D): dl.Tensor2D {
 }
 
 function loss(labels: dl.Tensor2D, ys: dl.Tensor2D): dl.Scalar {
-  return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
+  const loss = dl.losses.softmaxCrossEntropy(labels, ys).mean();
+  return dl.scalar(loss.dataSync);
+  // console.log('loss', loss);
+  // console.log('loss', loss.shape);
+  // return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
 }
 
 async function runTraining() {
