@@ -20,7 +20,7 @@ import * as tf from 'tfjs-node';
 
 import {createDataset} from './data';
 
-tf.bindTensorFlowBackend();
+// tf.bindTensorFlowBackend();
 
 const HIDDEN_1 = 128;
 const HIDDEN_2 = 32;
@@ -80,17 +80,12 @@ async function runTraining() {
   await data.fetchData();
   console.log('  * Data fetched');
 
-  for (let i = 0; i < 10; i++) {
+  const cost = optimizer.minimize(() => {
     const batch = data.nextTrainBatch(BATCH_SIZE);
-    const cost = loss(batch.label, model(batch.image));
+    return loss(batch.label, model(batch.image));
+  }, true);
 
-    // const cost = optimizer.minimize(() => {
-    //   const batch = data.nextTrainBatch(BATCH_SIZE);
-    //   return loss(batch.label, model(batch.image));
-    // }, true);
-
-    console.log(`loss[0]: ${cost.dataSync()}`);
-  }
+  console.log(`loss[0]: ${cost.dataSync()}`);
 }
 
 runTraining();

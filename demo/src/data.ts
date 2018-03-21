@@ -20,8 +20,8 @@ import {equal} from 'assert';
 import {ENV, InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
+import {NodeJSKernelBackend} from 'tfjs-node';
 import {createGunzip} from 'zlib';
-import { NodeJSKernelBackend } from 'tfjs-node';
 
 const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/mnist/';
 const TRAIN_IMAGES_FILE = 'train-images-idx3-ubyte';
@@ -153,10 +153,12 @@ export class MnsitDataset extends InMemoryDataset {
 
       this.batchIndex++;
     }
-    // console.log('test: ', );
 
-    // console.log(`label.dtype: ${label.dtype}`);
-    return {image, label: backend().cast(label, 'float32')};
+    if (ENV.backend === 'tensorflow') {
+      label = backend().cast(label, 'float32');
+    }
+
+    return {image, label};
   }
 }
 
