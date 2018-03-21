@@ -46,7 +46,7 @@ const biases3 = dl.zeros([NUM_CLASSES]);
 
 // Hyperparameters.
 const LEARNING_RATE = .1;
-// const BATCH_SIZE = 64;
+const BATCH_SIZE = 64;
 // const TRAIN_STEPS = 100;
 
 const optimizer = dl.train.sgd(LEARNING_RATE);
@@ -54,6 +54,13 @@ const optimizer = dl.train.sgd(LEARNING_RATE);
 function model(inputImages: dl.Tensor2D): dl.Tensor2D {
   const hidden1 = dl.tidy(() => {
     // TODO - bind and actually pass in images:
+    console.log(`inputImages.shape: ${inputImages.shape}`);
+    console.log(`weights1l.shape: ${weights1.shape}`);
+
+    //
+    // LEFT OFF RIGHT HERE!!!
+    //
+    // Looks like one of the inputs has a bad handle...
     return dl.relu(dl.matMul(inputImages, weights1).add(biases1));
   }) as dl.Tensor2D;
 
@@ -71,25 +78,20 @@ function loss(labels: dl.Tensor2D, ys: dl.Tensor2D) {
   return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
 }
 
-function runTraining() {
+async function runTraining() {
   const data = createDataset();
-  console.log(data);
+  await data.fetchData();
 
-  for (let i = 0; i < 10; i++) {
-    //
-    // TODO - need to cast to Tensor2D...
-    //
+  const batch = data.nextTrainBatch(BATCH_SIZE);
+  const cost = loss(batch.label, model(batch.image));
 
-    // const cost = optimizer.minimize(() => {
-    //   const batch = data.nextTrainBatch(BATCH_SIZE);
-    //   return loss(batch.labels, model(batch.xs));
-    // }, returnCost);
+  // const cost = optimizer.minimize(() => {
+  //   const batch = data.nextTrainBatch(BATCH_SIZE);
+  //   return loss(batch.label, model(batch.image));
+  // }, true);
 
-    // log(`loss[${i}]: ${cost.dataSync()}`);
-
-    // await dl.nextFrame();
-  }
+  console.log(`loss[0]: ${cost.dataSync()}`);
 }
 
-tf.bindTensorFlowBackend();
-runTraining(1);
+// tf.bindTensorFlowBackend();
+runTraining();

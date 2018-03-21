@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:max-line-length
 import {equal} from 'assert';
-import {InMemoryDataset, Tensor, tensor1d, tensor2d} from 'deeplearn';
+import {InMemoryDataset, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {createGunzip} from 'zlib';
@@ -70,7 +70,6 @@ function loadImages(filename: string): Promise<Tensor[]> {
     equal(headerValues[3], 28);
 
     const downsize = 1.0 / 255.0;
-    // const downsize = tensor2d(new Float32Array([1.0 / 255.0]));
 
     const images = [];
     let index = headerBytes;
@@ -116,6 +115,8 @@ function loadLabels(filename: string): Promise<Tensor[]> {
 }
 
 export class MnsitDataset extends InMemoryDataset {
+  protected batchIndex: 0;
+
   fetchData(): Promise<void> {
     return new Promise(async (resolve) => {
       this.dataset = await Promise.all(
@@ -124,42 +125,33 @@ export class MnsitDataset extends InMemoryDataset {
       resolve();
     });
   }
+
+  nextTrainBatch(batchSize: number): {image: Tensor2D, label: Tensor2D} {
+    let image: Tensor2D = null;
+    let label: Tensor2D = null;
+
+    // TODO - make this check boundaries...
+    for (let i = 0; i < batchSize; i++) {
+      const imageFlat = this.dataset[0][i].reshape([1, 784]) as Tensor2D;
+      if (image == null) {
+        image = imageFlat;
+      } else {
+        image = image.concat(imageFlat, 0);
+      }
+
+      const labelFlat = this.dataset[1][i] as Tensor2D;
+      if (label == null) {
+        label = labelFlat;
+      } else {
+        label = label.concat(labelFlat, 0);
+      }
+
+      this.batchIndex++;
+    }
+    return {image, label};
+  }
 }
 
 export function createDataset(): MnsitDataset {
   return new MnsitDataset([[28, 28, 1], [10]]);
 }
-
-function testPrint(dataset: MnsitDataset, index: number) {
-  const images = dataset.getData()[0];
-  const data = images[index].dataSync();
-  console.log(`--- Label: ${dataset.getData()[1][index].dataSync()}`);
-  let test = '';
-  for (let i = 0; i < data.length; i++) {
-    if (i !== 0 && i % 28 === 0) {
-      console.log(test);
-      test = '';
-    }
-
-    if (data[i] === 0) {
-      test += '     ';
-    } else {
-      test += ' ' + data[i].toFixed(1);
-    }
-  }
-}
-
-async function loadTest() {
-  const dataset = createDataset();
-  await dataset.fetchData();
-
-  console.log(`dataset: ${dataset.getData().length}`);
-
-  // Examine a random image:
-  testPrint(dataset, 20);
-  testPrint(dataset, 7);
-
-  await setTimeout(() => {}, 5000);
-}
-
-loadTest();
