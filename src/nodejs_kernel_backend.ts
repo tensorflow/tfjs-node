@@ -127,11 +127,8 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
     const opAttrs = [
-      this.createTypeOpAttr('T', x.dtype), {
-        name: 'Index',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_INT32
-      }
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Index', 'int32')
     ];
 
     // Bind tensor values
@@ -614,9 +611,9 @@ export class NodeJSKernelBackend implements KernelBackend {
     const onValueTensor = scalar(onValue, 'int32');
     const offValueTensor = scalar(offValue, 'int32');
 
-    // TODO - left off right here need to set these ops up.
     const opAttrs = [
-
+      {name: 'axis', type: this.binding.TF_ATTR_INT, value: -1},
+      this.createTypeOpAttr('T', indices.dtype),
       this.createTypeOpAttr('TI', indices.dtype)
     ];
 
