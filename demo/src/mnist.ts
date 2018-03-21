@@ -16,7 +16,6 @@
  */
 
 import * as dl from 'deeplearn';
-import {Environment} from 'deeplearn';
 import * as tf from 'tfjs-node';
 
 import {createDataset} from './data';

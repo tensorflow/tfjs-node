@@ -15,12 +15,13 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
 import {equal} from 'assert';
+// tslint:disable-next-line:max-line-length
 import {ENV, InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {createGunzip} from 'zlib';
+import { NodeJSKernelBackend } from 'tfjs-node';
 
 const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/mnist/';
 const TRAIN_IMAGES_FILE = 'train-images-idx3-ubyte';
@@ -114,6 +115,10 @@ function loadLabels(filename: string): Promise<Tensor[]> {
   });
 }
 
+function backend(): NodeJSKernelBackend {
+  return ENV.findBackend('tensorflow') as NodeJSKernelBackend;
+}
+
 export class MnsitDataset extends InMemoryDataset {
   protected batchIndex: 0;
 
@@ -148,10 +153,10 @@ export class MnsitDataset extends InMemoryDataset {
 
       this.batchIndex++;
     }
-    // console.log('test: ', dl.ENV.findBackend('tensorflow'));
+    // console.log('test: ', );
 
     // console.log(`label.dtype: ${label.dtype}`);
-    return {image, label: ENV.findBackend('tensorflow').cast(label, 'float32')};
+    return {image, label: backend().cast(label, 'float32')};
   }
 }
 
