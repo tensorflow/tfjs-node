@@ -56,18 +56,15 @@ const optimizer = dl.train.sgd(LEARNING_RATE);
 
 function model(inputImages: dl.Tensor2D): dl.Tensor2D {
   const hidden1 = dl.tidy(() => {
-    console.log('hidden layer 1');
     return dl.relu(dl.matMul(inputImages, weights1).add(biases1));
   }) as dl.Tensor2D;
 
   const hidden2 = dl.tidy(() => {
-    console.log('hidden layer 2');
     return dl.relu(dl.matMul(hidden1, weights2).add(biases2));
   }) as dl.Tensor2D;
 
   // linear
   return dl.tidy(() => {
-    console.log('hidden layer 3');
     return dl.matMul(hidden2, weights3).add(biases3);
   }) as dl.Tensor2D;
 }
