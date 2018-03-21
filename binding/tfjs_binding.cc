@@ -137,6 +137,20 @@ static napi_value GetTensorHandleDtype(napi_env env, napi_callback_info info) {
   return result;
 }
 
+static napi_value TensorHandleDebug(napi_env env, napi_callback_info info) {
+  napi_status nstatus;
+
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, 0, nullptr, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  TensorHandle* handle;
+  nstatus = napi_unwrap(env, js_this, reinterpret_cast<void**>(&handle));
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  return js_this;
+}
+
 static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
@@ -180,8 +194,9 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       {"shape", nullptr, nullptr, GetTensorHandleShape, nullptr, nullptr,
        napi_default, nullptr},
       {"dtype", nullptr, nullptr, GetTensorHandleDtype, nullptr, nullptr,
+       napi_default, nullptr},
+      {"debug", nullptr, TensorHandleDebug, nullptr, nullptr, nullptr,
        napi_default, nullptr}};
-  ;
 
   napi_value tensor_handle_class;
   nstatus =

@@ -115,6 +115,12 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
+    console.log('a.debug():', this.handleMap.get(a.dataId));
+    this.handleMap.get(a.dataId).debug();
+
+    console.log('b.debug():', this.handleMap.get(b.dataId));
+    this.handleMap.get(b.dataId).debug();
+
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [
@@ -631,6 +637,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.handleMap.get(dataId).dataSync();
   }
   disposeData(dataId: object): void {
+    // console.log('disposeData(): ', dataId);
     // throw new Error('Method not implemented.');
   }
 

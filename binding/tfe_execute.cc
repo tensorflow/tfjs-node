@@ -148,6 +148,8 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   TFE_Op* tfe_op = TFE_NewOp(context_env->context, opName, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
+  // printf(" --- Op: %s\n", opName);
+
   // Assign inputs
   uint32_t inputs_length;
   nstatus = napi_get_array_length(env, inputs, &inputs_length);

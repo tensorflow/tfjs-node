@@ -43,7 +43,7 @@ function testPrint(dataset: MnsitDataset, index: number) {
 }
 
 async function loadTest() {
-  // tf.bindTensorFlowBackend();
+  tf.bindTensorFlowBackend();
   const dataset = createDataset();
   await dataset.fetchData();
 

@@ -26,6 +26,8 @@ declare class TensorHandle {
 
   shape: number[];
   dtype: number;
+
+  debug(): void;
 }
 
 declare class TFEOpAttr {
