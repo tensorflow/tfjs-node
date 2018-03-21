@@ -17,7 +17,7 @@
 
 import {equal} from 'assert';
 // tslint:disable-next-line:max-line-length
-import {ENV, InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
+import {ENV, Environment, InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {NodeJSKernelBackend} from 'tfjs-node';
@@ -154,7 +154,7 @@ export class MnsitDataset extends InMemoryDataset {
       this.batchIndex++;
     }
 
-    if (ENV.backend === 'tensorflow') {
+    if (Environment.getBackend() === 'tensorflow') {
       label = backend().cast(label, 'float32');
     }
 
