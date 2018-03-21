@@ -48,7 +48,7 @@ async function loadTest() {
   await dataset.fetchData();
 
   // Examine a random image:
-  testPrint(dataset, 20);
+  testPrint(dataset, 101);
   testPrint(dataset, 7);
 
   const batch = dataset.nextTrainBatch(64);

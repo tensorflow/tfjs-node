@@ -417,8 +417,13 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
-    throw new Error('Method not implemented.');
+    //
+    // TODO(kreeger): Implement this.
+    //
+    // throw new Error('Method not implemented.');
+    return x;
   }
+
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
     batchSize: number; inHeight: number; inWidth: number; inChannels: number;
     outHeight: number;
