@@ -20,7 +20,7 @@ import * as tf from 'tfjs-node';
 
 import {createDataset} from './data';
 
-// tf.bindTensorFlowBackend();
+tf.bindTensorFlowBackend();
 
 const HIDDEN_1 = 128;
 const HIDDEN_2 = 32;
@@ -30,21 +30,23 @@ const IMAGE_SIZE = 28;
 const IMAGE_PIXELS = IMAGE_SIZE * IMAGE_SIZE;
 
 // first layer weights
-const weights1 = dl.truncatedNormal(
-                     [IMAGE_PIXELS, HIDDEN_1], null,
-                     1.0 / Math.sqrt(IMAGE_PIXELS)) as dl.Tensor2D;
+const weights1 =
+    dl.variable(dl.truncatedNormal(
+        [IMAGE_PIXELS, HIDDEN_1], null, 1.0 / Math.sqrt(IMAGE_PIXELS))) as
+    dl.Tensor2D;
 const biases1 = dl.zeros([HIDDEN_1]);
 
 // second layer weights
 const weights2 =
-    dl.truncatedNormal([HIDDEN_1, HIDDEN_2], null, 1.0 / Math.sqrt(HIDDEN_1)) as
-    dl.Tensor2D;
+    dl.variable(dl.truncatedNormal(
+        [HIDDEN_1, HIDDEN_2], null, 1.0 / Math.sqrt(HIDDEN_1))) as dl.Tensor2D;
 const biases2 = dl.zeros([HIDDEN_2]);
 
 // third layer weights
-const weights3 = dl.truncatedNormal(
-                     [HIDDEN_2, NUM_CLASSES], null,
-                     1.0 / Math.sqrt(HIDDEN_2)) as dl.Tensor2D;
+const weights3 =
+    dl.variable(dl.truncatedNormal(
+        [HIDDEN_2, NUM_CLASSES], null, 1.0 / Math.sqrt(HIDDEN_2))) as
+    dl.Tensor2D;
 const biases3 = dl.zeros([NUM_CLASSES]);
 
 // Hyperparameters.
@@ -70,7 +72,6 @@ function model(inputImages: dl.Tensor2D): dl.Tensor2D {
 }
 
 function loss(labels: dl.Tensor2D, ys: dl.Tensor2D) {
-  console.log(`labels: ${labels.dtype}, ys: ${ys.dtype}`);
   return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
 }
 
@@ -80,12 +81,13 @@ async function runTraining() {
   await data.fetchData();
   console.log('  * Data fetched');
 
-  const cost = optimizer.minimize(() => {
-    const batch = data.nextTrainBatch(BATCH_SIZE);
-    return loss(batch.label, model(batch.image));
-  }, true);
-
-  console.log(`loss[0]: ${cost.dataSync()}`);
+  for (let i = 0; i < 100; i++) {
+    const cost = optimizer.minimize(() => {
+      const batch = data.nextTrainBatch(BATCH_SIZE);
+      return loss(batch.label, model(batch.image));
+    }, true);
+    console.log(`loss[0]: ${cost.dataSync()}`);
+  }
 }
 
 runTraining();
