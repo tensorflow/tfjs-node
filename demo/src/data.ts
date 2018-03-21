@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:max-line-length
 import {equal} from 'assert';
-import {InMemoryDataset, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
+import {InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {createGunzip} from 'zlib';
@@ -78,7 +78,7 @@ function loadImages(filename: string): Promise<Tensor[]> {
       for (let i = 0; i < recordBytes; i++) {
         array[i] = buffer.readUInt8(index++) * downsize;
       }
-      images.push(tensor2d(array, [28, 28]));
+      images.push(tensor2d(array, [1, 784]));
     }
 
     equal(images.length, headerValues[1]);
@@ -106,7 +106,7 @@ function loadLabels(filename: string): Promise<Tensor[]> {
       for (let i = 0; i < recordBytes; i++) {
         array[i] = buffer.readUInt8(index++);
       }
-      labels.push(tensor1d(array, 'int32'));
+      labels.push(oneHot(tensor1d(array, 'int32'), 10));
     }
 
     equal(labels.length, headerValues[1]);
@@ -132,7 +132,7 @@ export class MnsitDataset extends InMemoryDataset {
 
     // TODO - make this check boundaries...
     for (let i = 0; i < batchSize; i++) {
-      const imageFlat = this.dataset[0][i].reshape([1, 784]) as Tensor2D;
+      const imageFlat = this.dataset[0][i] as Tensor2D;
       if (image == null) {
         image = imageFlat;
       } else {

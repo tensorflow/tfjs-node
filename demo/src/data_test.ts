@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as dl from 'deeplearn';
 import * as tf from 'tfjs-node';
 
 import {createDataset, MnsitDataset} from './data';
@@ -22,7 +23,10 @@ import {createDataset, MnsitDataset} from './data';
 function testPrint(dataset: MnsitDataset, index: number) {
   const images = dataset.getData()[0];
   const data = images[index].dataSync();
-  console.log(`--- Label: ${dataset.getData()[1][index].dataSync()}`);
+
+  const label = dataset.getData()[1][index] as dl.Tensor1D;
+  console.log(`--- Label: ${label.dataSync()}`);
+  console.log(`-- one_hot: ${dl.oneHot(label, 10)}`);
   let test = '';
   for (let i = 0; i < data.length; i++) {
     if (i !== 0 && i % 28 === 0) {
@@ -39,7 +43,7 @@ function testPrint(dataset: MnsitDataset, index: number) {
 }
 
 async function loadTest() {
-  tf.bindTensorFlowBackend();
+  // tf.bindTensorFlowBackend();
   const dataset = createDataset();
   await dataset.fetchData();
 
@@ -51,7 +55,7 @@ async function loadTest() {
   console.log(`batch.image.shape: ${batch.image.shape}`);
   console.log(`batch.label.shape: ${batch.label.shape}`);
 
-  await setTimeout(() => {}, 10000);
+  // await setTimeout(() => {}, 10000);
 }
 
 loadTest();
