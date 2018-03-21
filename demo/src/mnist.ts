@@ -76,17 +76,21 @@ function loss(labels: dl.Tensor2D, ys: dl.Tensor2D) {
 
 async function runTraining() {
   const data = createDataset();
+  console.log('  * Fetching data...');
   await data.fetchData();
+  console.log('  * Data fetched');
 
-  const batch = data.nextTrainBatch(BATCH_SIZE);
-  const cost = loss(batch.label, model(batch.image));
+  for (let i = 0; i < 10; i++) {
+    const batch = data.nextTrainBatch(BATCH_SIZE);
+    const cost = loss(batch.label, model(batch.image));
 
-  // const cost = optimizer.minimize(() => {
-  //   const batch = data.nextTrainBatch(BATCH_SIZE);
-  //   return loss(batch.label, model(batch.image));
-  // }, true);
+    // const cost = optimizer.minimize(() => {
+    //   const batch = data.nextTrainBatch(BATCH_SIZE);
+    //   return loss(batch.label, model(batch.image));
+    // }, true);
 
-  console.log(`loss[0]: ${cost.dataSync()}`);
+    console.log(`loss[0]: ${cost.dataSync()}`);
+  }
 }
 
 runTraining();
