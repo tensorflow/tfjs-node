@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^9.4.6",
-    "deeplearn": "next",
+    "deeplearn": "../../deeplearnjs/deeplearn-0.6.0-alpha6.tgz",
     "tfjs-node": "file:../.",
     "ts-node": "^4.1.0",
     "typescript": "^2.7.2"

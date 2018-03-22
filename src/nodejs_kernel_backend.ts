@@ -20,7 +20,7 @@ import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank, upcastType} from 'deeplearn/dist/types';
-import {getNaN, isValNaN} from 'deeplearn/dist/util';
+import {arraysEqual, getNaN, isValNaN} from 'deeplearn/dist/util';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -30,6 +30,27 @@ type TensorInfo = {
 };
 
 export class NodeJSKernelBackend implements KernelBackend {
+  // New Ops
+  log1p<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+
+  updateShape(dataId: object, shape: number[], dtype: DataType): void {
+    // const shapeTensor = tensor1d(shape);
+    // return this.execute('Reshape', opAttrs, [tensor])
+    // throw new Error('Method not implemented.');
+
+    //
+    // TODO - how does this actually work? Probably need a method to
+    // swap TFE_TensorHandles.
+    //
+    const oldShape = this.shapeMap.get(dataId);
+    if (!arraysEqual(oldShape.shape, shape)) {
+      console.log(`Moving ${oldShape.shape} to ${shape}`);
+    }
+  }
+  // End new ops
+
   private shapeMap = new WeakMap<DataId, TensorInfo>();
   private handleMap = new WeakMap<DataId, TensorHandle>();
   private context: Context;
@@ -682,8 +703,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
 
-  register(dataId: object, tShape: number[], dtype: 'float32'|'int32'|'bool'):
-      void {
+  register(dataId: object, tShape: number[], dtype: DataType): void {
     if (this.shapeMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} is already registered!`);
     }
