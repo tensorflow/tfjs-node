@@ -79,6 +79,8 @@ function loadImages(filename: string): Promise<Tensor[]> {
       for (let i = 0; i < recordBytes; i++) {
         array[i] = buffer.readUInt8(index++) * downsize;
       }
+      // TODO - store as typed-arrays in memory. Use dl.variable() to swap out
+      // as needed
       images.push(tensor2d(array, [1, 784]));
     }
 
@@ -107,6 +109,8 @@ function loadLabels(filename: string): Promise<Tensor[]> {
       for (let i = 0; i < recordBytes; i++) {
         array[i] = buffer.readUInt8(index++);
       }
+      // TODO - store as typed-arrays in memory. Use dl.variable() to swap out
+      // as needed
       labels.push(oneHot(tensor1d(array, 'int32'), 10));
     }
 

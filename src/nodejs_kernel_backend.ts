@@ -87,7 +87,7 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   private createReductionOpAttrs(tensor: Tensor): TFEOpAttr[] {
     return [
-      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: true},
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
       this.createTypeOpAttr('T', tensor.dtype),
       this.createTypeOpAttr('Tidx', 'int32')
     ];
@@ -182,6 +182,12 @@ export class NodeJSKernelBackend implements KernelBackend {
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
+
+    console.log(`a.shape: ${a.shape}`);
+    console.log(`b.shape: ${b.shape}`);
+    console.log(`binding a.shape: ${this.handleMap.get(a.dataId).shape}`);
+    console.log(`binding b.shape: ${this.handleMap.get(b.dataId).shape}`);
+
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Sub', opAttrs, [a, b]);
   }

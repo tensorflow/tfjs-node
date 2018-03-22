@@ -52,7 +52,7 @@ const biases3 = dl.zeros([NUM_CLASSES]);
 // Hyperparameters.
 const LEARNING_RATE = .1;
 const BATCH_SIZE = 64;
-// const TRAIN_STEPS = 100;
+const TRAIN_STEPS = 100;
 
 const optimizer = dl.train.sgd(LEARNING_RATE);
 
@@ -72,20 +72,16 @@ function model(inputImages: dl.Tensor2D): dl.Tensor2D {
 }
 
 function loss(labels: dl.Tensor2D, ys: dl.Tensor2D): dl.Scalar {
-  // TODO(kreeger): Something happens in TF, object is returned as Tensor2D not
-  // as Scalar.
-  const loss = dl.losses.softmaxCrossEntropy(labels, ys).mean();
-  return dl.tensor1d(loss.dataSync());
-  // return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
+  return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
 }
 
 async function runTraining() {
   const data = createDataset();
   console.log('  * Fetching data...');
   await data.fetchData();
-  console.log('  * Data fetched');
 
-  for (let i = 0; i < 100; i++) {
+  console.log('  * Starting Training...');
+  for (let i = 0; i < TRAIN_STEPS; i++) {
     const cost = optimizer.minimize(() => {
       const batch = data.nextTrainBatch(BATCH_SIZE);
       return loss(batch.label, model(batch.image));

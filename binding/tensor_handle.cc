@@ -108,6 +108,7 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   size_t num_elements = 1;
   for (size_t i = 0; i < shape_length; i++) {
     num_elements *= shape[i];
+    // printf("  shape: %lld\n", shape[i]);
   }
 
   // Ensure the shape matches the length of the passed in typed-array.

@@ -8,7 +8,7 @@
     "datatest": "./node_modules/.bin/ts-node src/data_test.ts",
     "mnist": "./node_modules/.bin/ts-node src/mnist.ts",
     "build": "tsc",
-    "preinstall": "rm -rf ../node_modules"
+    "preinstall": "rm -rf ../node_modules && rm -rf node_modules"
   },
   "author": "",
   "license": "ISC",

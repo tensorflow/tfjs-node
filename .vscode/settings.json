@@ -19,7 +19,12 @@
     "tuple": "cpp",
     "vector": "cpp",
     "__locale": "cpp",
-    "__tuple": "cpp"
+    "__tuple": "cpp",
+    "__string": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "__config": "cpp",
+    "__nullptr": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,
