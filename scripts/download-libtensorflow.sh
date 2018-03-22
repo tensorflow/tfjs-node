@@ -25,7 +25,12 @@ else
 fi
 
 TARGET_DIRECTORY="deps/tensorflow/"
+LIBTENSORFLOW="lib/libtensorflow.so"
 
-curl -L \
-  $target |
-  tar -C $TARGET_DIRECTORY -xz
+# Ensure that at least libtensorflow.so is downloaded.
+if [ ! -e "$TARGET_DIRECTORY${LIBTENSORFLOW}" ]
+then
+  curl -L \
+    $target |
+    tar -C $TARGET_DIRECTORY -xz
+fi
