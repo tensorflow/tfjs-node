@@ -160,9 +160,9 @@ export class MnsitDataset {
       this.batchIndex++;
     }
 
-    if (Environment.getBackend() === 'tensorflow') {
-      label = backend().cast(label, 'float32');
-    }
+    // if (Environment.getBackend() === 'tensorflow') {
+    //   label = backend().cast(label, 'float32');
+    // }
 
     return {image, label};
   }
