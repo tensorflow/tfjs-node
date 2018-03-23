@@ -154,7 +154,7 @@ describe('TensorHandle', () => {
     ];
 
     binding.execute(context, 'Max', attrs, [input, axes], output);
-    expect(output.shape).toEqual([1]);
+    expect(output.shape).toEqual([]);
     expect(output.dtype).toEqual(binding.TF_INT32);
     expect(output.dataSync(context)).toEqual(new Int32Array([3]));
   });

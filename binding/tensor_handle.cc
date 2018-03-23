@@ -263,16 +263,8 @@ void GetTensorShape(napi_env env, napi_value wrapped_value,
   ENSURE_TF_OK(env, tf_status);
 
   if (num_dims == 0) {
-    nstatus = napi_create_array_with_length(env, 1, result);
+    nstatus = napi_create_array_with_length(env, 0, result);
     ENSURE_NAPI_OK(env, nstatus);
-
-    napi_value cur_dim;
-    nstatus = napi_create_int64(env, 1, &cur_dim);
-    ENSURE_NAPI_OK(env, nstatus);
-
-    nstatus = napi_set_element(env, *result, 0, cur_dim);
-    ENSURE_NAPI_OK(env, nstatus);
-
   } else {
     nstatus = napi_create_array_with_length(env, num_dims, result);
     ENSURE_NAPI_OK(env, nstatus);
