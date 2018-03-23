@@ -17,7 +17,7 @@
 
 import {equal} from 'assert';
 // tslint:disable-next-line:max-line-length
-import {ENV, Environment, InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
+import {ENV, Environment, InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D, cast} from 'deeplearn';
 import {TypedArray} from 'deeplearn/dist/types';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
@@ -160,10 +160,7 @@ export class MnsitDataset {
       this.batchIndex++;
     }
 
-    // if (Environment.getBackend() === 'tensorflow') {
-    //   label = backend().cast(label, 'float32');
-    // }
-
+    label = cast(label, 'float32');
     return {image, label};
   }
 }
