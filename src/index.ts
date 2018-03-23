@@ -16,13 +16,11 @@
  */
 
 import {ENV, Environment} from 'deeplearn/dist/environment';
+import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 // tslint:disable-next-line:no-require-imports
 import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
-import {NodeJSKernelBackend} from './nodejs_kernel_backend';
-
-export {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 export function bindTensorFlowBackend() {
   // TODO(kreeger): This anonymous function should throw an exception if the

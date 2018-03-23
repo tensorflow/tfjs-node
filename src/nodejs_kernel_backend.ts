@@ -20,7 +20,6 @@ import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank, upcastType} from 'deeplearn/dist/types';
-import {arraysEqual, getNaN, isValNaN} from 'deeplearn/dist/util';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -30,27 +29,6 @@ type TensorInfo = {
 };
 
 export class NodeJSKernelBackend implements KernelBackend {
-  // New Ops
-  log1p<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
-  }
-
-  updateShape(dataId: object, shape: number[], dtype: DataType): void {
-    // const shapeTensor = tensor1d(shape);
-    // return this.execute('Reshape', opAttrs, [tensor])
-    // throw new Error('Method not implemented.');
-
-    //
-    // TODO - how does this actually work? Probably need a method to
-    // swap TFE_TensorHandles.
-    //
-    const oldShape = this.shapeMap.get(dataId);
-    if (!arraysEqual(oldShape.shape, shape)) {
-      console.log(`Moving ${oldShape.shape} to ${shape}`);
-    }
-  }
-  // End new ops
-
   private shapeMap = new WeakMap<DataId, TensorInfo>();
   private handleMap = new WeakMap<DataId, TensorHandle>();
   private context: Context;
@@ -135,16 +113,6 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.createOutputTensor(output);
   }
 
-  // Custom ops:
-  cast<T extends Tensor<Rank>>(x: T, dtype: DataType): T {
-    const opAttrs = [
-      this.createTypeOpAttr('SrcT', x.dtype),
-      this.createTypeOpAttr('DstT', dtype)
-    ];
-    return this.execute('Cast', opAttrs, [x]) as T;
-  }
-  // End Custom ops
-
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
@@ -203,12 +171,6 @@ export class NodeJSKernelBackend implements KernelBackend {
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
-
-    console.log(`a.shape: ${a.shape}`);
-    console.log(`b.shape: ${b.shape}`);
-    console.log(`binding a.shape: ${this.handleMap.get(a.dataId).shape}`);
-    console.log(`binding b.shape: ${this.handleMap.get(b.dataId).shape}`);
-
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Sub', opAttrs, [a, b]);
   }
@@ -445,21 +407,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
-    // TODO(kreeger): See if this can be done in a TF op. This is slow.
-    const resultValues = new Float32Array(x.size);
-    const values = x.dataSync();
-    for (let i = 0; i < values.length; ++i) {
-      const value = values[i];
-      resultValues[i] = value > 0 ? 1 : alpha;
-      if (isValNaN(value, x.dtype)) {
-        resultValues[i] = getNaN(x.dtype);
-      } else {
-        resultValues[i] = value > 0 ? 1 : alpha;
-      }
-    }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    throw new Error('Method not implemented.');
   }
-
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
     batchSize: number; inHeight: number; inWidth: number; inChannels: number;
     outHeight: number;
@@ -676,10 +625,10 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
   async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
-    return this.handleMap.get(dataId).dataSync();
+    return this.handleMap.get(dataId).dataSync(this.context);
   }
   readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
-    return this.handleMap.get(dataId).dataSync();
+    return this.handleMap.get(dataId).dataSync(this.context);
   }
   disposeData(dataId: object): void {
     // throw new Error('Method not implemented.');
@@ -703,7 +652,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
 
-  register(dataId: object, tShape: number[], dtype: DataType): void {
+  register(dataId: object, tShape: number[], dtype: 'float32'|'int32'|'bool'):
+      void {
     if (this.shapeMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} is already registered!`);
     }

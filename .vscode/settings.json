@@ -18,13 +18,7 @@
     "ratio": "cpp",
     "tuple": "cpp",
     "vector": "cpp",
-    "__locale": "cpp",
-    "__tuple": "cpp",
-    "__string": "cpp",
-    "string": "cpp",
-    "string_view": "cpp",
-    "__config": "cpp",
-    "__nullptr": "cpp"
+    "__locale": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,
@@ -48,7 +42,5 @@
   "editor.detectIndentation": false,
   "editor.wrappingIndent": "none",
   "typescript.tsdk": "node_modules/typescript/lib",
-  "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format",
-  "python.linting.enabled": false,
-  "python.linting.pylintEnabled": false
+  "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format"
 }

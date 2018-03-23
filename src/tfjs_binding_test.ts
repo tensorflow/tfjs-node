@@ -66,6 +66,7 @@ describe('Context', () => {
 });
 
 describe('TensorHandle', () => {
+  const context = new binding.Context();
   it('should create with default constructor', () => {
     expect(new binding.TensorHandle()).toBeDefined();
   });
@@ -87,7 +88,7 @@ describe('TensorHandle', () => {
   it('throws exception when dataSync() is called on non-used handle', () => {
     expect(() => {
       // tslint:disable-next-line:no-unused-expression
-      new binding.TensorHandle().dataSync();
+      new binding.TensorHandle().dataSync(context);
     }).toThrowError();
   });
 
@@ -97,25 +98,25 @@ describe('TensorHandle', () => {
     expect(handle).toBeDefined();
     expect(handle.shape).toEqual([2]);
     expect(handle.dtype).toEqual(binding.TF_INT32);
-    expect(handle.dataSync()).toEqual(new Int32Array([1, 2]));
+    expect(handle.dataSync(context)).toEqual(new Int32Array([1, 2]));
   });
 
   it('reuses handles with different shape', () => {
     const handle = new binding.TensorHandle();
     handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
-    expect(handle.dataSync()).toEqual(new Int32Array([1, 2]));
+    expect(handle.dataSync(context)).toEqual(new Int32Array([1, 2]));
 
     handle.copyBuffer([2], binding.TF_FLOAT, new Float32Array([3, 4]));
-    expect(handle.dataSync()).toEqual(new Float32Array([3, 4]));
+    expect(handle.dataSync(context)).toEqual(new Float32Array([3, 4]));
   });
 
   it('reuses handles with different dtype', () => {
     const handle = new binding.TensorHandle();
     handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
-    expect(handle.dataSync()).toEqual(new Int32Array([1, 2]));
+    expect(handle.dataSync(context)).toEqual(new Int32Array([1, 2]));
 
     handle.copyBuffer([4], binding.TF_INT32, new Int32Array([3, 4, 5, 6]));
-    expect(handle.dataSync()).toEqual(new Int32Array([3, 4, 5, 6]));
+    expect(handle.dataSync(context)).toEqual(new Int32Array([3, 4, 5, 6]));
   });
 
   it('throws exception when shape does not match data', () => {
@@ -134,6 +135,28 @@ describe('TensorHandle', () => {
       // tslint:disable-next-line:no-unused-expression
       new binding.TensorHandle().copyBuffer([1], 1000, new Int32Array([1]));
     }).toThrowError();
+  });
+
+  it('works with 0-dim tensors', () => {
+    // Reduce op (e.g 'Max') will produce a 0-dim TFE_Tensor.
+    const output = new binding.TensorHandle();
+
+    const axes = new binding.TensorHandle();
+    axes.copyBuffer([1], binding.TF_INT32, new Int32Array([0]));
+
+    const input = new binding.TensorHandle();
+    input.copyBuffer([3], binding.TF_INT32, new Int32Array([1, 2, 3]));
+
+    const attrs = [
+      {name: 'keep_dims', type: binding.TF_ATTR_BOOL, value: false},
+      {name: 'T', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32},
+      {name: 'Tidx', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32}
+    ];
+
+    binding.execute(context, 'Max', attrs, [input, axes], output);
+    expect(output.shape).toEqual([]);
+    expect(output.dtype).toEqual(binding.TF_INT32);
+    expect(output.dataSync(context)).toEqual(new Int32Array([3]));
   });
 });
 
@@ -340,6 +363,6 @@ describe('execute()', () => {
 
   it('should work for matmul', () => {
     binding.execute(context, name, matMulOpAttrs, matMulInput, output);
-    expect(output.dataSync()).toEqual(new Float32Array([8, 5, 20, 13]));
+    expect(output.dataSync(context)).toEqual(new Float32Array([8, 5, 20, 13]));
   });
 });
