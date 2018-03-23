@@ -20,13 +20,9 @@ import * as tf from 'tfjs-node';
 
 import {createDataset, MnsitDataset} from './data';
 
-function testPrint(dataset: MnsitDataset, index: number) {
-  const images = dataset.getData()[0];
-  const data = images[index].dataSync();
-
-  const label = dataset.getData()[1][index] as dl.Tensor1D;
+function testPrint(image: dl.Tensor, label: dl.Tensor) {
+  const data = image.dataSync();
   console.log(`--- Label: ${label.dataSync()}`);
-  console.log(`-- one_hot: ${dl.oneHot(label, 10)}`);
   let test = '';
   for (let i = 0; i < data.length; i++) {
     if (i !== 0 && i % 28 === 0) {
@@ -45,13 +41,14 @@ function testPrint(dataset: MnsitDataset, index: number) {
 async function loadTest() {
   tf.bindTensorFlowBackend();
   const dataset = createDataset();
-  await dataset.fetchData();
+  await dataset.loadData();
 
   // Examine a random image:
-  testPrint(dataset, 101);
-  testPrint(dataset, 7);
+  // testPrint(dataset, 101);
+  // testPrint(dataset, 7);
 
-  const batch = dataset.nextTrainBatch(64);
+  const batch = dataset.nextTrainBatch(1);
+  testPrint(batch.image, batch.label);
   console.log(`batch.image.shape: ${batch.image.shape}`);
   console.log(`batch.label.shape: ${batch.label.shape}`);
 

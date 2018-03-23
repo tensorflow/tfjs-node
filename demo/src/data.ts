@@ -18,6 +18,7 @@
 import {equal} from 'assert';
 // tslint:disable-next-line:max-line-length
 import {ENV, Environment, InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
+import {TypedArray} from 'deeplearn/dist/types';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {NodeJSKernelBackend} from 'tfjs-node';
@@ -55,8 +56,8 @@ function loadHeaderValues(buffer: Buffer, headerLength: number): number[] {
   return headerValues;
 }
 
-function loadImages(filename: string): Promise<Tensor[]> {
-  return new Promise<Tensor[]>(async (resolve, reject) => {
+function loadImages(filename: string): Promise<TypedArray[]> {
+  return new Promise<TypedArray[]>(async (resolve, reject) => {
     await downloadFile(filename);
 
     const buffer = readFileSync(filename);
@@ -81,7 +82,8 @@ function loadImages(filename: string): Promise<Tensor[]> {
       }
       // TODO - store as typed-arrays in memory. Use dl.variable() to swap out
       // as needed
-      images.push(tensor2d(array, [1, 784]));
+      // images.push(tensor2d(array, [1, 784]));
+      images.push(array);
     }
 
     equal(images.length, headerValues[1]);
@@ -89,8 +91,8 @@ function loadImages(filename: string): Promise<Tensor[]> {
   });
 }
 
-function loadLabels(filename: string): Promise<Tensor[]> {
-  return new Promise<Tensor[]>(async (resolve, reject) => {
+function loadLabels(filename: string): Promise<TypedArray[]> {
+  return new Promise<TypedArray[]>(async (resolve, reject) => {
     await downloadFile(filename);
 
     const buffer = readFileSync(filename);
@@ -109,9 +111,8 @@ function loadLabels(filename: string): Promise<Tensor[]> {
       for (let i = 0; i < recordBytes; i++) {
         array[i] = buffer.readUInt8(index++);
       }
-      // TODO - store as typed-arrays in memory. Use dl.variable() to swap out
-      // as needed
-      labels.push(oneHot(tensor1d(array, 'int32'), 10));
+      // labels.push(oneHot(tensor1d(array, 'int32'), 10));
+      labels.push(array);
     }
 
     equal(labels.length, headerValues[1]);
@@ -123,10 +124,11 @@ function backend(): NodeJSKernelBackend {
   return ENV.findBackend('tensorflow') as NodeJSKernelBackend;
 }
 
-export class MnsitDataset extends InMemoryDataset {
+export class MnsitDataset {
+  protected dataset: TypedArray[][]|null;
   protected batchIndex: 0;
 
-  fetchData(): Promise<void> {
+  loadData(): Promise<void> {
     return new Promise(async (resolve) => {
       this.dataset = await Promise.all(
           [loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE)]);
@@ -141,14 +143,14 @@ export class MnsitDataset extends InMemoryDataset {
 
     // TODO - make this check boundaries...
     for (let i = 0; i < batchSize; i++) {
-      const imageFlat = this.dataset[0][i] as Tensor2D;
+      const imageFlat = tensor2d(this.dataset[0][i], [1, 784]);
       if (image == null) {
         image = imageFlat;
       } else {
         image = image.concat(imageFlat, 0);
       }
 
-      const labelFlat = this.dataset[1][i] as Tensor2D;
+      const labelFlat = oneHot(tensor1d(this.dataset[1][i], 'int32'), 10);
       if (label == null) {
         label = labelFlat;
       } else {
@@ -167,5 +169,5 @@ export class MnsitDataset extends InMemoryDataset {
 }
 
 export function createDataset(): MnsitDataset {
-  return new MnsitDataset([[28, 28, 1], [10]]);
+  return new MnsitDataset();
 }
