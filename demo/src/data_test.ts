@@ -52,7 +52,7 @@ async function loadTest() {
   console.log(`batch.image.shape: ${batch.image.shape}`);
   console.log(`batch.label.shape: ${batch.label.shape}`);
 
-  await setTimeout(() => {}, 10000);
+  // await setTimeout(() => {}, 10000);
 }
 
 loadTest();

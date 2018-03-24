@@ -19,7 +19,7 @@ import {scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
-import {DataType, Rank, upcastType} from 'deeplearn/dist/types';
+import {DataType, Rank, ShapeMap, upcastType} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -29,6 +29,19 @@ type TensorInfo = {
 };
 
 export class NodeJSKernelBackend implements KernelBackend {
+  log1p<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  reshape<T extends Tensor<Rank>, R extends Rank>(x: T, shape: ShapeMap[R]):
+      Tensor<R> {
+    const shapeTensor = tensor1d(shape, 'int32');
+
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tshape', shapeTensor.dtype)
+    ];
+    return this.execute('Reshape', opAttrs, [x, shapeTensor]) as Tensor<R>;
+  }
   private shapeMap = new WeakMap<DataId, TensorInfo>();
   private handleMap = new WeakMap<DataId, TensorHandle>();
   private context: Context;
