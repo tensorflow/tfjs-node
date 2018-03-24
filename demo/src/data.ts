@@ -17,7 +17,7 @@
 
 import {equal} from 'assert';
 // tslint:disable-next-line:max-line-length
-import {ENV, Environment, InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D, cast} from 'deeplearn';
+import {cast, ENV, Environment, InMemoryDataset, oneHot, Tensor, tensor1d, tensor2d, Tensor2D} from 'deeplearn';
 import {TypedArray} from 'deeplearn/dist/types';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
@@ -138,7 +138,7 @@ export class MnsitDataset {
     let label: Tensor2D = null;
 
     // TODO - make this check boundaries...
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < batchSize; i++) {
       const imageFlat = tensor2d(this.dataset[0][i], [1, 784]);
       if (image == null) {
         image = imageFlat;
@@ -156,7 +156,7 @@ export class MnsitDataset {
       this.batchIndex++;
     }
 
-    label = cast(label, 'float32');
+    // label = cast(label, 'float32');
     return {image, label};
   }
 }
