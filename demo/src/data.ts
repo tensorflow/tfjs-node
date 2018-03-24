@@ -120,10 +120,6 @@ function loadLabels(filename: string): Promise<TypedArray[]> {
   });
 }
 
-function backend(): NodeJSKernelBackend {
-  return ENV.findBackend('tensorflow') as NodeJSKernelBackend;
-}
-
 export class MnsitDataset {
   protected dataset: TypedArray[][]|null;
   protected batchIndex: 0;
@@ -142,19 +138,19 @@ export class MnsitDataset {
     let label: Tensor2D = null;
 
     // TODO - make this check boundaries...
-    for (let i = 0; i < batchSize; i++) {
+    for (let i = 0; i < 1; i++) {
       const imageFlat = tensor2d(this.dataset[0][i], [1, 784]);
       if (image == null) {
         image = imageFlat;
       } else {
-        image = image.concat(imageFlat, 0);
+        image = image.concat(imageFlat);
       }
 
       const labelFlat = oneHot(tensor1d(this.dataset[1][i], 'int32'), 10);
       if (label == null) {
         label = labelFlat;
       } else {
-        label = label.concat(labelFlat, 0);
+        label = label.concat(labelFlat);
       }
 
       this.batchIndex++;

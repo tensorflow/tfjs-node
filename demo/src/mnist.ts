@@ -78,7 +78,7 @@ function loss(labels: dl.Tensor2D, ys: dl.Tensor2D): dl.Scalar {
 async function runTraining() {
   const data = createDataset();
   console.log('  * Fetching data...');
-  await data.fetchData();
+  await data.loadData();
 
   console.log('  * Starting Training...');
   for (let i = 0; i < TRAIN_STEPS; i++) {

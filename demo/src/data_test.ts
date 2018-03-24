@@ -47,12 +47,13 @@ async function loadTest() {
   // testPrint(dataset, 101);
   // testPrint(dataset, 7);
 
-  const batch = dataset.nextTrainBatch(1);
+  let batch = dataset.nextTrainBatch(1);
+  batch = dataset.nextTrainBatch(10);
   testPrint(batch.image, batch.label);
   console.log(`batch.image.shape: ${batch.image.shape}`);
   console.log(`batch.label.shape: ${batch.label.shape}`);
 
-  await setTimeout(() => {}, 10000);
+  // await setTimeout(() => {}, 10000);
 }
 
 loadTest();
