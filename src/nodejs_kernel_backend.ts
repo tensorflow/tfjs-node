@@ -31,6 +31,7 @@ type TensorInfo = {
 };
 
 export class NodeJSKernelBackend implements KernelBackend {
+<<<<<<< HEAD
   cast<T extends Tensor<Rank>>(x: T, dtype: DataType): T {
     const opAttrs = [
       this.createTypeOpAttr('SrcT', x.dtype),
@@ -38,6 +39,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
     return this.execute('Cast', opAttrs, [x]) as T;
   }
+=======
+>>>>>>> b01b41cc7cbde3c74399644849d4e0fd108c8254
   log1p<T extends Tensor<Rank>>(x: T): T {
     throw new Error('Method not implemented.');
   }
