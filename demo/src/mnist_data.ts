@@ -134,6 +134,14 @@ export class MnsitDataset {
     });
   }
 
+  reset() {
+    this.batchIndex = 0;
+  }
+
+  hasMoreData(): boolean {
+    return this.batchIndex < NUM_TRAIN_EXAMPLES;
+  }
+
   nextTrainBatch(batchSize: number): {image: dl.Tensor2D, label: dl.Tensor2D} {
     let image: dl.Tensor2D = null;
     let label: dl.Tensor2D = null;

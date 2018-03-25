@@ -48,7 +48,7 @@ async function loadTest() {
   // batch = dataset.nextTrainBatch(5);
   // testPrint(batch.image, batch.label);
 
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < 1000 && dataset.hasMoreData(); i++) {
     dataset.nextTrainBatch(64);
     if (i % 100 === 0) {
       console.log('i', i);
