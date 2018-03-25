@@ -43,10 +43,17 @@ async function loadTest() {
   const dataset = new MnsitDataset();
   await dataset.loadData();
 
-  // Test print a batch of images.
-  let batch = dataset.nextTrainBatch(1);
-  batch = dataset.nextTrainBatch(5);
-  testPrint(batch.image, batch.label);
+  // // Test print a batch of images.
+  // let batch = dataset.nextTrainBatch(1);
+  // batch = dataset.nextTrainBatch(5);
+  // testPrint(batch.image, batch.label);
+
+  for (let i = 0; i < 1000; i++) {
+    dataset.nextTrainBatch(64);
+    if (i % 100 === 0) {
+      console.log('i', i);
+    }
+  }
 }
 
 loadTest();

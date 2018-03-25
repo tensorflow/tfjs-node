@@ -27,6 +27,12 @@ const BASE_URL = 'https://storage.googleapis.com/cvdf-datasets/mnist/';
 const TRAIN_IMAGES_FILE = 'train-images-idx3-ubyte';
 const TRAIN_LABELS_FILE = 'train-labels-idx1-ubyte';
 
+const NUM_TRAIN_EXAMPLES = 60000;
+const IMAGE_HEADER_BYTES = 16;
+const IMAGE_DIMENSION_SIZE = 28;
+const LABEL_HEADER_BYTES = 8;
+const LABEL_RECORD_BYTE = 1;
+
 function downloadFile(filename: string): Promise<string> {
   return new Promise((resolve) => {
     const url = `${BASE_URL}${filename}.gz`;
@@ -61,14 +67,14 @@ function loadImages(filename: string): Promise<TypedArray[]> {
 
     const buffer = readFileSync(filename);
 
-    const headerBytes = 16;
-    const recordBytes = 28 * 28;
+    const headerBytes = IMAGE_HEADER_BYTES;
+    const recordBytes = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
 
     const headerValues = loadHeaderValues(buffer, headerBytes);
-    equal(headerValues[0], 2051);
-    equal(headerValues[1], 60000);
-    equal(headerValues[2], 28);
-    equal(headerValues[3], 28);
+    equal(headerValues[0], 2051);  // magic number for images
+    equal(headerValues[1], NUM_TRAIN_EXAMPLES);
+    equal(headerValues[2], IMAGE_DIMENSION_SIZE);
+    equal(headerValues[3], IMAGE_DIMENSION_SIZE);
 
     const downsize = 1.0 / 255.0;
 
@@ -93,12 +99,12 @@ function loadLabels(filename: string): Promise<TypedArray[]> {
 
     const buffer = readFileSync(filename);
 
-    const headerBytes = 8;
-    const recordBytes = 1;
+    const headerBytes = LABEL_HEADER_BYTES;
+    const recordBytes = LABEL_RECORD_BYTE;
 
     const headerValues = loadHeaderValues(buffer, headerBytes);
-    equal(headerValues[0], 2049);
-    equal(headerValues[1], 60000);
+    equal(headerValues[0], 2049);  // magic number for labels
+    equal(headerValues[1], NUM_TRAIN_EXAMPLES);
 
     const labels = [];
     let index = headerBytes;
@@ -107,7 +113,6 @@ function loadLabels(filename: string): Promise<TypedArray[]> {
       for (let i = 0; i < recordBytes; i++) {
         array[i] = buffer.readUInt8(index++);
       }
-      // labels.push(oneHot(tensor1d(array, 'int32'), 10));
       labels.push(array);
     }
 
@@ -118,7 +123,7 @@ function loadLabels(filename: string): Promise<TypedArray[]> {
 
 export class MnsitDataset {
   protected dataset: TypedArray[][]|null;
-  protected batchIndex: 0;
+  protected batchIndex = 0;
 
   loadData(): Promise<void> {
     return new Promise(async (resolve) => {
@@ -133,23 +138,25 @@ export class MnsitDataset {
     let image: dl.Tensor2D = null;
     let label: dl.Tensor2D = null;
 
-    // TODO - make this check boundaries...
-    for (let i = 0; i < batchSize; i++) {
-      const imageFlat = dl.tensor2d(this.dataset[0][i], [1, 784]);
+    let size = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
+        NUM_TRAIN_EXAMPLES - this.batchIndex :
+        batchSize + this.batchIndex;
+
+    for (; this.batchIndex < size; this.batchIndex++) {
+      const imageFlat = dl.tensor2d(this.dataset[0][this.batchIndex], [1, 784]);
       if (image == null) {
         image = imageFlat;
       } else {
         image = image.concat(imageFlat);
       }
 
-      const labelFlat = dl.oneHot(dl.tensor1d(this.dataset[1][i], 'int32'), 10);
+      const labelFlat =
+          dl.oneHot(dl.tensor1d(this.dataset[1][this.batchIndex], 'int32'), 10);
       if (label == null) {
         label = labelFlat;
       } else {
         label = label.concat(labelFlat);
       }
-
-      this.batchIndex++;
     }
 
     label = dl.cast(label, 'float32');
