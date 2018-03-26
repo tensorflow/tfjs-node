@@ -52,7 +52,7 @@ const biases3 = dl.zeros([NUM_CLASSES]);
 // Hyperparameters.
 const LEARNING_RATE = .1;
 const BATCH_SIZE = 100;
-const TRAIN_STEPS = 600;  // Need to randomize this data.
+const TRAIN_STEPS = 2000;
 
 const optimizer = dl.train.sgd(LEARNING_RATE);
 
@@ -83,6 +83,10 @@ async function runTraining() {
   console.log('  * Starting Training...');
   for (let i = 0; i < TRAIN_STEPS; i++) {
     const fetchCost = i % 10 === 0;
+
+    if (!data.hasMoreData()) {
+      data.reset();  // Hack.
+    }
 
     const cost = optimizer.minimize(() => {
       const batch = data.nextTrainBatch(BATCH_SIZE);
