@@ -199,6 +199,12 @@ describe('greater', () => {
     const b = dl.tensor1d([2, 2]);
     expectArraysClose(a.greater(b), [1, 0]);
   });
+
+  it('should work with scalar', () => {
+    const a = dl.tensor1d([4, 1]);
+    const b = dl.tensor1d([2]);
+    expectArraysClose(a.greater(b), [1, 0]);
+  });
 });
 
 describe('greaterEqual', () => {
@@ -535,16 +541,16 @@ describe('where', () => {
   });
 });
 
-// describe('step', () => {
-//   it('with 1d tensor', () => {
-//     const a = dl.tensor1d([1, -2, -.01, 3, -0.1]);
-//     const result = dl.step(a);
-//     expectArraysClose(result, [1, 0, 0, 1, 0]);
-//   });
+describe('step', () => {
+  it('with 1d tensor', () => {
+    const a = dl.tensor1d([1, -2, -.01, 3, -0.1]);
+    const result = dl.step(a);
+    expectArraysClose(result, [1, 0, 0, 1, 0]);
+  });
 
-//   it('with 1d tensor and alpha', () => {
-//     const a = dl.tensor1d([1, -2, -.01, 3, NaN]);
-//     const result = dl.step(a, 0.1);
-//     expectArraysClose(result, [1, 0.1, 0.1, 1, NaN]);
-//   });
-// });
+  it('with 1d tensor and alpha', () => {
+    const a = dl.tensor1d([1, -2, -.01, 3, NaN]);
+    const result = dl.step(a, 0.1);
+    expectArraysClose(result, [1, 0.1, 0.1, 1, NaN]);
+  });
+});

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {scalar, tensor1d, tensor2d} from 'deeplearn';
+import {fill, ones, scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
@@ -414,7 +414,11 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
-    throw new Error('Method not implemented.');
+    // TODO - handle NaN here!
+    const greater = this.greater(x, scalar(alpha, x.dtype));
+    const onesT = ones(x.shape);
+    const alphaT = fill(x.shape, alpha, x.dtype);
+    return this.where(greater, onesT, alphaT, x.dtype) as T;
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
