@@ -52,7 +52,7 @@ const biases3 = dl.zeros([NUM_CLASSES]);
 // Hyperparameters.
 const LEARNING_RATE = .1;
 const BATCH_SIZE = 100;
-const TRAIN_STEPS = 2000;
+const TRAIN_STEPS = 600;  // Need to randomize this data.
 
 const optimizer = dl.train.sgd(LEARNING_RATE);
 
