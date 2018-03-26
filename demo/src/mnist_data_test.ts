@@ -44,9 +44,11 @@ async function loadTest() {
   await dataset.loadData();
 
   // // Test print a batch of images.
-  let batch = dataset.nextTrainBatch(5);
+  const batch = dataset.nextTrainBatch(5);
 
   testPrint(batch.image, batch.label);
+  console.log(`batch.image: ${batch.image.shape}`);
+
 
   // for (let i = 0; i < 1000 && dataset.hasMoreData(); i++) {
   //   dataset.nextTrainBatch(64);
