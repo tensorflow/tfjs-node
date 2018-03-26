@@ -82,7 +82,7 @@ async function runTraining() {
 
   console.log('  * Starting Training...');
   for (let i = 0; i < TRAIN_STEPS; i++) {
-    const fetchCost = i % 10 === 0;
+    const fetchCost = i % 100 === 0;
 
     if (!data.hasMoreData()) {
       data.reset();  // Hack.
