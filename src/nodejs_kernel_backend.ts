@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {scalar, tensor1d, tensor2d} from 'deeplearn';
+import {fill, ones, scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
@@ -263,9 +263,11 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   where(
       condition: Tensor<Rank>, a: Tensor<Rank>, b: Tensor<Rank>,
-      dtype: 'float32'|'int32'|'bool'): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+      dtype: DataType): Tensor<Rank> {
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Select', opAttrs, [condition, a, b]);
   }
+
   topKValues<T extends Tensor<Rank>>(x: T, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
@@ -413,18 +415,11 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
-    // TODO(kreeger): Find an actual TF Op for this.
-    const resultValues = new Float32Array(x.size);
-    const values = x.dataSync();
-    for (let i = 0; i < values.length; ++i) {
-      const value = values[i];
-      if (isValNaN(value, x.dtype)) {
-        resultValues[i] = getNaN(x.dtype);
-      } else {
-        resultValues[i] = value > 0 ? 1 : alpha;
-      }
-    }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    // TODO - handle NaN here!
+    const greater = this.greater(x, scalar(alpha, x.dtype));
+    const onesT = ones(x.shape);
+    const alphaT = fill(x.shape, alpha, x.dtype);
+    return this.where(greater, onesT, alphaT, x.dtype) as T;
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
