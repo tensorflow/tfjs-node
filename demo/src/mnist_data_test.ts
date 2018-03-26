@@ -21,11 +21,6 @@ import * as tf from 'tfjs-node';
 import {MnsitDataset} from './mnist_data';
 import {Timer} from './timer';
 
-function getMS(hrtime: [number, number]) {
-  // const NS_PER_SEC = 1e9;
-  return hrtime[1];
-}
-
 function testPrint(image: dl.Tensor, label: dl.Tensor) {
   const data = image.dataSync();
   console.log(`--- Label: ${label.dataSync()}`);
@@ -59,7 +54,7 @@ async function loadTest() {
     dataset.nextTrainBatch(100);
   }
   timer.end();
-  console.log(`Looped through 2000 batches at 100: ${timer.toString()}`);
+  console.log(`Looped through 2000 batches at 100: ${timer.seconds()} seconds`);
 }
 
 loadTest();
