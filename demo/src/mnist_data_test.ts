@@ -44,16 +44,16 @@ async function loadTest() {
   await dataset.loadData();
 
   // // Test print a batch of images.
-  // let batch = dataset.nextTrainBatch(1);
-  // batch = dataset.nextTrainBatch(5);
-  // testPrint(batch.image, batch.label);
+  let batch = dataset.nextTrainBatch(5);
 
-  for (let i = 0; i < 1000 && dataset.hasMoreData(); i++) {
-    dataset.nextTrainBatch(64);
-    if (i % 100 === 0) {
-      console.log('i', i);
-    }
-  }
+  testPrint(batch.image, batch.label);
+
+  // for (let i = 0; i < 1000 && dataset.hasMoreData(); i++) {
+  //   dataset.nextTrainBatch(64);
+  //   if (i % 100 === 0) {
+  //     console.log('i', i);
+  //   }
+  // }
 }
 
 loadTest();
