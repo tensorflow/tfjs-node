@@ -18,7 +18,7 @@
 import * as dl from 'deeplearn';
 import * as tf from 'tfjs-node';
 
-import {createDataset} from './data';
+import {MnsitDataset} from './mnist_data';
 
 tf.bindTensorFlowBackend();
 
@@ -76,7 +76,7 @@ function loss(labels: dl.Tensor2D, ys: dl.Tensor2D): dl.Scalar {
 }
 
 async function runTraining() {
-  const data = createDataset();
+  const data = new MnsitDataset();
   console.log('  * Fetching data...');
   await data.loadData();
 

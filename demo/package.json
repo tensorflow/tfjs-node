@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "demo": "./node_modules/.bin/ts-node src/demo.ts",
+    "mnist": "./node_modules/.bin/ts-node src/mnist.ts",
     "mnist-data": "./node_modules/.bin/ts-node src/mnist_data_test.ts",
     "build": "tsc",
     "preinstall": "rm -rf ../node_modules && rm -rf node_modules"
