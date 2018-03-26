@@ -155,7 +155,6 @@ export class MnsitDataset {
       if (image == null) {
         image = imageFlat;
       } else {
-        console.log(imageFlat.shape);
         image = image.concat(imageFlat);
       }
 
