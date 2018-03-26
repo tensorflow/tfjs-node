@@ -31,7 +31,7 @@ export class Timer {
 
   end() {
     if (this.hrStart === null) {
-      throw 'End() called before start()';
+      throw new Error('End() called before start()');
     }
     this.hrEnd = process.hrtime(this.hrStart);
   }
@@ -44,7 +44,7 @@ export class Timer {
     return this.nanoseconds() / 1e6;
   }
 
-  seconds(): number {
-    return this.nanoseconds() / 1e9;
+  seconds(): string {
+    return (this.nanoseconds() / 1e9).toFixed(3);
   }
 }

@@ -129,7 +129,6 @@ export class MnsitDataset {
     return new Promise(async (resolve) => {
       this.dataset = await Promise.all(
           [loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE)]);
-      console.log('-- loaded all images and labels');
       resolve();
     });
   }

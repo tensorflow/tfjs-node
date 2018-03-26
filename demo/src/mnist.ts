@@ -19,6 +19,7 @@ import * as dl from 'deeplearn';
 import * as tf from 'tfjs-node';
 
 import {MnsitDataset} from './mnist_data';
+import {Timer} from './timer';
 
 tf.bindTensorFlowBackend();
 
@@ -77,8 +78,13 @@ function loss(labels: dl.Tensor2D, ys: dl.Tensor2D): dl.Scalar {
 
 async function runTraining() {
   const data = new MnsitDataset();
-  console.log('  * Fetching data...');
+  const timer = new Timer();
+
+  console.log('  * Loading training data...');
+  timer.start();
   await data.loadData();
+  timer.end();
+  console.log(`  * Loaded training data in : ${timer.seconds()} secs`);
 
   console.log('  * Starting Training...');
   for (let i = 0; i < TRAIN_STEPS; i++) {
@@ -88,13 +94,18 @@ async function runTraining() {
       data.reset();  // Hack.
     }
 
+    if (fetchCost) {
+      timer.start();
+    }
     const cost = optimizer.minimize(() => {
       const batch = data.nextTrainBatch(BATCH_SIZE);
       return loss(batch.label, model(batch.image));
     }, fetchCost);
 
     if (fetchCost) {
-      console.log(`loss[${i}]: ${cost.dataSync()}`);
+      timer.end();
+      console.log(
+          `Step ${i}: loss = ${cost.dataSync()} in ${timer.seconds()} secs`);
     }
   }
 }
