@@ -20,6 +20,7 @@ import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank, ShapeMap, upcastType} from 'deeplearn/dist/types';
+import {getNaN, isValNaN} from 'deeplearn/dist/util';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -154,7 +155,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('T', a.dtype)
     ];
     const axisTensor = scalar(0, 'int32');
-    return this.execute('ConcatV2', opAttrs, [a, b, axisTensor]) as Tensor2D;
+        return this.execute('ConcatV2', opAttrs, [a, b, axisTensor]) as Tensor2D;
   }
 
   neg<T extends Tensor<Rank>>(a: T): T {
@@ -411,7 +412,17 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
-    throw new Error('Method not implemented.');
+    const resultValues = new Float32Array(x.size);
+    const values = x.dataSync();
+    for (let i = 0; i < values.length; ++i) {
+      const value = values[i];
+      if (isValNaN(value, x.dtype)) {
+        resultValues[i] = getNaN(x.dtype);
+      } else {
+        resultValues[i] = value > 0 ? 1 : alpha;
+      }
+    }
+    return Tensor.make(x.shape, {values: resultValues}) as T;
   }
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
     batchSize: number; inHeight: number; inWidth: number; inChannels: number;

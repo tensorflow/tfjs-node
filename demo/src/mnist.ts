@@ -51,8 +51,8 @@ const biases3 = dl.zeros([NUM_CLASSES]);
 
 // Hyperparameters.
 const LEARNING_RATE = .1;
-const BATCH_SIZE = 64;
-const TRAIN_STEPS = 100;
+const BATCH_SIZE = 100;
+const TRAIN_STEPS = 1000;
 
 const optimizer = dl.train.sgd(LEARNING_RATE);
 
@@ -82,11 +82,16 @@ async function runTraining() {
 
   console.log('  * Starting Training...');
   for (let i = 0; i < TRAIN_STEPS; i++) {
+    const fetchCost = i % 10 === 0;
+
     const cost = optimizer.minimize(() => {
       const batch = data.nextTrainBatch(BATCH_SIZE);
       return loss(batch.label, model(batch.image));
-    }, true);
-    console.log(`loss[0]: ${cost.dataSync()}`);
+    }, fetchCost);
+
+    if (fetchCost) {
+      console.log(`loss[${i}]: ${cost.dataSync()}`);
+    }
   }
 }
 
