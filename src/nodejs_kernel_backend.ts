@@ -20,7 +20,6 @@ import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank, ShapeMap, upcastType} from 'deeplearn/dist/types';
-import {getNaN, isValNaN} from 'deeplearn/dist/util';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
