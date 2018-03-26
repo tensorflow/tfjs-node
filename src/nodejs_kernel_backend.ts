@@ -262,9 +262,11 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   where(
       condition: Tensor<Rank>, a: Tensor<Rank>, b: Tensor<Rank>,
-      dtype: 'float32'|'int32'|'bool'): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+      dtype: DataType): Tensor<Rank> {
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Select', opAttrs, [condition, a, b]);
   }
+
   topKValues<T extends Tensor<Rank>>(x: T, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
@@ -414,6 +416,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
     throw new Error('Method not implemented.');
   }
+
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
     batchSize: number; inHeight: number; inWidth: number; inChannels: number;
     outHeight: number;
