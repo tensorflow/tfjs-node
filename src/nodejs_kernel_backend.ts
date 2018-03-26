@@ -413,6 +413,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
+    // TODO(kreeger): Find an actual TF Op for this.
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
@@ -425,6 +426,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     }
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
+
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
     batchSize: number; inHeight: number; inWidth: number; inChannels: number;
     outHeight: number;
