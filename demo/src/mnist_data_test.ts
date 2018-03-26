@@ -19,6 +19,7 @@ import * as dl from 'deeplearn';
 import * as tf from 'tfjs-node';
 
 import {MnsitDataset} from './mnist_data';
+import {Timer} from './timer';
 
 function testPrint(image: dl.Tensor, label: dl.Tensor) {
   const data = image.dataSync();
@@ -43,17 +44,17 @@ async function loadTest() {
   const dataset = new MnsitDataset();
   await dataset.loadData();
 
-  // // Test print a batch of images.
-  let batch = dataset.nextTrainBatch(5);
+  const testBatch = dataset.nextTrainBatch(3);
+  testPrint(testBatch.image, testBatch.label);
 
-  testPrint(batch.image, batch.label);
-
-  // for (let i = 0; i < 1000 && dataset.hasMoreData(); i++) {
-  //   dataset.nextTrainBatch(64);
-  //   if (i % 100 === 0) {
-  //     console.log('i', i);
-  //   }
-  // }
+  dataset.reset();
+  const timer = new Timer();
+  timer.start();
+  for (let i = 0; i < 2000 && dataset.hasMoreData(); i++) {
+    dataset.nextTrainBatch(100);
+  }
+  timer.end();
+  console.log(`Looped through 2000 batches at 100: ${timer.seconds()} seconds`);
 }
 
 loadTest();

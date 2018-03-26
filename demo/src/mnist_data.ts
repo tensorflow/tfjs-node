@@ -146,7 +146,7 @@ export class MnsitDataset {
     let image: dl.Tensor2D = null;
     let label: dl.Tensor2D = null;
 
-    let size = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
+    const size = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
         NUM_TRAIN_EXAMPLES - this.batchIndex :
         batchSize + this.batchIndex;
 
