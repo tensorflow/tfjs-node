@@ -91,7 +91,8 @@ async function runTraining() {
     const fetchCost = i % 100 === 0;
 
     if (!data.hasMoreData()) {
-      data.reset();  // Hack.
+      // TODO(kreeger): Change data class to return random data.
+      data.reset();
     }
 
     if (fetchCost) {
