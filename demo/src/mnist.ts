@@ -18,7 +18,7 @@
 import * as dl from 'deeplearn';
 import * as tf from 'tfjs-node';
 
-import {MnsitDataset} from './mnist_data';
+import {MnistDataset} from './mnist_data';
 import {Timer} from './timer';
 
 tf.bindTensorFlowBackend();
@@ -77,7 +77,7 @@ function loss(labels: dl.Tensor2D, ys: dl.Tensor2D): dl.Scalar {
 }
 
 async function runTraining() {
-  const data = new MnsitDataset();
+  const data = new MnistDataset();
   const timer = new Timer();
 
   console.log('  * Loading training data...');
