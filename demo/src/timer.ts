@@ -44,7 +44,7 @@ export class Timer {
     return this.nanoseconds() / 1e6;
   }
 
-  seconds(): string {
-    return (this.nanoseconds() / 1e9).toFixed(3);
+  seconds(): number {
+    return this.nanoseconds() / 1e9;
   }
 }

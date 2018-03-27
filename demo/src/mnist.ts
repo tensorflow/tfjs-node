@@ -84,9 +84,13 @@ async function runTraining() {
   timer.start();
   await data.loadData();
   timer.end();
-  console.log(`  * Loaded training data in : ${timer.seconds()} secs`);
+  console.log(
+      `  * Loaded training data in : ${timer.seconds().toFixed(3)} secs`);
 
+  let trainSecs = 0;
   console.log('  * Starting Training...');
+  const totalTimer = new Timer();
+  totalTimer.start();
   for (let i = 0; i < TRAIN_STEPS; i++) {
     const fetchCost = i % 100 === 0;
 
@@ -95,20 +99,24 @@ async function runTraining() {
       data.reset();
     }
 
-    if (fetchCost) {
-      timer.start();
-    }
+    timer.start();
     const cost = optimizer.minimize(() => {
       const batch = data.nextTrainBatch(BATCH_SIZE);
       return loss(batch.label, model(batch.image));
     }, fetchCost);
+    timer.end();
+
+    trainSecs += timer.seconds();
 
     if (fetchCost) {
-      timer.end();
-      console.log(
-          `Step ${i}: loss = ${cost.dataSync()} in ${timer.seconds()} secs`);
+      console.log(`Step ${i}: loss = ${cost.dataSync()} in ${
+          timer.seconds().toFixed(3)} secs`);
     }
   }
+  totalTimer.end();
+  console.log(`  * Trained in ${totalTimer.seconds().toFixed(3)} secs`);
+  console.log(`  * Average train step time: ${
+      (trainSecs / TRAIN_STEPS).toFixed(3)} secs`);
 }
 
 runTraining();
