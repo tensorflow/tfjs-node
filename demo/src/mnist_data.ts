@@ -16,7 +16,6 @@
  */
 
 import {equal} from 'assert';
-// tslint:disable-next-line:max-line-length
 import * as dl from 'deeplearn';
 import {TypedArray} from 'deeplearn/dist/types';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
@@ -30,25 +29,24 @@ const TRAIN_LABELS_FILE = 'train-labels-idx1-ubyte';
 const NUM_TRAIN_EXAMPLES = 60000;
 const IMAGE_HEADER_BYTES = 16;
 const IMAGE_DIMENSION_SIZE = 28;
+const IMAGE_FLAT_SIZE = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
 const LABEL_HEADER_BYTES = 8;
 const LABEL_RECORD_BYTE = 1;
+const LABEL_FLAT_SIZE = 10;
 
 function downloadFile(filename: string): Promise<string> {
   return new Promise((resolve) => {
     const url = `${BASE_URL}${filename}.gz`;
     if (existsSync(filename)) {
-      resolve();
-    } else {
-      const file = createWriteStream(filename);
-      console.log('  * Downloading from ', url);
-      get(url, (response) => {
-        const unzip = createGunzip();
-        response.pipe(unzip).pipe(file);
-        unzip.on('end', () => {
-          resolve();
-        });
-      });
+      return resolve();
     }
+    const file = createWriteStream(filename);
+    console.log('  * Downloading from ', url);
+    get(url, (response) => {
+      const unzip = createGunzip();
+      response.pipe(unzip).pipe(file);
+      unzip.on('end', resolve);
+    });
   });
 }
 
@@ -61,76 +59,69 @@ function loadHeaderValues(buffer: Buffer, headerLength: number): number[] {
   return headerValues;
 }
 
-function loadImages(filename: string): Promise<TypedArray[]> {
-  return new Promise<TypedArray[]>(async (resolve, reject) => {
-    await downloadFile(filename);
+async function loadImages(filename: string): Promise<TypedArray[]> {
+  await downloadFile(filename);
 
-    const buffer = readFileSync(filename);
+  const buffer = readFileSync(filename);
 
-    const headerBytes = IMAGE_HEADER_BYTES;
-    const recordBytes = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
+  const headerBytes = IMAGE_HEADER_BYTES;
+  const recordBytes = IMAGE_DIMENSION_SIZE * IMAGE_DIMENSION_SIZE;
 
-    const headerValues = loadHeaderValues(buffer, headerBytes);
-    equal(headerValues[0], 2051);  // magic number for images
-    equal(headerValues[1], NUM_TRAIN_EXAMPLES);
-    equal(headerValues[2], IMAGE_DIMENSION_SIZE);
-    equal(headerValues[3], IMAGE_DIMENSION_SIZE);
+  const headerValues = loadHeaderValues(buffer, headerBytes);
+  equal(headerValues[0], 2051);  // magic number for images
+  equal(headerValues[1], NUM_TRAIN_EXAMPLES);
+  equal(headerValues[2], IMAGE_DIMENSION_SIZE);
+  equal(headerValues[3], IMAGE_DIMENSION_SIZE);
 
-    const downsize = 1.0 / 255.0;
+  const downsize = 1.0 / 255.0;
 
-    const images = [];
-    let index = headerBytes;
-    while (index < buffer.byteLength) {
-      const array = new Float32Array(recordBytes);
-      for (let i = 0; i < recordBytes; i++) {
-        array[i] = buffer.readUInt8(index++) * downsize;
-      }
-      images.push(array);
+  const images = [];
+  let index = headerBytes;
+  while (index < buffer.byteLength) {
+    const array = new Float32Array(recordBytes);
+    for (let i = 0; i < recordBytes; i++) {
+      array[i] = buffer.readUInt8(index++) * downsize;
     }
+    images.push(array);
+  }
 
-    equal(images.length, headerValues[1]);
-    resolve(images);
-  });
+  equal(images.length, headerValues[1]);
+  return images;
 }
 
-function loadLabels(filename: string): Promise<TypedArray[]> {
-  return new Promise<TypedArray[]>(async (resolve, reject) => {
-    await downloadFile(filename);
+async function loadLabels(filename: string): Promise<TypedArray[]> {
+  await downloadFile(filename);
 
-    const buffer = readFileSync(filename);
+  const buffer = readFileSync(filename);
 
-    const headerBytes = LABEL_HEADER_BYTES;
-    const recordBytes = LABEL_RECORD_BYTE;
+  const headerBytes = LABEL_HEADER_BYTES;
+  const recordBytes = LABEL_RECORD_BYTE;
 
-    const headerValues = loadHeaderValues(buffer, headerBytes);
-    equal(headerValues[0], 2049);  // magic number for labels
-    equal(headerValues[1], NUM_TRAIN_EXAMPLES);
+  const headerValues = loadHeaderValues(buffer, headerBytes);
+  equal(headerValues[0], 2049);  // magic number for labels
+  equal(headerValues[1], NUM_TRAIN_EXAMPLES);
 
-    const labels = [];
-    let index = headerBytes;
-    while (index < buffer.byteLength) {
-      const array = new Uint8Array(recordBytes);
-      for (let i = 0; i < recordBytes; i++) {
-        array[i] = buffer.readUInt8(index++);
-      }
-      labels.push(array);
+  const labels = [];
+  let index = headerBytes;
+  while (index < buffer.byteLength) {
+    const array = new Uint8Array(recordBytes);
+    for (let i = 0; i < recordBytes; i++) {
+      array[i] = buffer.readUInt8(index++);
     }
+    labels.push(array);
+  }
 
-    equal(labels.length, headerValues[1]);
-    resolve(labels);
-  });
+  equal(labels.length, headerValues[1]);
+  return labels;
 }
 
-export class MnsitDataset {
+export class MnistDataset {
   protected dataset: TypedArray[][]|null;
   protected batchIndex = 0;
 
-  loadData(): Promise<void> {
-    return new Promise(async (resolve) => {
-      this.dataset = await Promise.all(
-          [loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE)]);
-      resolve();
-    });
+  async loadData(): Promise<void> {
+    this.dataset = await Promise.all(
+        [loadImages(TRAIN_IMAGES_FILE), loadLabels(TRAIN_LABELS_FILE)]);
   }
 
   reset() {
@@ -150,15 +141,17 @@ export class MnsitDataset {
         batchSize + this.batchIndex;
 
     for (; this.batchIndex < size; this.batchIndex++) {
-      const imageFlat = dl.tensor2d(this.dataset[0][this.batchIndex], [1, 784]);
+      const imageFlat =
+          dl.tensor2d(this.dataset[0][this.batchIndex], [1, IMAGE_FLAT_SIZE]);
       if (image == null) {
         image = imageFlat;
       } else {
         image = image.concat(imageFlat);
       }
 
-      const labelFlat =
-          dl.oneHot(dl.tensor1d(this.dataset[1][this.batchIndex], 'int32'), 10);
+      const labelFlat = dl.oneHot(
+          dl.tensor1d(this.dataset[1][this.batchIndex], 'int32'),
+          LABEL_FLAT_SIZE);
       if (label == null) {
         label = labelFlat;
       } else {
@@ -166,7 +159,6 @@ export class MnsitDataset {
       }
     }
 
-    label = dl.cast(label, 'float32');
-    return {image, label};
+    return {image, label: label.toFloat()};
   }
 }
