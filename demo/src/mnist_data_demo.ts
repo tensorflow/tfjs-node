@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,8 +18,10 @@
 import * as dl from 'deeplearn';
 import * as tf from 'tfjs-node';
 
-import {MnsitDataset} from './mnist_data';
+import {MnistDataset} from './mnist_data';
 import {Timer} from './timer';
+
+tf.bindTensorFlowBackend();
 
 function testPrint(image: dl.Tensor, label: dl.Tensor) {
   const data = image.dataSync();
@@ -40,8 +42,7 @@ function testPrint(image: dl.Tensor, label: dl.Tensor) {
 }
 
 async function loadTest() {
-  tf.bindTensorFlowBackend();
-  const dataset = new MnsitDataset();
+  const dataset = new MnistDataset();
   await dataset.loadData();
 
   const testBatch = dataset.nextTrainBatch(3);
@@ -51,7 +52,12 @@ async function loadTest() {
   const timer = new Timer();
   timer.start();
   for (let i = 0; i < 2000 && dataset.hasMoreData(); i++) {
-    dataset.nextTrainBatch(100);
+    dl.tidy(() => {
+      dataset.nextTrainBatch(100);
+      if (i % 100 === 0) {
+        console.log(`Batch ${i} of 2000`);
+      }
+    });
   }
   timer.end();
   console.log(`Looped through 2000 batches at 100: ${timer.seconds()} seconds`);
