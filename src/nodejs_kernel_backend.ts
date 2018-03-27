@@ -264,6 +264,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       condition: Tensor<Rank>, a: Tensor<Rank>, b: Tensor<Rank>,
       dtype: DataType): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    // 'Select' Op is where with additional inputs.
     return this.execute('Select', opAttrs, [condition, a, b]);
   }
 
@@ -414,11 +415,12 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
-    // TODO - handle NaN here!
-    const greater = this.greater(x, scalar(alpha, x.dtype));
-    const onesT = ones(x.shape);
-    const alphaT = fill(x.shape, alpha, x.dtype);
-    return this.where(greater, onesT, alphaT, x.dtype) as T;
+    const dtype = x.dtype;
+    const nans = this.isNaN(x);
+    const stepNoNans = this.where(
+        this.greater(x, scalar(0, dtype)), ones(x.shape),
+        fill(x.shape, alpha, dtype), dtype);
+    return this.where(nans, x, stepNoNans, dtype) as T;
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
@@ -637,6 +639,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       Tensor2D {
     throw new Error('Method not implemented.');
   }
+
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
       Tensor2D {
     const depthTensor = scalar(depth, 'int32');
@@ -695,7 +698,12 @@ export class NodeJSKernelBackend implements KernelBackend {
   memory(): {unreliable: boolean;} {
     throw new Error('Method not implemented.');
   }
+
   time(f: () => void): Promise<BackendTimingInfo> {
     throw new Error('Method not implemented.');
+  }
+
+  isNaN<T extends Tensor<Rank>>(x: T): T {
+    return this.executeSingleInput('IsNan', x) as T;
   }
 }
