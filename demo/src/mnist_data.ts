@@ -143,7 +143,7 @@ export class MnistDataset {
     const images = new Float32Array(sizeFromShape(imagesShape));
 
     // Labels must be converted to one-hot, do so through each iteration
-    let label = null as dl.Tensor2D;
+    let label: dl.Tensor2D;
 
     let imageOffset = 0;
     while (this.batchIndex < size) {
