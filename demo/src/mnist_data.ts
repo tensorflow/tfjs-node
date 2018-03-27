@@ -137,6 +137,7 @@ export class MnistDataset {
     const batchIndexMax = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
         NUM_TRAIN_EXAMPLES - this.batchIndex :
         batchSize + this.batchIndex;
+    const size = batchIndexMax - this.batchIndex;
 
     const size = batchIndexMax - this.batchIndex;
 
