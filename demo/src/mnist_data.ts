@@ -139,8 +139,6 @@ export class MnistDataset {
         batchSize + this.batchIndex;
     const size = batchIndexMax - this.batchIndex;
 
-    const size = batchIndexMax - this.batchIndex;
-
     // Only create one big array to hold batch of images.
     const imagesShape = [size, IMAGE_FLAT_SIZE];
     const images = new Float32Array(sizeFromShape(imagesShape));
