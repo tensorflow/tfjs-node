@@ -264,6 +264,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       condition: Tensor<Rank>, a: Tensor<Rank>, b: Tensor<Rank>,
       dtype: DataType): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    // 'Select' Op is where with additional inputs.
     return this.execute('Select', opAttrs, [condition, a, b]);
   }
 
@@ -414,14 +415,12 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
+    const dtype = x.dtype;
     const nans = this.isNaN(x);
-    const greaterNotNan = this.logicalAnd(
-        this.greater(x, scalar(0.0, x.dtype)), this.logicalNot(nans));
-    const alphaNanValues =
-        this.where(nans, x, fill(x.shape, alpha, x.dtype), x.dtype);
-
-    return this.where(greaterNotNan, ones(x.shape), alphaNanValues, x.dtype) as
-        T;
+    const stepNoNans = this.where(
+        this.greater(x, scalar(0, dtype)), ones(x.shape),
+        fill(x.shape, alpha, dtype), dtype);
+    return this.where(nans, x, stepNoNans, dtype) as T;
   }
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
