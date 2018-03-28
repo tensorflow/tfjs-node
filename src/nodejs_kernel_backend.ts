@@ -63,7 +63,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   // Creates a new Tensor and maps the dataId to the passed in handle.
   private createOutputTensor(handle: TensorHandle): Tensor {
     const newId = {};
-    this.handleMap.set(newId, {handle, wroteData: false, values: null});
+    this.handleMap.set(newId, {handle, wroteData: true, values: null});
 
     let dtype: DataType;
     switch (handle.dtype) {
@@ -86,7 +86,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     const inputs: TensorHandle[] = [];
     for (let i = 0; i < tensors.length; i++) {
       const handleState = this.handleMap.get(tensors[i].dataId);
-      if (handleState.wroteData) {
+      if (!handleState.wroteData) {
         const info = this.shapeMap.get(tensors[i].dataId);
         handleState.handle.copyBuffer(
             info.shape, info.dtype, handleState.values);
@@ -693,7 +693,12 @@ export class NodeJSKernelBackend implements KernelBackend {
     if (!this.shapeMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
-    if (!this.handleMap.has(dataId)) {
+    if (this.handleMap.has(dataId)) {
+      const state = this.handleMap.get(dataId);
+      state.values = values;
+      state.wroteData = false;
+      this.handleMap.set(dataId, state);
+    } else {
       this.handleMap.set(
           dataId,
           {handle: new this.binding.TensorHandle(), wroteData: false, values});
