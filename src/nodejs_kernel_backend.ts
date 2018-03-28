@@ -619,8 +619,16 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   gather<T extends Tensor<Rank>>(x: T, indices: Tensor1D, axis: number): T {
-    throw new Error('Method not implemented.');
+    const axisTensor = scalar(axis, 'int32');
+    const opAttrs = [
+      this.createTypeOpAttr('Tparams', x.dtype),
+      this.createTypeOpAttr('Tindices', indices.dtype),
+      this.createTypeOpAttr('Taxis', 'int32')
+    ];
+    return this.executeSingleOutput(
+               'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
   }
+
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
