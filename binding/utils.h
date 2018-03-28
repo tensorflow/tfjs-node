@@ -113,7 +113,7 @@ inline bool EnsureValueIsObject(napi_env env, napi_value value,
   napi_valuetype type;
   ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
   bool is_object = type == napi_object;
-  if (is_object) {
+  if (!is_object) {
     NapiThrowError(env, "Argument is not an object!", file, lineNumber);
   }
   return is_object;

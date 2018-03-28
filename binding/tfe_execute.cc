@@ -192,8 +192,6 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
 
   // Swap pointer on the output tensor handles.
   for (uint32_t i = 0; i < output_length; i++) {
-    // TODO - do this before op execution? Ensure that handle pointers are
-    // nullptr?
     napi_value output_value;
     nstatus = napi_get_element(env, output_tensor_array, i, &output_value);
     ENSURE_NAPI_OK(env, nstatus);
@@ -201,7 +199,8 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     TensorHandle* handle;
     nstatus = napi_unwrap(env, output_value, reinterpret_cast<void**>(&handle));
     ENSURE_NAPI_OK(env, nstatus);
-    // Ensure that handle is from an unused tensor handle so no cleanup is needed.
+    // Ensure that handle is from an unused tensor handle so no cleanup is
+    // needed.
     // TODO(kreeger): If handle reuse, this needs to be tweaked.
     if (handle->handle != nullptr) {
       NAPI_THROW_ERROR(
