@@ -58,8 +58,10 @@ const TRAIN_STEPS = 2000;
 const optimizer = dl.train.sgd(LEARNING_RATE);
 
 function model(inputImages: dl.Tensor2D): dl.Tensor2D {
-  const hidden1 = dl.matMul(inputImages, weights1).add(biases1).relu() as dl.Tensor2D;
-  const hidden2 = dl.matMul(hidden1, weights2).add(biases2).relu() as dl.Tensor2D;
+  const hidden1 =
+      dl.matMul(inputImages, weights1).add(biases1).relu() as dl.Tensor2D;
+  const hidden2 =
+      dl.matMul(hidden1, weights2).add(biases2).relu() as dl.Tensor2D;
   return dl.matMul(hidden2, weights3).add(biases3) as dl.Tensor2D;
 }
 
@@ -97,17 +99,17 @@ async function runTraining() {
     }, fetchCost);
     timer.end();
 
-    trainSecs += timer.seconds();
+    trainSecs += timer.milliseconds();
 
     if (fetchCost) {
       console.log(`Step ${i}: loss = ${cost.dataSync()} in ${
-          timer.seconds().toFixed(3)} secs`);
+          timer.milliseconds().toFixed(3)} ms`);
     }
   }
   totalTimer.end();
   console.log(`  * Trained in ${totalTimer.seconds().toFixed(3)} secs`);
   console.log(`  * Average train step time: ${
-      (trainSecs / TRAIN_STEPS).toFixed(3)} secs`);
+      (trainSecs / TRAIN_STEPS).toFixed(3)} ms`);
 }
 
 runTraining();
