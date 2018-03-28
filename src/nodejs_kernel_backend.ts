@@ -608,9 +608,16 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput(
                'PadV2', opAttrs, [x, paddingsTensor, constantTensor]) as T;
   }
+
   transpose<T extends Tensor<Rank>>(x: T, perm: number[]): T {
-    throw new Error('Method not implemented.');
+    const permTensor = tensor1d(perm, 'int32');
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tperm', 'int32')
+    ];
+    return this.executeSingleOutput('Transpose', opAttrs, [x, permTensor]) as T;
   }
+
   gather<T extends Tensor<Rank>>(x: T, indices: Tensor1D, axis: number): T {
     throw new Error('Method not implemented.');
   }

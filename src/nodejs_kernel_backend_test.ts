@@ -564,3 +564,13 @@ describe('step', () => {
     expectArraysClose(result, [1, 0.1, 0.1, 1, NaN]);
   });
 });
+
+describe('transpose', () => {
+  it('should work', () => {
+    const t = dl.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
+    const t2 = dl.transpose(t, [1, 0]);
+
+    expect(t2.shape).toEqual([4, 2]);
+    expectArraysClose(t2, [1, 3, 11, 33, 2, 4, 22, 44]);
+  });
+});
