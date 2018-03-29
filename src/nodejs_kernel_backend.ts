@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {scalar, tensor1d, tensor2d} from 'deeplearn';
+import {fill, ones, scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
@@ -412,8 +412,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     const dtype = x.dtype;
     const nans = this.isNaN(x);
     const stepNoNans = this.where(
-        this.greater(x, scalar(0, dtype)), scalar(1, dtype),
-        scalar(alpha, dtype), dtype);
+        this.greater(x, scalar(0, dtype)), ones(x.shape),
+        fill(x.shape, alpha, dtype), dtype);
     return this.where(nans, x, stepNoNans, dtype) as T;
   }
 
