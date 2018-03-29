@@ -20,7 +20,7 @@
 
 #include <node_api.h>
 #include <map>
-#include "tensor_handle.h"
+#include "tensor_util.h"
 
 namespace tfnodejs {
 

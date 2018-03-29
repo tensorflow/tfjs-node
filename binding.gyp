@@ -13,6 +13,7 @@
     'sources' : [
       'binding/tensor_handle.cc',
       'binding/tensor_manager.cc',
+      'binding/tensor_util.cc',
       'binding/tfjs_binding.cc',
       'binding/tfe_context_env.cc',
       'binding/tfe_execute.cc',
