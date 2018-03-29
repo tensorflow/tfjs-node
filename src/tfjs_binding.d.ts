@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-declare class Context { constructor(); }
+declare class Context {
+  constructor();
+}
 
 declare class TensorHandle {
   constructor();
@@ -32,6 +34,16 @@ declare class TFEOpAttr {
   name: string;
   type: number;
   value: boolean|number|object|string|Array<number>;
+}
+
+declare class TensorManager {
+  constructor();
+
+  registerTensor(id: number): void;
+  copyBuffer(
+      id: number, shape: number[], dtype: number,
+      buffer: Float32Array|Int32Array|Uint8Array): void;
+  dataSync(context: Context, id: number): Float32Array|Int32Array|Uint8Array;
 }
 
 export interface TFJSBinding {

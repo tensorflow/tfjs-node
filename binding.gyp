@@ -12,6 +12,7 @@
     'target_name' : 'tfjs_binding',
     'sources' : [
       'binding/tensor_handle.cc',
+      'binding/tensor_manager.cc',
       'binding/tfjs_binding.cc',
       'binding/tfe_context_env.cc',
       'binding/tfe_execute.cc',
