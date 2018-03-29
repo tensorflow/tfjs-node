@@ -16,12 +16,12 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import * as tf_node from 'tfjs-node';
+import {bindTensorFlowBackend} from 'tfjs-node';
 
 import {MnistDataset} from './mnist_data';
 import {Timer} from './timer';
 
-tf_node.bindTensorFlowBackend();
+bindTensorFlowBackend();
 
 const HIDDEN_1 = 128;
 const HIDDEN_2 = 32;
@@ -58,8 +58,10 @@ const TRAIN_STEPS = 2000;
 const optimizer = tf.train.sgd(LEARNING_RATE);
 
 function model(inputImages: tf.Tensor2D): tf.Tensor2D {
-  const hidden1 = tf.matMul(inputImages, weights1).add(biases1).relu() as tf.Tensor2D;
-  const hidden2 = tf.matMul(hidden1, weights2).add(biases2).relu() as tf.Tensor2D;
+  const hidden1 =
+      tf.matMul(inputImages, weights1).add(biases1).relu() as tf.Tensor2D;
+  const hidden2 =
+      tf.matMul(hidden1, weights2).add(biases2).relu() as tf.Tensor2D;
   return tf.matMul(hidden2, weights3).add(biases3) as tf.Tensor2D;
 }
 
