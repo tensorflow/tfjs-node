@@ -210,6 +210,8 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
 
     handle->handle = result_handles[i];
   }
+
+  TFE_DeleteOp(tfe_op);
 }
 
 }  // namespace tfnodejs
