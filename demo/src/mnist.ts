@@ -58,8 +58,10 @@ const TRAIN_STEPS = 2000;
 const optimizer = dl.train.sgd(LEARNING_RATE);
 
 function model(inputImages: dl.Tensor2D): dl.Tensor2D {
-  const hidden1 = dl.matMul(inputImages, weights1).add(biases1).relu() as dl.Tensor2D;
-  const hidden2 = dl.matMul(hidden1, weights2).add(biases2).relu() as dl.Tensor2D;
+  const hidden1 =
+      dl.matMul(inputImages, weights1).add(biases1).relu() as dl.Tensor2D;
+  const hidden2 =
+      dl.matMul(hidden1, weights2).add(biases2).relu() as dl.Tensor2D;
   return dl.matMul(hidden2, weights3).add(biases3) as dl.Tensor2D;
 }
 
@@ -67,9 +69,17 @@ function loss(labels: dl.Tensor2D, ys: dl.Tensor2D): dl.Scalar {
   return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
 }
 
+function wait(time: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, time);
+  });
+}
+
 async function runTraining() {
   const data = new MnistDataset();
   const timer = new Timer();
+
+  await wait(15000);
 
   console.log('  * Loading training data...');
   timer.start();
