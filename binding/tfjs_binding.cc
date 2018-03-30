@@ -176,14 +176,60 @@ static napi_value TensorManagerRegister(napi_env env, napi_callback_info info) {
   nstatus = napi_unwrap(env, js_this, reinterpret_cast<void**>(&manager));
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
-  // TODO - fetch args.
+  int32_t tensor_id;
+  nstatus = napi_get_value_int32(env, tensor_id_value, &tensor_id);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  manager->RegisterTensor(env, tensor_id);
+  return js_this;
 }
 
 static napi_value TensorManagerCopyBuffer(napi_env env,
-                                          napi_callback_info info) {}
+                                          napi_callback_info info) {
+  napi_status nstatus;
+
+  size_t argc = 4;
+  napi_value args[argc];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, &args, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  // Ensure args
+  if (argc < 4) {
+    NAPI_THROW_ERROR(env, "Invalid number of arguments passed to copyBuffer()");
+    return js_this;
+  }
+  ENSURE_VALUE_IS_NUMBER(env, args[0]);
+  ENSURE_VALUE_IS_ARRAY(env, args[1]);
+  ENSURE_VALUE_IS_NUMBER(env, args[2]);
+  ENSURE_VALUE_IS_TYPED_ARRAY(env, args[3]);
+
+  int32_t tensor_id;
+  nstatus = napi_get_value_int32(env, args[0], &tensor_id);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  std::vector<int64_t> shape_vector;
+  ExtractArrayShape(env, args[1], &shape_vector);
+
+  napi_value dtype_arg = args[1];
+  int32_t dtype_int32_val;
+  nstatus = napi_get_value_int32(env, dtype_arg, &dtype_int32_val);
+  TF_DataType dtype = static_cast<TF_DataType>(dtype_int32_val);
+
+  napi_value typed_array_value = args[2];
+  ENSURE_VALUE_IS_TYPED_ARRAY_RETVAL(env, typed_array_value, js_this);
+
+  TensorManager* manager;
+  nstatus = napi_unwrap(env, js_this, reinterpret_cast<void**>(&manager));
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  manager->CopyJSBuffer(env, tensor_id, shape_vector.get(), shape_vector.size(),
+                        dtype, typed_array_value);
+  return js_this;
+}
 
 static napi_value TensorManagerDataSync(napi_env env, napi_callback_info info) {
-
+  // dataSync(context: Context, id: number): Float32Array|Int32Array|Uint8Array;
 }
 
 static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
@@ -250,14 +296,14 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
 
   // Tensor Manager class
   napi_property_descriptor tensor_manager_properties[] = {
-    {"register", nullptr, TensorManagerRegister, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"copyBuffer", nullptr, TensorManagerCopyBuffer, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
-    {"dataSync", nullptr, TensorManagerDataSync, nullptr, nullptr, nullptr,
-     napi_default, nullptr},
+      {"register", nullptr, TensorManagerRegister, nullptr, nullptr, nullptr,
+       napi_default, nullptr},
+      {"copyBuffer", nullptr, TensorManagerCopyBuffer, nullptr, nullptr,
+       nullptr, napi_default, nullptr},
+      {"dataSync", nullptr, TensorManagerDataSync, nullptr, nullptr, nullptr,
+       napi_default, nullptr}};
 
-    napi_value tensor_manager_class;
+  napi_value tensor_manager_class;
   nstatus = napi_define_class(env, "TensorManager", NAPI_AUTO_LENGTH,
                               NewTensorManager, nullptr,
                               ARRAY_SIZE(tensor_manager_properties),

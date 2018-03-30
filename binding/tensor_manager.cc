@@ -28,7 +28,7 @@ TensorManager::TensorManager() {}
 
 TensorManager::~TensorManager() {}
 
-void TensorManager::RegisterTensor(napi_env env, uint32_t tensor_id) {
+void TensorManager::RegisterTensor(napi_env env, int32_t tensor_id) {
   // TODO - handle already regisered
   if (handle_map.find(tensor_id) == handle_map.end()) {
     WrappedTensorHandle* handle = new WrappedTensorHandle();
@@ -38,7 +38,7 @@ void TensorManager::RegisterTensor(napi_env env, uint32_t tensor_id) {
   }
 }
 
-void TensorManager::CopyJSBuffer(napi_env env, uint32_t tensor_id,
+void TensorManager::CopyJSBuffer(napi_env env, int32_t tensor_id,
                                  int64_t* shape, uint32_t shape_length,
                                  TF_DataType dtype,
                                  napi_value typed_array_value) {
@@ -50,7 +50,7 @@ void TensorManager::CopyJSBuffer(napi_env env, uint32_t tensor_id,
 }
 
 void TensorManager::DataSync(napi_env env, napi_value context_value,
-                             uint32_t tensor_id, napi_value* result) {
+                             int32_t tensor_id, napi_value* result) {
   if (handle_map.find(tensor_id) == handle_map.end()) {
     // TODO - throw error.
   }
