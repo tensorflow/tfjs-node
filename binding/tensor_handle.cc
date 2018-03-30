@@ -54,16 +54,18 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
                         uint32_t shape_length, TF_DataType dtype,
                         napi_value typed_array_value) {
   WrappedTensorHandle* handle;
-  napi_status nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
+  napi_status nstatus =
+      napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
-  CopyJSBuffer(env, handle, shape, shape_length, dtype, typed_array_value);
+  TCopyJSBuffer(env, handle, shape, shape_length, dtype, typed_array_value);
 }
 
 void GetTensorData(napi_env env, napi_value context_value,
                    napi_value wrapped_value, napi_value* result) {
   WrappedTensorHandle* handle;
-  napi_status nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
+  napi_status nstatus =
+      napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
   TensorData(env, context_value, handle, result);
@@ -72,7 +74,8 @@ void GetTensorData(napi_env env, napi_value context_value,
 void GetTensorShape(napi_env env, napi_value wrapped_value,
                     napi_value* result) {
   WrappedTensorHandle* handle;
-  napi_status nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
+  napi_status nstatus =
+      napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
   TensorShape(env, handle, result);
@@ -81,7 +84,8 @@ void GetTensorShape(napi_env env, napi_value wrapped_value,
 void GetTensorDtype(napi_env env, napi_value wrapped_value,
                     napi_value* result) {
   WrappedTensorHandle* handle;
-  napi_status nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
+  napi_status nstatus =
+      napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
   TensorDtype(env, handle, result);

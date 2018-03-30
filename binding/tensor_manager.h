@@ -35,7 +35,8 @@ class TensorManager {
                     uint32_t shape_length, TF_DataType dtype,
                     napi_value typed_array_value);
 
-  void DataSync(napi_env env, uint32_t tensor_id, napi_value* result);
+  void DataSync(napi_env env, napi_value context_value, uint32_t tensor_id,
+                napi_value* result);
 
  private:
   std::map<uint32_t, WrappedTensorHandle*> handle_map;

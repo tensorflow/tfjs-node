@@ -17,6 +17,7 @@
 
 #include <node_api.h>
 #include "tensor_handle.h"
+#include "tensor_manager.h"
 #include "tfe_context_env.h"
 #include "tfe_execute.h"
 #include "utils.h"
@@ -145,6 +146,46 @@ static napi_value GetTensorHandleDtype(napi_env env, napi_callback_info info) {
   return result;
 }
 
+static napi_value NewTensorManager(napi_env env, napi_callback_info info) {
+  ENSURE_CONSTRUCTOR_CALL_RETVAL(env, info, nullptr);
+
+  napi_status nstatus;
+  size_t argc = 0;
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, nullptr, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  TensorManager* manager = new TensorManager();
+  // TODO - enable cleanup.
+  nstatus = napi_wrap(env, js_this, manager, nullptr, nullptr, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+  return js_this;
+}
+
+static napi_value TensorManagerRegister(napi_env env, napi_callback_info info) {
+  napi_status nstatus;
+
+  size_t argc = 1;
+  napi_value tensor_id_value;
+  napi_value js_this;
+  nstatus =
+      napi_get_cb_info(env, info, &argc, &tensor_id_value, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  TensorManager* manager;
+  nstatus = napi_unwrap(env, js_this, reinterpret_cast<void**>(&manager));
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  // TODO - fetch args.
+}
+
+static napi_value TensorManagerCopyBuffer(napi_env env,
+                                          napi_callback_info info) {}
+
+static napi_value TensorManagerDataSync(napi_env env, napi_callback_info info) {
+
+}
+
 static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
@@ -207,6 +248,22 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
                         tensor_handle_properties, &tensor_handle_class);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, exports);
 
+  // Tensor Manager class
+  napi_property_descriptor tensor_manager_properties[] = {
+    {"register", nullptr, TensorManagerRegister, nullptr, nullptr, nullptr,
+     napi_default, nullptr},
+    {"copyBuffer", nullptr, TensorManagerCopyBuffer, nullptr, nullptr, nullptr,
+     napi_default, nullptr},
+    {"dataSync", nullptr, TensorManagerDataSync, nullptr, nullptr, nullptr,
+     napi_default, nullptr},
+
+    napi_value tensor_manager_class;
+  nstatus = napi_define_class(env, "TensorManager", NAPI_AUTO_LENGTH,
+                              NewTensorManager, nullptr,
+                              ARRAY_SIZE(tensor_manager_properties),
+                              tensor_manager_properties, &tensor_manager_class);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, exports);
+
   // TF version
   napi_value tf_version;
   nstatus = napi_create_string_latin1(env, TF_Version(), -1, &tf_version);
@@ -218,6 +275,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
        napi_default, nullptr},
       {"TensorHandle", nullptr, nullptr, nullptr, nullptr, tensor_handle_class,
        napi_default, nullptr},
+      {"TensorManager", nullptr, nullptr, nullptr, nullptr,
+       tensor_manager_class, napi_default, nullptr},
       {"execute", nullptr, ExecuteTFE, nullptr, nullptr, nullptr, napi_default,
        nullptr},
       {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version,

@@ -39,7 +39,7 @@ declare class TFEOpAttr {
 declare class TensorManager {
   constructor();
 
-  registerTensor(id: number): void;
+  register(id: number): void;
   copyBuffer(
       id: number, shape: number[], dtype: number,
       buffer: Float32Array|Int32Array|Uint8Array): void;

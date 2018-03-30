@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+#include "tensor_util.h"
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <string>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
-#include "tensor_handle.h"
 #include "tf_auto_status.h"
 #include "tf_auto_tensor.h"
 #include "tfe_context_env.h"
@@ -41,9 +41,9 @@ bool IsCPUDevice(std::string& device_name) {
                     device_name.rbegin());
 }
 
-void CopyJSBuffer(napi_env env, WrappedTensorHandle* handle, int64_t* shape,
-                  uint32_t shape_length, TF_DataType dtype,
-                  napi_value typed_array_value) {
+void TCopyJSBuffer(napi_env env, WrappedTensorHandle* handle, int64_t* shape,
+                   uint32_t shape_length, TF_DataType dtype,
+                   napi_value typed_array_value) {
   napi_status nstatus;
 
   if (handle->handle != nullptr) {

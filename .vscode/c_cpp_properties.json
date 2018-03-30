@@ -5,7 +5,8 @@
             "includePath": [
                 "/usr/include",
                 "/usr/local/include",
-                "${workspaceRoot}"
+                "${workspaceRoot}",
+                "/usr/local/Cellar/node/9.7.1_1/include/node"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",

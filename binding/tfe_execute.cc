@@ -22,6 +22,8 @@
 #include "../deps/tensorflow/include/tensorflow/c/c_api.h"
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 #include "tensor_handle.h"
+#include "tensor_manager.h"
+#include "tensor_util.h"
 #include "tf_auto_status.h"
 #include "tfe_auto_op.h"
 #include "tfe_context_env.h"

@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
+#include "tensor_util.h"
 #include "utils.h"
 
 namespace tfnodejs {
@@ -44,19 +45,17 @@ void TensorManager::CopyJSBuffer(napi_env env, uint32_t tensor_id,
   if (handle_map.find(tensor_id) == handle_map.end()) {
     // TODO - throw error.
   }
-
   WrappedTensorHandle* handle = handle_map[tensor_id];
-
-  //
-  // TODO - write me.
-  //
+  TCopyJSBuffer(env, handle, shape, shape_length, dtype, typed_array_value);
 }
 
-void TensorManager::DataSync(napi_env env, uint32_t tensor_id,
-                             napi_value* result) {
-  //
-  // TODO - write me.
-  //
+void TensorManager::DataSync(napi_env env, napi_value context_value,
+                             uint32_t tensor_id, napi_value* result) {
+  if (handle_map.find(tensor_id) == handle_map.end()) {
+    // TODO - throw error.
+  }
+  WrappedTensorHandle* handle = handle_map[tensor_id];
+  TensorData(env, context_value, handle, result);
 }
 
 }  // namespace tfnodejs

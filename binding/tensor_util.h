@@ -29,9 +29,9 @@ struct WrappedTensorHandle {
 };
 
 // Copies a JS typed-array to the wrapped TF/TFE pointers.
-void CopyJSBuffer(napi_env env, WrappedTensorHandle* handle, int64_t* shape,
-                  uint32_t shape_length, TF_DataType dtype,
-                  napi_value typed_array_value);
+void TCopyJSBuffer(napi_env env, WrappedTensorHandle* handle, int64_t* shape,
+                   uint32_t shape_length, TF_DataType dtype,
+                   napi_value typed_array_value);
 
 // Returns a typed-array as a `napi_value` with the data associated with the
 // TF/TFE pointers.
