@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-declare class Context { constructor(); }
+declare class Context {
+  constructor();
+}
 
 declare class TensorHandle {
   constructor();
@@ -32,6 +34,18 @@ declare class TFEOpAttr {
   name: string;
   type: number;
   value: boolean|number|object|string|Array<number>;
+}
+
+declare class TensorFlowSession {
+  constructor(context: Context);
+
+  createTensor(
+      id: number, shape: number[], dtype: number,
+      buffer: Float32Array|Int32Array|Uint8Array): void;
+
+  readTensorDataSync(id: number): void;  // TODO
+
+  executeOp(op: string, op_attrs: TFEOpAttr[], inputs: number[]): number[];
 }
 
 export interface TFJSBinding {
