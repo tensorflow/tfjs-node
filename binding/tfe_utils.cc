@@ -17,13 +17,12 @@
 
 #include "tfe_utils.h"
 #include <algorithm>
-#include <set>
-#include <string>
-#include <vector>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <set>
 #include <string>
+#include <vector>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 #include "tf_auto_status.h"
 #include "tf_auto_tensor.h"
