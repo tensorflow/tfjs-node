@@ -16,6 +16,7 @@
  */
 
 #include "tfjs_backend.h"
+#include "tfe_tensor_utils.h"
 #include "utils.h"
 
 namespace tfnodejs {
@@ -48,7 +49,15 @@ void TFJSBackend::CreateTensor(napi_env env, int32_t tensor_id, int64_t* shape,
                                napi_value typed_array_value) {
   if (tfe_handle_map->find(tensor_id) != tfe_handle_map->end()) {
     // TODO(kreeger): write me.
+    return;
   }
+
+  TFE_TensorHandle* tfe_handle;
+  CreateTFE_TensorHandleFromTypedArray(env, shape, shape_length, dtype,
+                                       typed_array_value, &tfe_handle);
+  // TODO - typedef this.
+  tfe_handle_map->insert(
+      std::pair<int32_t, TFE_TensorHandle*>(tensor_id, tfe_handle));
 }
 
 void TFJSBackend::GetTensorData(napi_env env, int32_t tensor_id,
