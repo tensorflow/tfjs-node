@@ -15,6 +15,12 @@
  * =============================================================================
  */
 
+declare class TensorMetadata {
+  id: number;
+  shape: number[];
+  dtype: number;
+}
+
 declare class TFEOpAttr {
   name: string;
   type: number;
@@ -22,6 +28,7 @@ declare class TFEOpAttr {
 }
 
 export interface TFJSBinding {
+  TensorMetadata: typeof TensorMetadata;
   TFEOpAttr: typeof TFEOpAttr;
 
   // Creates a tensor with the backend:
@@ -35,10 +42,10 @@ export interface TFJSBinding {
   // Reads data-sync from a tensor on the backend:
   tensorDataSync(tensorId: number): Float32Array|Int32Array|Uint8Array;
 
-  // Executes an Op on the backend, returns an array of output tensor IDs:
+  // Executes an Op on the backend, returns an array of output TensorMetadata:
   executeOp(
       opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
-      numOutputs: number): number[]
+      numOutputs: number): TensorMetadata[]
 
   // TF Types
   TF_FLOAT: number;

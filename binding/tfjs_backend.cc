@@ -186,22 +186,50 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   TFE_Execute(tfe_op.op, result_handles.data(), &size, tf_status.status);
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
-  napi_value output_tensor_ids;
-  nstatus = napi_create_array_with_length(env, size, &output_tensor_ids);
+  napi_value output_tensor_infos;
+  nstatus = napi_create_array_with_length(env, size, &output_tensor_infos);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   for (int32_t i = 0; i < num_outputs; i++) {
-    napi_value output_tensor_id_value;
-    nstatus = napi_create_int32(env, InsertHandle(result_handles[i]),
-                                &output_tensor_id_value);
+    // Output tensor info object:
+    napi_value tensor_info_value;
+    nstatus = napi_create_object(env, &tensor_info_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+    TFE_TensorHandle* handle = result_handles[i];
+
+    // Output tensor ID:
+    napi_value output_tensor_id_value;
     nstatus =
-        napi_set_element(env, output_tensor_ids, i, output_tensor_id_value);
+        napi_create_int32(env, InsertHandle(handle), &output_tensor_id_value);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+    nstatus = napi_set_named_property(env, tensor_info_value, "id",
+                                      output_tensor_id_value);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+    // Output tensor shape:
+    napi_value shape_value;
+    GetTFE_TensorHandleShape(env, handle, &shape_value);
+
+    nstatus =
+        napi_set_named_property(env, tensor_info_value, "shape", shape_value);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+    // Output tensor dtype:
+    napi_value type_value;
+    GetTFE_TensorHandleType(env, handle, &type_value);
+
+    nstatus =
+        napi_set_named_property(env, tensor_info_value, "dtype", type_value);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+    // Push into output array
+    nstatus = napi_set_element(env, output_tensor_infos, i, tensor_info_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
   }
 
-  return output_tensor_ids;
+  return output_tensor_infos;
 }
 
 }  // namespace tfnodejs

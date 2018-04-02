@@ -38,12 +38,12 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
                                           napi_value* result);
 
 // Returns an array as a `napi_value` with shape of the Tensor.
-// void GetTensorShape(napi_env env, napi_value wrapped_value, napi_value*
-// result);
+void GetTFE_TensorHandleShape(napi_env env, TFE_TensorHandle* handle,
+                              napi_value* result);
 
 // Returns a type as a `napi_value` with the type of the Tensor.
-// void GetTensorDtype(napi_env env, napi_value wrapped_value, napi_value*
-// result);
+void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle* handle,
+                             napi_value* result);
 
 }  // namespace tfnodejs
 

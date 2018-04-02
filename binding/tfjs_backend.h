@@ -43,7 +43,8 @@ class TFJSBackend {
   // TF/TFE pointers.
   napi_value GetTensorData(napi_env env, napi_value tensor_id_value);
 
-  // Executes a TFE Op and returns an array of output tensor IDs.
+  // Executes a TFE Op and returns an array of objects containing tensor
+  // attributes (id, dtype, shape).
   napi_value ExecuteOp(napi_env env, napi_value op_name_value,
                        napi_value op_attr_inputs, napi_value input_tensor_ids,
                        napi_value num_output_values);
