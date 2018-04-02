@@ -15,21 +15,21 @@
  * =============================================================================
  */
 
-#include "tf_backend.h"
+#include "tfjs_backend.h"
 #include "utils.h"
 
 namespace tfnodejs {
 
-TFBackend::TFBackend() : tfe_context(nullptr) {}
+TFJSBackend::TFJSBackend() : tfe_context(nullptr) {}
 
-TFBackend::~TFBackend() {
+TFJSBackend::~TFJSBackend() {
   if (tfe_context != nullptr) {
     TF_AutoStatus tf_status;
     TFE_DeleteContext(tfe_context, tf_status.status);
   }
 }
 
-void TFBackend::Init(napi_env env) {
+void TFJSBackend::Init(napi_env env) {
   TF_AutoStatus tf_status;
   TFE_ContextOptions* tfe_options = TFE_NewContextOptions();
   tfe_context = TFE_NewContext(tfe_options, tf_status.status);
@@ -37,21 +37,21 @@ void TFBackend::Init(napi_env env) {
   TFE_DeleteContextOptions(tfe_options);
 }
 
-void TFBackend::CreateTensor(napi_env env, int32_t tensor_id, int64_t* shape,
-                             uint32_t shape_length, TF_DataType dtype,
-                             napi_value typed_array_value) {
+void TFJSBackend::CreateTensor(napi_env env, int32_t tensor_id, int64_t* shape,
+                               uint32_t shape_length, TF_DataType dtype,
+                               napi_value typed_array_value) {
   // TODO(kreeger): write me.
 }
 
-void TFBackend::GetTensorData(napi_env env, int32_t tensor_id,
-                              napi_value* result) {
+void TFJSBackend::GetTensorData(napi_env env, int32_t tensor_id,
+                                napi_value* result) {
   // TODO(kreeger): write me.
 }
 
-void TFBackend::ExecuteOp(napi_env env, const char* opName,
-                          napi_value op_attr_inputs,
-                          napi_value input_tensor_ids,
-                          napi_value* output_tensor_ids) {
+void TFJSBackend::ExecuteOp(napi_env env, const char* opName,
+                            napi_value op_attr_inputs,
+                            napi_value input_tensor_ids,
+                            napi_value* output_tensor_ids) {
   // TODO(kreeger): write me.
 }
 

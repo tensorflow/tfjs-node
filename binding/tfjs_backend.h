@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-#ifndef TF_NODEJS_TF_BACKEND_H_
-#define TF_NODEJS_TF_BACKEND_H_
+#ifndef TF_NODEJS_TFJS_BACKEND_H_
+#define TF_NODEJS_TFJS_BACKEND_H_
 
 #include <node_api.h>
 #include <map>
@@ -24,12 +24,12 @@
 
 namespace tfnodejs {
 
-class TFBackend {
+class TFJSBackend {
  public:
-  TFBackend();
-  virtual ~TFBackend();
+  TFJSBackend();
+  virtual ~TFJSBackend();
 
-  // Initializes a new TF Backend.
+  // Initializes a new TFJS Backend.
   void Init(napi_env env);
 
   // Creates a new Tensor with given shape and data.
@@ -52,4 +52,4 @@ class TFBackend {
 
 }  // namespace tfnodejs
 
-#endif  // TF_NODEJS_TF_BACKEND_H_
+#endif  // TF_NODEJS_TFJS_BACKEND_H_

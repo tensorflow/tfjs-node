@@ -15,16 +15,12 @@
  * =============================================================================
  */
 
-declare class Context {
-  constructor();
-}
-
 declare class TensorHandle {
   constructor();
   copyBuffer(
       shape: number[], dtype: number,
       buffer: Float32Array|Int32Array|Uint8Array): void;
-  dataSync(context: Context): Float32Array|Int32Array|Uint8Array;
+  // dataSync(context: Context): Float32Array|Int32Array|Uint8Array;
 
   shape: number[];
   dtype: number;
@@ -37,7 +33,7 @@ declare class TFEOpAttr {
 }
 
 declare class TensorFlowBackend {
-  constructor(context: Context);
+  constructor();
 
   createTensor(
       id: number, shape: number[], dtype: number,
@@ -49,7 +45,6 @@ declare class TensorFlowBackend {
 }
 
 export interface TFJSBinding {
-  Context: typeof Context;
   TensorHandle: typeof TensorHandle;
   TFEOpAttr: typeof TFEOpAttr;
   TensorFlowBackend: typeof TensorFlowBackend;
@@ -69,7 +64,6 @@ export interface TFJSBinding {
 
   TF_Version: string;
 
-  execute(
-      context: Context, op: string, op_attrs: TFEOpAttr[],
+  execute(op: string, op_attrs: TFEOpAttr[],
       inputs: TensorHandle[], output: TensorHandle[]): void;
 }

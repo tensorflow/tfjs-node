@@ -19,11 +19,12 @@
 #define TF_NODEJS_TFE_EXECUTE_H_
 
 #include <node_api.h>
+#include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 
 namespace tfnodejs {
 
 // Executes a TFE Op based on the name, inputs, attributes, and outputs.
-void ExecuteOp(napi_env env, napi_value context, const char* opName,
+void ExecuteOp(napi_env env, TFE_Context* tfe_context, const char* opName,
                napi_value op_attr_inputs, napi_value inputs,
                napi_value output_tensor_array);
 }  // namespace tfnodejs

@@ -24,7 +24,6 @@
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 #include "tf_auto_status.h"
 #include "tf_auto_tensor.h"
-#include "tfe_context_env.h"
 #include "utils.h"
 
 namespace tfnodejs {
@@ -149,16 +148,11 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   handle->handle = tfe_handle;
 }
 
-void GetTensorData(napi_env env, napi_value context_value,
+void GetTensorData(napi_env env, TFE_Context* tfe_context,
                    napi_value wrapped_value, napi_value* result) {
   napi_status nstatus;
 
-  TFEContextEnv* context_env;
-  nstatus =
-      napi_unwrap(env, context_value, reinterpret_cast<void**>(&context_env));
-  ENSURE_NAPI_OK(env, nstatus);
-
-  if (context_env->context == nullptr) {
+  if (tfe_context == nullptr) {
     NAPI_THROW_ERROR(env, "Invalid TFE_Context in dataSync()");
     return;
   }
@@ -203,8 +197,8 @@ void GetTensorData(napi_env env, napi_value context_value,
   if (IsCPUDevice(device_name)) {
     target_handle = handle->handle;
   } else {
-    target_handle = TFE_TensorHandleCopyToDevice(
-        handle->handle, context_env->context, nullptr, tf_status.status);
+    target_handle = TFE_TensorHandleCopyToDevice(handle->handle, tfe_context,
+                                                 nullptr, tf_status.status);
     ENSURE_TF_OK(env, tf_status);
     cleanup_handle = true;
   }

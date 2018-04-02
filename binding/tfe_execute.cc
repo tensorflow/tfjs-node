@@ -24,7 +24,6 @@
 #include "tensor_handle.h"
 #include "tf_auto_status.h"
 #include "tfe_auto_op.h"
-#include "tfe_context_env.h"
 #include "utils.h"
 
 namespace tfnodejs {
@@ -125,17 +124,13 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
   }
 }
 
-void ExecuteOp(napi_env env, napi_value context, const char* opName,
+void ExecuteOp(napi_env env, TFE_Context* tfe_context, const char* opName,
                napi_value op_attr_inputs, napi_value inputs,
                napi_value output_tensor_array) {
   napi_status nstatus;
 
-  TFEContextEnv* context_env;
-  nstatus = napi_unwrap(env, context, reinterpret_cast<void**>(&context_env));
-  ENSURE_NAPI_OK(env, nstatus);
-
   TF_AutoStatus tf_status;
-  TFE_AutoOp tfe_op(TFE_NewOp(context_env->context, opName, tf_status.status));
+  TFE_AutoOp tfe_op(TFE_NewOp(tfe_context, opName, tf_status.status));
   ENSURE_TF_OK(env, tf_status);
 
   // Assign inputs
