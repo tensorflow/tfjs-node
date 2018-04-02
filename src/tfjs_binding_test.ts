@@ -15,150 +15,97 @@
  * =============================================================================
  */
 
-// // tslint:disable-next-line:no-require-imports
-// import bindings = require('bindings');
-// import {TFJSBinding, TFEOpAttr} from './tfjs_binding';
-// const binding = bindings('tfjs_binding.node') as TFJSBinding;
+// tslint:disable-next-line:no-require-imports
+import bindings = require('bindings');
+import {TFJSBinding} from './tfjs_binding';
+const binding = bindings('tfjs_binding.node') as TFJSBinding;
 
-// describe('Exposes TF_DataType enum values', () => {
-//   it('contains TF_FLOAT', () => {
-//     expect(binding.TF_FLOAT).toEqual(1);
-//   });
-//   it('contains TF_INT32', () => {
-//     expect(binding.TF_INT32).toEqual(3);
-//   });
-//   it('contains TF_BOOL', () => {
-//     expect(binding.TF_BOOL).toEqual(10);
-//   });
-// });
+describe('Exposes TF_DataType enum values', () => {
+  it('contains TF_FLOAT', () => {
+    expect(binding.TF_FLOAT).toEqual(1);
+  });
+  it('contains TF_INT32', () => {
+    expect(binding.TF_INT32).toEqual(3);
+  });
+  it('contains TF_BOOL', () => {
+    expect(binding.TF_BOOL).toEqual(10);
+  });
+});
 
-// describe('Exposes TF_AttrType enum values', () => {
-//   it('contains TF_ATTR_STRING', () => {
-//     expect(binding.TF_ATTR_STRING).toEqual(0);
-//   });
-//   it('contains TF_ATTR_INT', () => {
-//     expect(binding.TF_ATTR_INT).toEqual(1);
-//   });
-//   it('contains TF_ATTR_FLOAT', () => {
-//     expect(binding.TF_ATTR_FLOAT).toEqual(2);
-//   });
-//   it('contains TF_ATTR_BOOL', () => {
-//     expect(binding.TF_ATTR_BOOL).toEqual(3);
-//   });
-//   it('contains TF_ATTR_TYPE', () => {
-//     expect(binding.TF_ATTR_TYPE).toEqual(4);
-//   });
-//   it('contains TF_ATTR_SHAPE', () => {
-//     expect(binding.TF_ATTR_SHAPE).toEqual(5);
-//   });
-// });
+describe('Exposes TF_AttrType enum values', () => {
+  it('contains TF_ATTR_STRING', () => {
+    expect(binding.TF_ATTR_STRING).toEqual(0);
+  });
+  it('contains TF_ATTR_INT', () => {
+    expect(binding.TF_ATTR_INT).toEqual(1);
+  });
+  it('contains TF_ATTR_FLOAT', () => {
+    expect(binding.TF_ATTR_FLOAT).toEqual(2);
+  });
+  it('contains TF_ATTR_BOOL', () => {
+    expect(binding.TF_ATTR_BOOL).toEqual(3);
+  });
+  it('contains TF_ATTR_TYPE', () => {
+    expect(binding.TF_ATTR_TYPE).toEqual(4);
+  });
+  it('contains TF_ATTR_SHAPE', () => {
+    expect(binding.TF_ATTR_SHAPE).toEqual(5);
+  });
+});
 
-// describe('Exposes TF Version', () => {
-//   it('contains a version string', () => {
-//     expect(binding.TF_Version).toBeDefined();
-//   });
-// });
+describe('Exposes TF Version', () => {
+  it('contains a version string', () => {
+    expect(binding.TF_Version).toBeDefined();
+  });
+});
 
-// describe('Context', () => {
-//   it('creates an instance', () => {
-//     expect(new binding.Context()).toBeDefined();
-//   });
-// });
+describe('tensor management', () => {
+  it('Creates and deletes a valid tensor', () => {
+    const values = new Int32Array([1, 2]);
+    const id = binding.createTensor([2], binding.TF_INT32, values);
+    expect(id).toBeDefined();
 
-// describe('TensorHandle', () => {
-//   const context = new binding.Context();
-//   it('should create with default constructor', () => {
-//     expect(new binding.TensorHandle()).toBeDefined();
-//   });
+    binding.deleteTensor(id);
+  });
+  it('throws exception when shape does not match data', () => {
+    expect(() => {
+      binding.createTensor([2], binding.TF_INT32, new Int32Array([1, 2, 3]));
+    }).toThrowError();
+    expect(() => {
+      binding.createTensor([4], binding.TF_INT32, new Int32Array([1, 2, 3]));
+    }).toThrowError();
+  });
+  it('throws exception with invalid dtype', () => {
+    expect(() => {
+      // tslint:disable-next-line:no-unused-expression
+      binding.createTensor([1], 1000, new Int32Array([1]));
+    }).toThrowError();
+  });
+  it('works with 0-dim tensors', () => {
+    // Reduce op (e.g 'Max') will produce a 0-dim TFE_Tensor.
 
-//   it('throws exception when shape is called on non-used handle', () => {
-//     expect(() => {
-//       // tslint:disable-next-line:no-unused-expression
-//       new binding.TensorHandle().shape;
-//     }).toThrowError();
-//   });
+    const inputId =
+        binding.createTensor([3], binding.TF_INT32, new Int32Array([1, 2, 3]));
+    const axesId =
+        binding.createTensor([1], binding.TF_INT32, new Int32Array([0]));
 
-//   it('throws exception when dtype is called on a non-used handle', () => {
-//     expect(() => {
-//       // tslint:disable-next-line:no-unused-expression
-//       new binding.TensorHandle().dtype;
-//     }).toThrowError();
-//   });
+    const attrs = [
+      {name: 'keep_dims', type: binding.TF_ATTR_BOOL, value: false},
+      {name: 'T', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32},
+      {name: 'Tidx', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32}
+    ];
 
-//   it('throws exception when dataSync() is called on non-used handle', () => {
-//     expect(() => {
-//       // tslint:disable-next-line:no-unused-expression
-//       new binding.TensorHandle().dataSync(context);
-//     }).toThrowError();
-//   });
+    const outputMetadata =
+        binding.executeOp('Max', attrs, [inputId, axesId], 1);
+    expect(outputMetadata.length).toBe(1);
 
-//   it('creates a valid handle with shape and type when data is bound', () => {
-//     const handle = new binding.TensorHandle();
-//     handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
-//     expect(handle).toBeDefined();
-//     expect(handle.shape).toEqual([2]);
-//     expect(handle.dtype).toEqual(binding.TF_INT32);
-//     expect(handle.dataSync(context)).toEqual(new Int32Array([1, 2]));
-//   });
-
-//   it('reuses handles with different shape', () => {
-//     const handle = new binding.TensorHandle();
-//     handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
-//     expect(handle.dataSync(context)).toEqual(new Int32Array([1, 2]));
-
-//     handle.copyBuffer([2], binding.TF_FLOAT, new Float32Array([3, 4]));
-//     expect(handle.dataSync(context)).toEqual(new Float32Array([3, 4]));
-//   });
-
-//   it('reuses handles with different dtype', () => {
-//     const handle = new binding.TensorHandle();
-//     handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
-//     expect(handle.dataSync(context)).toEqual(new Int32Array([1, 2]));
-
-//     handle.copyBuffer([4], binding.TF_INT32, new Int32Array([3, 4, 5, 6]));
-//     expect(handle.dataSync(context)).toEqual(new Int32Array([3, 4, 5, 6]));
-//   });
-
-//   it('throws exception when shape does not match data', () => {
-//     expect(() => {
-//       new binding.TensorHandle().copyBuffer(
-//           [2], binding.TF_INT32, new Int32Array([1, 2, 3]));
-//     }).toThrowError();
-//     expect(() => {
-//       new binding.TensorHandle().copyBuffer(
-//           [4], binding.TF_INT32, new Int32Array([1, 2, 3]));
-//     }).toThrowError();
-//   });
-
-//   it('throws exception with invalid dtype', () => {
-//     expect(() => {
-//       // tslint:disable-next-line:no-unused-expression
-//       new binding.TensorHandle().copyBuffer([1], 1000, new Int32Array([1]));
-//     }).toThrowError();
-//   });
-
-//   it('works with 0-dim tensors', () => {
-//     // Reduce op (e.g 'Max') will produce a 0-dim TFE_Tensor.
-//     const output = new binding.TensorHandle();
-
-//     const axes = new binding.TensorHandle();
-//     axes.copyBuffer([1], binding.TF_INT32, new Int32Array([0]));
-
-//     const input = new binding.TensorHandle();
-//     input.copyBuffer([3], binding.TF_INT32, new Int32Array([1, 2, 3]));
-
-//     const attrs = [
-//       {name: 'keep_dims', type: binding.TF_ATTR_BOOL, value: false},
-//       {name: 'T', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32},
-//       {name: 'Tidx', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32}
-//     ];
-
-//     binding.execute(context, 'Max', attrs, [input, axes], [output]);
-//     expect(output.shape).toEqual([]);
-//     expect(output.dtype).toEqual(binding.TF_INT32);
-//     expect(output.dataSync(context)).toEqual(new Int32Array([3]));
-//   });
-// });
+    expect(outputMetadata[0].id).toBeDefined();
+    expect(outputMetadata[0].shape).toEqual([]);
+    expect(outputMetadata[0].dtype).toEqual(binding.TF_INT32);
+    expect(binding.tensorDataSync(outputMetadata[0].id))
+        .toEqual(new Int32Array([3]));
+  });
+});
 
 // describe('execute()', () => {
 //   const context = new binding.Context();
