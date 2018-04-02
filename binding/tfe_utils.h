@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-#ifndef TF_NODEJS_TFE_TENSOR_UTILS_H_
-#define TF_NODEJS_TFE_TENSOR_UTILS_H_
+#ifndef TF_NODEJS_TFE_UTILS_H_
+#define TF_NODEJS_TFE_UTILS_H_
 
 #include <node_api.h>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
@@ -45,6 +45,9 @@ void GetTFE_TensorHandleShape(napi_env env, TFE_TensorHandle* handle,
 void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle* handle,
                              napi_value* result);
 
+// Assigns attributes to an Op from a given list of inputs attributes.
+void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value);
+
 }  // namespace tfnodejs
 
-#endif  // TF_NODEJS_TFE_TENSOR_UTILS_H_
+#endif  // TF_NODEJS_TFE_UTILS_H_

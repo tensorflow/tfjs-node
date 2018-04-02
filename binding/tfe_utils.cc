@@ -15,8 +15,11 @@
  * =============================================================================
  */
 
-#include "tfe_tensor_utils.h"
+#include "tfe_utils.h"
 #include <algorithm>
+#include <set>
+#include <string>
+#include <vector>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -27,6 +30,9 @@
 #include "utils.h"
 
 namespace tfnodejs {
+
+// Used to hold strings beyond the lifetime of a JS call.
+static std::set<std::string> ATTR_NAME_SET;
 
 static const std::string CPU_DEVICE_0("cpu:0");
 
@@ -236,6 +242,99 @@ void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle* handle,
   TF_DataType dtype = TFE_TensorHandleDataType(handle);
   nstatus = napi_create_int32(env, dtype, result);
   ENSURE_NAPI_OK(env, nstatus);
+}
+
+void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
+  napi_status nstatus;
+
+  napi_value attr_name_value;
+  nstatus = napi_get_named_property(env, attr_value, "name", &attr_name_value);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  char attr_name_string[NAPI_STRING_SIZE];
+  nstatus = napi_get_value_string_utf8(env, attr_name_value, attr_name_string,
+                                       NAPI_STRING_SIZE, nullptr);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  // OpAttr will be used beyond the scope of this function call. Stash ops in a
+  // set for re-use instead of dynamically reallocating strings for operations.
+  const char* attr_name;
+  auto result = ATTR_NAME_SET.find(attr_name_string);
+  if (result == ATTR_NAME_SET.end()) {
+    auto insert_result = ATTR_NAME_SET.insert(std::string(attr_name_string));
+    // TODO assert success?
+    result = insert_result.first;
+  }
+  attr_name = (*result).c_str();
+
+  napi_value attr_type_value;
+  nstatus = napi_get_named_property(env, attr_value, "type", &attr_type_value);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  TF_AttrType tf_attr_type;
+  nstatus = napi_get_value_int32(env, attr_type_value,
+                                 reinterpret_cast<int32_t*>(&tf_attr_type));
+  ENSURE_NAPI_OK(env, nstatus);
+
+  napi_value type_input_value;
+  nstatus =
+      napi_get_named_property(env, attr_value, "value", &type_input_value);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  switch (tf_attr_type) {
+    case TF_ATTR_STRING: {
+      char value[NAPI_STRING_SIZE];
+      nstatus = napi_get_value_string_utf8(env, type_input_value, value,
+                                           NAPI_STRING_SIZE, nullptr);
+      ENSURE_NAPI_OK(env, nstatus);
+
+      TFE_OpSetAttrString(tfe_op, attr_name, value);
+      break;
+    }
+
+    case TF_ATTR_INT: {
+      int64_t value;
+      nstatus = napi_get_value_int64(env, type_input_value, &value);
+      ENSURE_NAPI_OK(env, nstatus);
+
+      TFE_OpSetAttrInt(tfe_op, attr_name, value);
+      break;
+    }
+
+    case TF_ATTR_BOOL: {
+      bool value;
+      nstatus = napi_get_value_bool(env, type_input_value, &value);
+      ENSURE_NAPI_OK(env, nstatus);
+
+      TFE_OpSetAttrBool(tfe_op, attr_name, value);
+      break;
+    }
+
+    case TF_ATTR_TYPE: {
+      TF_DataType tf_data_type;
+      nstatus = napi_get_value_int32(env, type_input_value,
+                                     reinterpret_cast<int32_t*>(&tf_data_type));
+      ENSURE_NAPI_OK(env, nstatus);
+
+      TFE_OpSetAttrType(tfe_op, attr_name, tf_data_type);
+      break;
+    }
+
+    case TF_ATTR_SHAPE: {
+      std::vector<int64_t> shape_vector;
+      ExtractArrayShape(env, type_input_value, &shape_vector);
+
+      TF_AutoStatus tf_status;
+      TFE_OpSetAttrShape(tfe_op, attr_name, shape_vector.data(),
+                         shape_vector.size(), tf_status.status);
+      ENSURE_TF_OK(env, tf_status);
+      break;
+    }
+
+    default:
+      REPORT_UNKNOWN_TF_ATTR_TYPE(env, tf_attr_type);
+      break;
+  }
 }
 
 }  // namespace tfnodejs

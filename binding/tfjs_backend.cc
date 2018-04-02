@@ -17,8 +17,7 @@
 
 #include "tfjs_backend.h"
 #include "tfe_auto_op.h"
-#include "tfe_execute_utils.h"
-#include "tfe_tensor_utils.h"
+#include "tfe_utils.h"
 #include "utils.h"
 
 namespace tfnodejs {
