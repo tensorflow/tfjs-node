@@ -33,27 +33,28 @@ class TFJSBackend {
   void Init(napi_env env);
 
   // Creates a new Tensor with given shape and data.
-  void CreateTensor(napi_env env, int64_t* shape,
-                    uint32_t shape_length, TF_DataType dtype,
-                    napi_value typed_array_value,
-                    napi_value* output_tensor_id);
+  napi_value CreateTensor(napi_env env, napi_value shape_value,
+                          napi_value dtype_value, napi_value typed_array_value);
+
+  // Deletes a created Tensor.
+  void DeleteTensor(napi_env env, napi_value tensor_id_value);
 
   // Returns a typed-array as a `napi_value` with the data associated with the
   // TF/TFE pointers.
-  void GetTensorData(napi_env env, int32_t tensor_id, napi_value* result);
+  napi_value GetTensorData(napi_env env, napi_value tensor_id_value);
 
-  // Executes a TFE Op.
-  void ExecuteOp(napi_env env, const char* opName, napi_value op_attr_inputs,
-                 napi_value input_tensor_ids, napi_value num_output_values,
-                 napi_value* output_tensor_ids);
+  // Executes a TFE Op and returns an array of output tensor IDs.
+  napi_value ExecuteOp(napi_env env, napi_value op_name_value,
+                       napi_value op_attr_inputs, napi_value input_tensor_ids,
+                       napi_value num_output_values);
 
-protected:
+ protected:
   int32_t InsertHandle(TFE_TensorHandle* tfe_handle);
 
  private:
   TFE_Context* tfe_context;
   std::map<int32_t, TFE_TensorHandle*>* tfe_handle_map;
-  int32_t output_tensor_index; // atomic??
+  int32_t tensor_index;
 };
 
 }  // namespace tfnodejs
