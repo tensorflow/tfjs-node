@@ -15,13 +15,12 @@
  * =============================================================================
  */
 
-#include "tfe_execute.h"
+#include "tfe_execute_utils.h"
 #include <set>
 #include <string>
 #include <vector>
 #include "../deps/tensorflow/include/tensorflow/c/c_api.h"
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
-/* #include "tensor_handle.h" */
 #include "tf_auto_status.h"
 #include "tfe_auto_op.h"
 #include "utils.h"
@@ -124,91 +123,93 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
   }
 }
 
-void ExecuteOp(napi_env env, TFE_Context* tfe_context, const char* opName,
-               napi_value op_attr_inputs, napi_value inputs,
-               napi_value output_tensor_array) {
-  napi_status nstatus;
-
-  TF_AutoStatus tf_status;
-  TFE_AutoOp tfe_op(TFE_NewOp(tfe_context, opName, tf_status.status));
-  ENSURE_TF_OK(env, tf_status);
-
-  // Assign inputs
-  uint32_t inputs_length;
-  nstatus = napi_get_array_length(env, inputs, &inputs_length);
-  ENSURE_NAPI_OK(env, nstatus);
-
-  for (uint32_t i = 0; i < inputs_length; i++) {
-    napi_value cur_input;
-    nstatus = napi_get_element(env, inputs, i, &cur_input);
-    ENSURE_NAPI_OK(env, nstatus);
-
-    /* WrappedTensorHandle* handle; */
-    /* nstatus = napi_unwrap(env, cur_input, reinterpret_cast<void**>(&handle));
-     */
-    /* ENSURE_NAPI_OK(env, nstatus); */
-
-    /* TFE_OpAddInput(tfe_op.op, handle->handle, tf_status.status); */
-    /* ENSURE_TF_OK(env, tf_status); */
-  }
-
-  uint32_t op_attrs_length;
-  nstatus = napi_get_array_length(env, op_attr_inputs, &op_attrs_length);
-  ENSURE_NAPI_OK(env, nstatus);
-
-  for (uint32_t i = 0; i < op_attrs_length; i++) {
-    napi_value cur_op_attr;
-    nstatus = napi_get_element(env, op_attr_inputs, i, &cur_op_attr);
-    ENSURE_NAPI_OK(env, nstatus);
-
-    AssignOpAttr(env, tfe_op.op, cur_op_attr);
-
-    // Check to see if an exception exists, if so return a failure.
-    bool has_exception = false;
-    nstatus = napi_is_exception_pending(env, &has_exception);
-    ENSURE_NAPI_OK(env, nstatus);
-    if (has_exception) {
-      return;
-    }
-  }
-
-  // Number of outputs will match the passed in output tensor handles.
-  uint32_t output_length;
-  nstatus = napi_get_array_length(env, output_tensor_array, &output_length);
-  ENSURE_NAPI_OK(env, nstatus);
-
-  // Push `nullptr` to get a valid pointer in the call to `TFE_Execute()` below.
-  std::vector<TFE_TensorHandle*> result_handles;
-  for (uint32_t i = 0; i < output_length; i++) {
-    result_handles.push_back(nullptr);
-  }
-
-  int size = result_handles.size();
-  TFE_Execute(tfe_op.op, result_handles.data(), &size, tf_status.status);
-  ENSURE_TF_OK(env, tf_status);
-
-  // Swap pointer on the output tensor handles.
-  for (uint32_t i = 0; i < output_length; i++) {
-    napi_value output_value;
-    nstatus = napi_get_element(env, output_tensor_array, i, &output_value);
-    ENSURE_NAPI_OK(env, nstatus);
-
-    /* WrappedTensorHandle* handle; */
-    /* nstatus = napi_unwrap(env, output_value,
-     * reinterpret_cast<void**>(&handle)); */
-    /* ENSURE_NAPI_OK(env, nstatus); */
-    /* // Ensure that handle is from an unused tensor handle so no cleanup is */
-    /* // needed. */
-    /* // TODO(kreeger): If handle reuse, this needs to be tweaked. */
-    /* if (handle->handle != nullptr) { */
-    /*   NAPI_THROW_ERROR( */
-    /*       env, "Invalid output Tensor not built with default constructor");
-     */
-    /*   return; */
-    /* } */
-
-    /* handle->handle = result_handles[i]; */
-  }
-}
+// void ExecuteOp(napi_env env, TFE_Context* tfe_context, const char* opName,
+//               napi_value op_attr_inputs, napi_value inputs,
+//               napi_value* results) {
+//  napi_status nstatus;
+//
+//  TF_AutoStatus tf_status;
+//  TFE_AutoOp tfe_op(TFE_NewOp(tfe_context, opName, tf_status.status));
+//  ENSURE_TF_OK(env, tf_status);
+//
+//  // Assign inputs
+//  uint32_t inputs_length;
+//  nstatus = napi_get_array_length(env, inputs, &inputs_length);
+//  ENSURE_NAPI_OK(env, nstatus);
+//
+//  for (uint32_t i = 0; i < inputs_length; i++) {
+//    napi_value cur_input;
+//    nstatus = napi_get_element(env, inputs, i, &cur_input);
+//    ENSURE_NAPI_OK(env, nstatus);
+//
+//    /* WrappedTensorHandle* handle; */
+//    /* nstatus = napi_unwrap(env, cur_input,
+//    reinterpret_cast<void**>(&handle));
+//     */
+//    /* ENSURE_NAPI_OK(env, nstatus); */
+//
+//    /* TFE_OpAddInput(tfe_op.op, handle->handle, tf_status.status); */
+//    /* ENSURE_TF_OK(env, tf_status); */
+//  }
+//
+//  uint32_t op_attrs_length;
+//  nstatus = napi_get_array_length(env, op_attr_inputs, &op_attrs_length);
+//  ENSURE_NAPI_OK(env, nstatus);
+//
+//  for (uint32_t i = 0; i < op_attrs_length; i++) {
+//    napi_value cur_op_attr;
+//    nstatus = napi_get_element(env, op_attr_inputs, i, &cur_op_attr);
+//    ENSURE_NAPI_OK(env, nstatus);
+//
+//    AssignOpAttr(env, tfe_op.op, cur_op_attr);
+//
+//    // Check to see if an exception exists, if so return a failure.
+//    bool has_exception = false;
+//    nstatus = napi_is_exception_pending(env, &has_exception);
+//    ENSURE_NAPI_OK(env, nstatus);
+//    if (has_exception) {
+//      return;
+//    }
+//  }
+//
+//  // Number of outputs will match the passed in output tensor handles.
+//  uint32_t output_length;
+//  nstatus = napi_get_array_length(env, output_tensor_array, &output_length);
+//  ENSURE_NAPI_OK(env, nstatus);
+//
+//  // Push `nullptr` to get a valid pointer in the call to `TFE_Execute()`
+//  below. std::vector<TFE_TensorHandle*> result_handles; for (uint32_t i = 0; i
+//  < output_length; i++) {
+//    result_handles.push_back(nullptr);
+//  }
+//
+//  int size = result_handles.size();
+//  TFE_Execute(tfe_op.op, result_handles.data(), &size, tf_status.status);
+//  ENSURE_TF_OK(env, tf_status);
+//
+//  // Swap pointer on the output tensor handles.
+//  for (uint32_t i = 0; i < output_length; i++) {
+//    napi_value output_value;
+//    nstatus = napi_get_element(env, output_tensor_array, i, &output_value);
+//    ENSURE_NAPI_OK(env, nstatus);
+//
+//    /* WrappedTensorHandle* handle; */
+//    /* nstatus = napi_unwrap(env, output_value,
+//     * reinterpret_cast<void**>(&handle)); */
+//    /* ENSURE_NAPI_OK(env, nstatus); */
+//    /* // Ensure that handle is from an unused tensor handle so no cleanup is
+//    */
+//    /* // needed. */
+//    /* // TODO(kreeger): If handle reuse, this needs to be tweaked. */
+//    /* if (handle->handle != nullptr) { */
+//    /*   NAPI_THROW_ERROR( */
+//    /*       env, "Invalid output Tensor not built with default constructor");
+//     */
+//    /*   return; */
+//    /* } */
+//
+//    /* handle->handle = result_handles[i]; */
+//  }
+//}
 
 }  // namespace tfnodejs

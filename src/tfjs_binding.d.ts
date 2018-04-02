@@ -15,15 +15,27 @@
  * =============================================================================
  */
 
-declare class TensorHandle {
-  constructor();
-  copyBuffer(
-      shape: number[], dtype: number,
-      buffer: Float32Array|Int32Array|Uint8Array): void;
-  // dataSync(context: Context): Float32Array|Int32Array|Uint8Array;
+// declare class TensorHandle {
+//   constructor();
+//   copyBuffer(
+//       shape: number[], dtype: number,
+//       buffer: Float32Array|Int32Array|Uint8Array): void;
+//   // dataSync(context: Context): Float32Array|Int32Array|Uint8Array;
 
-  shape: number[];
-  dtype: number;
+//   shape: number[];
+//   dtype: number;
+// }
+
+declare class TensorFlowBackend {
+  constructor();
+
+  createTensor(
+      shape: number[], dtype: number,
+      buffer: Float32Array|Int32Array|Uint8Array): number;
+
+  readTensorDataSync(id: number): Float32Array|Int32Array|Uint8Array;
+
+  executeOp(op: string, op_attrs: TFEOpAttr[], inputs: number[]): number[];
 }
 
 declare class TFEOpAttr {
@@ -32,20 +44,7 @@ declare class TFEOpAttr {
   value: boolean|number|object|string|Array<number>;
 }
 
-declare class TensorFlowBackend {
-  constructor();
-
-  createTensor(
-      id: number, shape: number[], dtype: number,
-      buffer: Float32Array|Int32Array|Uint8Array): void;
-
-  readTensorDataSync(id: number): Float32Array|Int32Array|Uint8Array;
-
-  executeOp(op: string, op_attrs: TFEOpAttr[], inputs: number[]): number[];
-}
-
 export interface TFJSBinding {
-  TensorHandle: typeof TensorHandle;
   TFEOpAttr: typeof TFEOpAttr;
   TensorFlowBackend: typeof TensorFlowBackend;
 
@@ -63,7 +62,4 @@ export interface TFJSBinding {
   TF_ATTR_SHAPE: number;
 
   TF_Version: string;
-
-  execute(op: string, op_attrs: TFEOpAttr[],
-      inputs: TensorHandle[], output: TensorHandle[]): void;
 }

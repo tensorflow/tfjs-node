@@ -33,9 +33,10 @@ class TFJSBackend {
   void Init(napi_env env);
 
   // Creates a new Tensor with given shape and data.
-  void CreateTensor(napi_env env, int32_t tensor_id, int64_t* shape,
+  void CreateTensor(napi_env env, int64_t* shape,
                     uint32_t shape_length, TF_DataType dtype,
-                    napi_value typed_array_value);
+                    napi_value typed_array_value,
+                    napi_value* output_tensor_id);
 
   // Returns a typed-array as a `napi_value` with the data associated with the
   // TF/TFE pointers.
@@ -43,11 +44,16 @@ class TFJSBackend {
 
   // Executes a TFE Op.
   void ExecuteOp(napi_env env, const char* opName, napi_value op_attr_inputs,
-                 napi_value input_tensor_ids, napi_value* output_tensor_ids);
+                 napi_value input_tensor_ids, napi_value num_output_values,
+                 napi_value* output_tensor_ids);
+
+protected:
+  int32_t InsertHandle(TFE_TensorHandle* tfe_handle);
 
  private:
   TFE_Context* tfe_context;
   std::map<int32_t, TFE_TensorHandle*>* tfe_handle_map;
+  int32_t output_tensor_index; // atomic??
 };
 
 }  // namespace tfnodejs

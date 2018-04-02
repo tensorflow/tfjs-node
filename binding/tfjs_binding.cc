@@ -16,7 +16,6 @@
  */
 
 #include <node_api.h>
-#include "tfe_execute.h"
 #include "tfjs_backend.h"
 #include "utils.h"
 
