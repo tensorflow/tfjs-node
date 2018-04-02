@@ -24,21 +24,26 @@
 namespace tfnodejs {
 
 // Copies a JS typed-array to the wrapped TF/TFE pointers.
-void NewTFE_TensorHandleFromTypedArray(napi_env env, int64_t* shape,
-                                       uint32_t shape_length, TF_DataType dtype,
-                                       napi_value typed_array_value,
-                                       TFE_TensorHandle** tfe_tensor_handle);
+void CreateTFE_TensorHandleFromTypedArray(napi_env env, int64_t* shape,
+                                          uint32_t shape_length,
+                                          TF_DataType dtype,
+                                          napi_value typed_array_value,
+                                          TFE_TensorHandle** tfe_tensor_handle);
 
 // Returns a typed-array as a `napi_value` with the data associated with the
 // TF/TFE pointers.
-void GetTensorData(napi_env env, TFE_Context* tfe_context,
-                   napi_value wrapped_value, napi_value* result);
+void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
+                                          TFE_Context* tfe_context,
+                                          TFE_TensorHandle* tfe_tensor_handle,
+                                          napi_value* result);
 
 // Returns an array as a `napi_value` with shape of the Tensor.
-void GetTensorShape(napi_env env, napi_value wrapped_value, napi_value* result);
+// void GetTensorShape(napi_env env, napi_value wrapped_value, napi_value*
+// result);
 
 // Returns a type as a `napi_value` with the type of the Tensor.
-void GetTensorDtype(napi_env env, napi_value wrapped_value, napi_value* result);
+// void GetTensorDtype(napi_env env, napi_value wrapped_value, napi_value*
+// result);
 
 }  // namespace tfnodejs
 

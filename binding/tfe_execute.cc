@@ -144,7 +144,8 @@ void ExecuteOp(napi_env env, TFE_Context* tfe_context, const char* opName,
     ENSURE_NAPI_OK(env, nstatus);
 
     /* WrappedTensorHandle* handle; */
-    /* nstatus = napi_unwrap(env, cur_input, reinterpret_cast<void**>(&handle)); */
+    /* nstatus = napi_unwrap(env, cur_input, reinterpret_cast<void**>(&handle));
+     */
     /* ENSURE_NAPI_OK(env, nstatus); */
 
     /* TFE_OpAddInput(tfe_op.op, handle->handle, tf_status.status); */
@@ -193,14 +194,16 @@ void ExecuteOp(napi_env env, TFE_Context* tfe_context, const char* opName,
     ENSURE_NAPI_OK(env, nstatus);
 
     /* WrappedTensorHandle* handle; */
-    /* nstatus = napi_unwrap(env, output_value, reinterpret_cast<void**>(&handle)); */
+    /* nstatus = napi_unwrap(env, output_value,
+     * reinterpret_cast<void**>(&handle)); */
     /* ENSURE_NAPI_OK(env, nstatus); */
     /* // Ensure that handle is from an unused tensor handle so no cleanup is */
     /* // needed. */
     /* // TODO(kreeger): If handle reuse, this needs to be tweaked. */
     /* if (handle->handle != nullptr) { */
     /*   NAPI_THROW_ERROR( */
-    /*       env, "Invalid output Tensor not built with default constructor"); */
+    /*       env, "Invalid output Tensor not built with default constructor");
+     */
     /*   return; */
     /* } */
 

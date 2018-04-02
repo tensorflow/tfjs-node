@@ -40,10 +40,9 @@ bool IsCPUDevice(std::string& device_name) {
                     device_name.rbegin());
 }
 
-void NewTFE_TensorHandleFromTypedArray(napi_env env, int64_t* shape,
-                                       uint32_t shape_length, TF_DataType dtype,
-                                       napi_value typed_array_value,
-                                       TFE_TensorHandle** tfe_tensor_handle) {
+void CreateTFE_TensorHandleFromTypedArray(
+    napi_env env, int64_t* shape, uint32_t shape_length, TF_DataType dtype,
+    napi_value typed_array_value, TFE_TensorHandle** tfe_tensor_handle) {
   napi_status nstatus;
 
   napi_typedarray_type array_type;
@@ -113,27 +112,24 @@ void NewTFE_TensorHandleFromTypedArray(napi_env env, int64_t* shape,
   ENSURE_TF_OK(env, tf_status);
 }
 
-void GetTensorData(napi_env env, TFE_Context* tfe_context,
-                   napi_value wrapped_value, napi_value* result) {
+void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
+                                          TFE_Context* tfe_context,
+                                          TFE_TensorHandle* tfe_tensor_handle,
+                                          napi_value* result) {
   napi_status nstatus;
 
   if (tfe_context == nullptr) {
-    NAPI_THROW_ERROR(env, "Invalid TFE_Context in dataSync()");
+    NAPI_THROW_ERROR(env, "Invalid TFE_Context");
     return;
   }
-
-  WrappedTensorHandle* handle;
-  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(env, nstatus);
-
-  if (handle->handle == nullptr) {
-    NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle in dataSync()");
+  if (tfe_tensor_handle == nullptr) {
+    NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle");
     return;
   }
 
   // Determine the type of the array
   napi_typedarray_type array_type;
-  switch (TFE_TensorHandleDataType(handle->handle)) {
+  switch (TFE_TensorHandleDataType(tfe_tensor_handle)) {
     case TF_FLOAT:
       array_type = napi_float32_array;
       break;
@@ -145,14 +141,14 @@ void GetTensorData(napi_env env, TFE_Context* tfe_context,
       break;
     default:
       REPORT_UNKNOWN_TF_DATA_TYPE(env,
-                                  TFE_TensorHandleDataType(handle->handle));
+                                  TFE_TensorHandleDataType(tfe_tensor_handle));
       return;
   }
 
   TF_AutoStatus tf_status;
 
-  std::string device_name =
-      std::string(TFE_TensorHandleDeviceName(handle->handle, tf_status.status));
+  std::string device_name = std::string(
+      TFE_TensorHandleDeviceName(tfe_tensor_handle, tf_status.status));
   ENSURE_TF_OK(env, tf_status);
 
   // If the handle is running on a non-CPU device, copy the handle to the device
@@ -160,9 +156,9 @@ void GetTensorData(napi_env env, TFE_Context* tfe_context,
   bool cleanup_handle = false;
   TFE_TensorHandle* target_handle;
   if (IsCPUDevice(device_name)) {
-    target_handle = handle->handle;
+    target_handle = tfe_tensor_handle;
   } else {
-    target_handle = TFE_TensorHandleCopyToDevice(handle->handle, tfe_context,
+    target_handle = TFE_TensorHandleCopyToDevice(tfe_tensor_handle, tfe_context,
                                                  nullptr, tf_status.status);
     ENSURE_TF_OK(env, tf_status);
     cleanup_handle = true;
@@ -205,60 +201,60 @@ void GetTensorData(napi_env env, TFE_Context* tfe_context,
   }
 }
 
-void GetTensorShape(napi_env env, napi_value wrapped_value,
-                    napi_value* result) {
-  napi_status nstatus;
+// void GetTensorShape(napi_env env, napi_value wrapped_value,
+//                     napi_value* result) {
+//   napi_status nstatus;
 
-  WrappedTensorHandle* handle;
-  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(env, nstatus);
+//   WrappedTensorHandle* handle;
+//   nstatus = napi_unwrap(env, wrapped_value,
+//   reinterpret_cast<void**>(&handle)); ENSURE_NAPI_OK(env, nstatus);
 
-  if (handle->handle == nullptr) {
-    NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle used in shape");
-    return;
-  }
+//   if (handle->handle == nullptr) {
+//     NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle used in shape");
+//     return;
+//   }
 
-  TF_AutoStatus tf_status;
-  uint32_t num_dims = TFE_TensorHandleNumDims(handle->handle, tf_status.status);
-  ENSURE_TF_OK(env, tf_status);
+//   TF_AutoStatus tf_status;
+//   uint32_t num_dims = TFE_TensorHandleNumDims(handle->handle,
+//   tf_status.status); ENSURE_TF_OK(env, tf_status);
 
-  if (num_dims == 0) {
-    nstatus = napi_create_array_with_length(env, 0, result);
-    ENSURE_NAPI_OK(env, nstatus);
-  } else {
-    nstatus = napi_create_array_with_length(env, num_dims, result);
-    ENSURE_NAPI_OK(env, nstatus);
+//   if (num_dims == 0) {
+//     nstatus = napi_create_array_with_length(env, 0, result);
+//     ENSURE_NAPI_OK(env, nstatus);
+//   } else {
+//     nstatus = napi_create_array_with_length(env, num_dims, result);
+//     ENSURE_NAPI_OK(env, nstatus);
 
-    for (uint32_t i = 0; i < num_dims; i++) {
-      napi_value cur_dim;
-      nstatus = napi_create_int64(
-          env, TFE_TensorHandleDim(handle->handle, i, tf_status.status),
-          &cur_dim);
-      ENSURE_TF_OK(env, tf_status);
-      ENSURE_NAPI_OK(env, nstatus);
+//     for (uint32_t i = 0; i < num_dims; i++) {
+//       napi_value cur_dim;
+//       nstatus = napi_create_int64(
+//           env, TFE_TensorHandleDim(handle->handle, i, tf_status.status),
+//           &cur_dim);
+//       ENSURE_TF_OK(env, tf_status);
+//       ENSURE_NAPI_OK(env, nstatus);
 
-      nstatus = napi_set_element(env, *result, i, cur_dim);
-      ENSURE_NAPI_OK(env, nstatus);
-    }
-  }
-}
+//       nstatus = napi_set_element(env, *result, i, cur_dim);
+//       ENSURE_NAPI_OK(env, nstatus);
+//     }
+//   }
+// }
 
-void GetTensorDtype(napi_env env, napi_value wrapped_value,
-                    napi_value* result) {
-  napi_status nstatus;
+// void GetTensorDtype(napi_env env, napi_value wrapped_value,
+//                     napi_value* result) {
+//   napi_status nstatus;
 
-  WrappedTensorHandle* handle;
-  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(env, nstatus);
+//   WrappedTensorHandle* handle;
+//   nstatus = napi_unwrap(env, wrapped_value,
+//   reinterpret_cast<void**>(&handle)); ENSURE_NAPI_OK(env, nstatus);
 
-  if (handle->handle == nullptr) {
-    NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle used in dtype");
-    return;
-  }
+//   if (handle->handle == nullptr) {
+//     NAPI_THROW_ERROR(env, "Invalid TFE_TensorHandle used in dtype");
+//     return;
+//   }
 
-  TF_DataType dtype = TFE_TensorHandleDataType(handle->handle);
-  nstatus = napi_create_int32(env, dtype, result);
-  ENSURE_NAPI_OK(env, nstatus);
-}
+//   TF_DataType dtype = TFE_TensorHandleDataType(handle->handle);
+//   nstatus = napi_create_int32(env, dtype, result);
+//   ENSURE_NAPI_OK(env, nstatus);
+// }
 
 }  // namespace tfnodejs
