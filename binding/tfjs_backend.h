@@ -47,7 +47,7 @@ class TFJSBackend {
 
  private:
   TFE_Context* tfe_context;
-  std::map<int32_t, TFE_TensorHandle*> tfe_handle_map;
+  std::map<int32_t, TFE_TensorHandle*>* tfe_handle_map;
 };
 
 }  // namespace tfnodejs

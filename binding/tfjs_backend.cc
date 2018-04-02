@@ -20,12 +20,16 @@
 
 namespace tfnodejs {
 
-TFJSBackend::TFJSBackend() : tfe_context(nullptr) {}
+TFJSBackend::TFJSBackend() : tfe_context(nullptr), tfe_handle_map(nullptr) {}
 
 TFJSBackend::~TFJSBackend() {
   if (tfe_context != nullptr) {
     TF_AutoStatus tf_status;
     TFE_DeleteContext(tfe_context, tf_status.status);
+  }
+  if (tfe_handle_map != nullptr) {
+    // TODO(kreeger): Loop and cleanup all items.
+    delete tfe_handle_map;
   }
 }
 
@@ -35,11 +39,14 @@ void TFJSBackend::Init(napi_env env) {
   tfe_context = TFE_NewContext(tfe_options, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
   TFE_DeleteContextOptions(tfe_options);
+
+  tfe_handle_map = new std::map<int32_t, TFE_TensorHandle*>();
 }
 
 void TFJSBackend::CreateTensor(napi_env env, int32_t tensor_id, int64_t* shape,
                                uint32_t shape_length, TF_DataType dtype,
                                napi_value typed_array_value) {
+  /* if (tfe_handle_map.get(j */
   // TODO(kreeger): write me.
 }
 
