@@ -16,9 +16,8 @@
  */
 
 #include <node_api.h>
-#include "tensor_handle.h"
-#include "tfjs_backend.h"
 #include "tfe_execute.h"
+#include "tfjs_backend.h"
 #include "utils.h"
 
 namespace tfnodejs {
@@ -206,9 +205,11 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_status nstatus;
 
   napi_property_descriptor tensor_flow_backend_properties[] = {
-      /* {"copyBuffer", nullptr, CopyTensorHandleBuffer, nullptr, nullptr, nullptr, */
+      /* {"copyBuffer", nullptr, CopyTensorHandleBuffer, nullptr, nullptr,
+         nullptr, */
       /*  napi_default, nullptr}, */
-      /* {"dataSync", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr, */
+      /* {"dataSync", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr,
+       */
       /*  napi_default, nullptr}, */
       /* {"shape", nullptr, nullptr, GetTensorHandleShape, nullptr, nullptr, */
       /*  napi_default, nullptr}, */
@@ -232,7 +233,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_property_descriptor exports_properties[] = {
       {"TensorFlowBackend", nullptr, nullptr, nullptr, nullptr,
        tensor_flow_backend_class, napi_default, nullptr},
-      /* {"execute", nullptr, ExecuteTFE, nullptr, nullptr, nullptr, napi_default, */
+      /* {"execute", nullptr, ExecuteTFE, nullptr, nullptr, nullptr,
+         napi_default, */
       /*  nullptr}, */
       {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version,
        napi_default, nullptr},

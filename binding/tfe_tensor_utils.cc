@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-#include "tensor_handle.h"
+#include "tfe_tensor_utils.h"
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
@@ -40,40 +40,11 @@ bool IsCPUDevice(std::string& device_name) {
                     device_name.rbegin());
 }
 
-void Cleanup(napi_env env, void* data, void* hint) {
-  WrappedTensorHandle* handle = static_cast<WrappedTensorHandle*>(data);
-  if (handle->handle != nullptr) {
-    TFE_DeleteTensorHandle(handle->handle);
-    handle->handle = nullptr;
-  }
-  delete handle;
-}
-
-void InitTensorHandle(napi_env env, napi_value wrapped_value) {
-  WrappedTensorHandle* handle = new WrappedTensorHandle();
-  handle->handle = nullptr;
-  handle->env = env;
-
-  napi_status nstatus =
-      napi_wrap(env, wrapped_value, handle, Cleanup, nullptr, nullptr);
-  ENSURE_NAPI_OK(env, nstatus);
-}
-
-void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
-                        uint32_t shape_length, TF_DataType dtype,
-                        napi_value typed_array_value) {
+void NewTFE_TensorHandleFromTypedArray(napi_env env, int64_t* shape,
+                                       uint32_t shape_length, TF_DataType dtype,
+                                       napi_value typed_array_value,
+                                       TFE_TensorHandle** tfe_tensor_handle) {
   napi_status nstatus;
-
-  WrappedTensorHandle* handle;
-  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(env, nstatus);
-
-  if (handle->handle != nullptr) {
-    // TODO(kreeger): Check to see if the handle can be reused if shape and
-    // dtype match.
-    TFE_DeleteTensorHandle(handle->handle);
-    handle->handle = nullptr;
-  }
 
   napi_typedarray_type array_type;
   size_t array_length;
@@ -132,20 +103,14 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   }
 
   // Allocate and memcpy JS data to Tensor.
-  // TODO(kreeger): Check to see if the Deallocator param can be used to
-  // automatically cleanup with JS runtime.
   const size_t byte_size = num_elements * width;
   TF_AutoTensor tensor(
       TF_AllocateTensor(dtype, shape, shape_length, byte_size));
   memcpy(TF_TensorData(tensor.tensor), array_data, byte_size);
 
   TF_AutoStatus tf_status;
-  TFE_TensorHandle* tfe_handle =
-      TFE_NewTensorHandle(tensor.tensor, tf_status.status);
+  *tfe_tensor_handle = TFE_NewTensorHandle(tensor.tensor, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
-
-  // Reference the new TFE_TensorHandle to the wrapped object.
-  handle->handle = tfe_handle;
 }
 
 void GetTensorData(napi_env env, TFE_Context* tfe_context,

@@ -11,10 +11,10 @@
   'targets' : [{
     'target_name' : 'tfjs_binding',
     'sources' : [
-      'binding/tensor_handle.cc',
-      'binding/tfjs_backend.cc',
-      'binding/tfjs_binding.cc',
       'binding/tfe_execute.cc',
+      'binding/tfe_tensor_utils.cc',
+      'binding/tfjs_backend.cc',
+      'binding/tfjs_binding.cc'
     ],
     'include_dirs' : [ '..', '<(tensorflow_include_dir)' ],
     'conditions' : [

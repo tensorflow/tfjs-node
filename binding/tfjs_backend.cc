@@ -46,8 +46,9 @@ void TFJSBackend::Init(napi_env env) {
 void TFJSBackend::CreateTensor(napi_env env, int32_t tensor_id, int64_t* shape,
                                uint32_t shape_length, TF_DataType dtype,
                                napi_value typed_array_value) {
-  /* if (tfe_handle_map.get(j */
-  // TODO(kreeger): write me.
+  if (tfe_handle_map->find(tensor_id) != tfe_handle_map->end()) {
+    // TODO(kreeger): write me.
+  }
 }
 
 void TFJSBackend::GetTensorData(napi_env env, int32_t tensor_id,

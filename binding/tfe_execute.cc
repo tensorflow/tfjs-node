@@ -21,7 +21,7 @@
 #include <vector>
 #include "../deps/tensorflow/include/tensorflow/c/c_api.h"
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
-#include "tensor_handle.h"
+/* #include "tensor_handle.h" */
 #include "tf_auto_status.h"
 #include "tfe_auto_op.h"
 #include "utils.h"
@@ -143,12 +143,12 @@ void ExecuteOp(napi_env env, TFE_Context* tfe_context, const char* opName,
     nstatus = napi_get_element(env, inputs, i, &cur_input);
     ENSURE_NAPI_OK(env, nstatus);
 
-    WrappedTensorHandle* handle;
-    nstatus = napi_unwrap(env, cur_input, reinterpret_cast<void**>(&handle));
-    ENSURE_NAPI_OK(env, nstatus);
+    /* WrappedTensorHandle* handle; */
+    /* nstatus = napi_unwrap(env, cur_input, reinterpret_cast<void**>(&handle)); */
+    /* ENSURE_NAPI_OK(env, nstatus); */
 
-    TFE_OpAddInput(tfe_op.op, handle->handle, tf_status.status);
-    ENSURE_TF_OK(env, tf_status);
+    /* TFE_OpAddInput(tfe_op.op, handle->handle, tf_status.status); */
+    /* ENSURE_TF_OK(env, tf_status); */
   }
 
   uint32_t op_attrs_length;
@@ -192,19 +192,19 @@ void ExecuteOp(napi_env env, TFE_Context* tfe_context, const char* opName,
     nstatus = napi_get_element(env, output_tensor_array, i, &output_value);
     ENSURE_NAPI_OK(env, nstatus);
 
-    WrappedTensorHandle* handle;
-    nstatus = napi_unwrap(env, output_value, reinterpret_cast<void**>(&handle));
-    ENSURE_NAPI_OK(env, nstatus);
-    // Ensure that handle is from an unused tensor handle so no cleanup is
-    // needed.
-    // TODO(kreeger): If handle reuse, this needs to be tweaked.
-    if (handle->handle != nullptr) {
-      NAPI_THROW_ERROR(
-          env, "Invalid output Tensor not built with default constructor");
-      return;
-    }
+    /* WrappedTensorHandle* handle; */
+    /* nstatus = napi_unwrap(env, output_value, reinterpret_cast<void**>(&handle)); */
+    /* ENSURE_NAPI_OK(env, nstatus); */
+    /* // Ensure that handle is from an unused tensor handle so no cleanup is */
+    /* // needed. */
+    /* // TODO(kreeger): If handle reuse, this needs to be tweaked. */
+    /* if (handle->handle != nullptr) { */
+    /*   NAPI_THROW_ERROR( */
+    /*       env, "Invalid output Tensor not built with default constructor"); */
+    /*   return; */
+    /* } */
 
-    handle->handle = result_handles[i];
+    /* handle->handle = result_handles[i]; */
   }
 }
 
