@@ -47,7 +47,7 @@ void TFJSBackend::Init(napi_env env) {
   ENSURE_TF_OK(env, tf_status);
   TFE_DeleteContextOptions(tfe_options);
 
-  tfe_handle_map = new std::unordered_map<int32_t, TFE_TensorHandle*>();
+  tfe_handle_map = new std::map<int32_t, TFE_TensorHandle*>();
 }
 
 int32_t TFJSBackend::InsertHandle(TFE_TensorHandle* tfe_handle) {

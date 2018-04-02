@@ -19,7 +19,7 @@
 #define TF_NODEJS_TFJS_BACKEND_H_
 
 #include <node_api.h>
-#include <unordered_map>
+#include <map>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 
 namespace tfnodejs {
@@ -54,7 +54,7 @@ class TFJSBackend {
 
  private:
   TFE_Context* tfe_context;
-  std::unordered_map<int32_t, TFE_TensorHandle*>* tfe_handle_map;
+  std::map<int32_t, TFE_TensorHandle*>* tfe_handle_map;
   int32_t tensor_index;
 };
 
