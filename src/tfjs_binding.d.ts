@@ -36,14 +36,14 @@ declare class TFEOpAttr {
   value: boolean|number|object|string|Array<number>;
 }
 
-declare class TensorFlowSession {
+declare class TensorFlowBackend {
   constructor(context: Context);
 
   createTensor(
       id: number, shape: number[], dtype: number,
       buffer: Float32Array|Int32Array|Uint8Array): void;
 
-  readTensorDataSync(id: number): void;  // TODO
+  readTensorDataSync(id: number): Float32Array|Int32Array|Uint8Array;
 
   executeOp(op: string, op_attrs: TFEOpAttr[], inputs: number[]): number[];
 }
@@ -52,6 +52,7 @@ export interface TFJSBinding {
   Context: typeof Context;
   TensorHandle: typeof TensorHandle;
   TFEOpAttr: typeof TFEOpAttr;
+  TensorFlowBackend: typeof TensorFlowBackend;
 
   // TF Types
   TF_FLOAT: number;
