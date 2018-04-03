@@ -22,36 +22,31 @@
 
 namespace tfnodejs {
 
-TFJSBackend::TFJSBackend()
-    : tfe_context(nullptr), tfe_handle_map(nullptr), tensor_index(0) {}
-
-TFJSBackend::~TFJSBackend() {
-  if (tfe_context != nullptr) {
-    TF_AutoStatus tf_status;
-    TFE_DeleteContext(tfe_context, tf_status.status);
-  }
-  if (tfe_handle_map != nullptr) {
-    for (auto iter = tfe_handle_map->begin(); iter != tfe_handle_map->end();
-         ++iter) {
-      TFE_DeleteTensorHandle(iter->second);
-    }
-    delete tfe_handle_map;
-  }
-}
-
-void TFJSBackend::Init(napi_env env) {
+TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   TF_AutoStatus tf_status;
   TFE_ContextOptions* tfe_options = TFE_NewContextOptions();
-  tfe_context = TFE_NewContext(tfe_options, tf_status.status);
-  ENSURE_TF_OK(env, tf_status);
+  tfe_context_ = TFE_NewContext(tfe_options, tf_status.status);
+  if (TF_GetCode(tf_status.status) != TF_OK) {
+    NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
+  }
   TFE_DeleteContextOptions(tfe_options);
+}
 
-  tfe_handle_map = new std::map<int32_t, TFE_TensorHandle*>();
+TFJSBackend::~TFJSBackend() {
+  for (auto iter = tfe_handle_map_.begin(); iter != tfe_handle_map_.end();
+       ++iter) {
+    TFE_DeleteTensorHandle(iter->second);
+  }
+  if (tfe_context_ != nullptr) {
+    TF_AutoStatus tf_status;
+    TFE_DeleteContext(tfe_context_, tf_status.status);
+  }
 }
 
 int32_t TFJSBackend::InsertHandle(TFE_TensorHandle* tfe_handle) {
-  auto pair = std::pair<int32_t, TFE_TensorHandle*>(tensor_index++, tfe_handle);
-  tfe_handle_map->insert(pair);
+  auto pair =
+      std::pair<int32_t, TFE_TensorHandle*>(next_tensor_id_++, tfe_handle);
+  tfe_handle_map_.insert(pair);
   return pair.first;
 }
 
@@ -62,15 +57,18 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
 
   std::vector<int64_t> shape_vector;
   ExtractArrayShape(env, shape_value, &shape_vector);
+  // Check to see if an exception exists, if so return a failure.
+  if (IsExceptionPending(env)) {
+    return nullptr;
+  }
 
   int32_t dtype_int32;
   nstatus = napi_get_value_int32(env, dtype_value, &dtype_int32);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  TFE_TensorHandle* tfe_handle;
-  CreateTFE_TensorHandleFromTypedArray(
+  TFE_TensorHandle* tfe_handle = CreateTFE_TensorHandleFromTypedArray(
       env, shape_vector.data(), shape_vector.size(),
-      static_cast<TF_DataType>(dtype_int32), typed_array_value, &tfe_handle);
+      static_cast<TF_DataType>(dtype_int32), typed_array_value);
 
   napi_value output_tensor_id;
   nstatus = napi_create_int32(env, InsertHandle(tfe_handle), &output_tensor_id);
@@ -82,15 +80,15 @@ void TFJSBackend::DeleteTensor(napi_env env, napi_value tensor_id_value) {
   int32_t tensor_id;
   ENSURE_NAPI_OK(env, napi_get_value_int32(env, tensor_id_value, &tensor_id));
 
-  auto tensor_entry = tfe_handle_map->find(tensor_id);
-  if (tensor_entry == tfe_handle_map->end()) {
+  auto tensor_entry = tfe_handle_map_.find(tensor_id);
+  if (tensor_entry == tfe_handle_map_.end()) {
     // TODO(kreeger): Print out the tensor ID?
     NAPI_THROW_ERROR(env, "Delete called on a Tensor not referenced");
     return;
   }
 
   TFE_DeleteTensorHandle(tensor_entry->second);
-  tfe_handle_map->erase(tensor_id);
+  tfe_handle_map_.erase(tensor_entry);
 }
 
 napi_value TFJSBackend::GetTensorData(napi_env env,
@@ -99,15 +97,15 @@ napi_value TFJSBackend::GetTensorData(napi_env env,
   ENSURE_NAPI_OK_RETVAL(
       env, napi_get_value_int32(env, tensor_id_value, &tensor_id), nullptr);
 
-  auto tensor_entry = tfe_handle_map->find(tensor_id);
-  if (tensor_entry == tfe_handle_map->end()) {
+  auto tensor_entry = tfe_handle_map_.find(tensor_id);
+  if (tensor_entry == tfe_handle_map_.end()) {
     // TODO(kreeger): Print out the tensor ID?
     NAPI_THROW_ERROR(env, "Get data called on a Tensor not referenced");
     return nullptr;
   }
 
   napi_value typed_array_value;
-  CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tensor_entry->second,
+  CopyTFE_TensorHandleDataToTypedArray(env, tfe_context_, tensor_entry->second,
                                        &typed_array_value);
   return typed_array_value;
 }
@@ -124,7 +122,7 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   TF_AutoStatus tf_status;
-  TFE_AutoOp tfe_op(TFE_NewOp(tfe_context, op_name, tf_status.status));
+  TFE_AutoOp tfe_op(TFE_NewOp(tfe_context_, op_name, tf_status.status));
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
   uint32_t num_input_ids;
@@ -140,8 +138,8 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
     nstatus = napi_get_value_int32(env, cur_input_id, &cur_input_tensor_id);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-    auto input_tensor_entry = tfe_handle_map->find(cur_input_tensor_id);
-    if (input_tensor_entry == tfe_handle_map->end()) {
+    auto input_tensor_entry = tfe_handle_map_.find(cur_input_tensor_id);
+    if (input_tensor_entry == tfe_handle_map_.end()) {
       // TODO(kreeger): Print out the tensor ID?
       NAPI_THROW_ERROR(env, "Input Tensor ID not referenced");
       return nullptr;
@@ -163,10 +161,7 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
     AssignOpAttr(env, tfe_op.op, cur_op_attr);
 
     // Check to see if an exception exists, if so return a failure.
-    bool has_exception = false;
-    nstatus = napi_is_exception_pending(env, &has_exception);
-    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-    if (has_exception) {
+    if (IsExceptionPending(env)) {
       return nullptr;
     }
   }
@@ -176,10 +171,7 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   // Push `nullptr` to get a valid pointer in the call to `TFE_Execute()` below.
-  std::vector<TFE_TensorHandle*> result_handles;
-  for (int32_t i = 0; i < num_outputs; i++) {
-    result_handles.push_back(nullptr);
-  }
+  std::vector<TFE_TensorHandle*> result_handles(num_outputs, nullptr);
 
   int size = result_handles.size();
   TFE_Execute(tfe_op.op, result_handles.data(), &size, tf_status.status);

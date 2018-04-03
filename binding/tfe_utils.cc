@@ -45,9 +45,9 @@ bool IsCPUDevice(std::string& device_name) {
                     device_name.rbegin());
 }
 
-void CreateTFE_TensorHandleFromTypedArray(
+TFE_TensorHandle* CreateTFE_TensorHandleFromTypedArray(
     napi_env env, int64_t* shape, uint32_t shape_length, TF_DataType dtype,
-    napi_value typed_array_value, TFE_TensorHandle** tfe_tensor_handle) {
+    napi_value typed_array_value) {
   napi_status nstatus;
 
   napi_typedarray_type array_type;
@@ -56,7 +56,7 @@ void CreateTFE_TensorHandleFromTypedArray(
   nstatus =
       napi_get_typedarray_info(env, typed_array_value, &array_type,
                                &array_length, &array_data, nullptr, nullptr);
-  ENSURE_NAPI_OK(env, nstatus);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   // Double check the underlying TF_Tensor type matches the supplied
   // typed-array.
@@ -65,33 +65,33 @@ void CreateTFE_TensorHandleFromTypedArray(
     case napi_float32_array:
       if (dtype != TF_FLOAT) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Float32Array");
-        return;
+        return nullptr;
       }
       width = sizeof(float);
       break;
     case napi_int32_array:
       if (dtype != TF_INT32) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Int32Array");
-        return;
+        return nullptr;
       }
       width = sizeof(int32_t);
       break;
     case napi_uint8_array:
       if (dtype != TF_BOOL) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Uint8Array");
-        return;
+        return nullptr;
       }
       width = sizeof(uint8_t);
       break;
     default:
       REPORT_UNKNOWN_TYPED_ARRAY_TYPE(env, array_type);
-      return;
+      return nullptr;
   }
 
   // Double check that width matches TF data type size:
   if (width != TF_DataTypeSize(dtype)) {
     NAPI_THROW_ERROR(env, "Byte size of elements differs between JS VM and TF");
-    return;
+    return nullptr;
   }
 
   // Determine the size of the buffer based on the dimensions.
@@ -103,7 +103,7 @@ void CreateTFE_TensorHandleFromTypedArray(
   // Ensure the shape matches the length of the passed in typed-array.
   if (num_elements != array_length) {
     NAPI_THROW_ERROR(env, "Shape does not match typed-array in bindData()");
-    return;
+    return nullptr;
   }
 
   // Allocate and memcpy JS data to Tensor.
@@ -113,8 +113,10 @@ void CreateTFE_TensorHandleFromTypedArray(
   memcpy(TF_TensorData(tensor.tensor), array_data, byte_size);
 
   TF_AutoStatus tf_status;
-  *tfe_tensor_handle = TFE_NewTensorHandle(tensor.tensor, tf_status.status);
-  ENSURE_TF_OK(env, tf_status);
+  TFE_TensorHandle* tfe_tensor_handle =
+      TFE_NewTensorHandle(tensor.tensor, tf_status.status);
+  ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+  return tfe_tensor_handle;
 }
 
 void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
@@ -163,32 +165,33 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   if (IsCPUDevice(device_name)) {
     target_handle = tfe_tensor_handle;
   } else {
+    // TODO(kreeger): Cleanup this as needed.
     target_handle = TFE_TensorHandleCopyToDevice(tfe_tensor_handle, tfe_context,
                                                  nullptr, tf_status.status);
     ENSURE_TF_OK(env, tf_status);
     cleanup_handle = true;
   }
 
-  TF_Tensor* tensor = TFE_TensorHandleResolve(target_handle, tf_status.status);
+  TF_AutoTensor tensor(TFE_TensorHandleResolve(target_handle, tf_status.status));
   ENSURE_TF_OK(env, tf_status);
 
   // Determine the length of the array based on the shape of the tensor.
   size_t length = 0;
-  uint32_t num_dims = TF_NumDims(tensor);
+  uint32_t num_dims = TF_NumDims(tensor.tensor);
   if (num_dims == 0) {
     length = 1;
   } else {
     for (uint32_t i = 0; i < num_dims; i++) {
       if (i == 0) {
-        length = TF_Dim(tensor, i);
+        length = TF_Dim(tensor.tensor, i);
       } else {
-        length *= TF_Dim(tensor, i);
+        length *= TF_Dim(tensor.tensor, i);
       }
     }
   }
 
-  void* data = TF_TensorData(tensor);
-  size_t byte_length = TF_TensorByteSize(tensor);
+  void* data = TF_TensorData(tensor.tensor);
+  size_t byte_length = TF_TensorByteSize(tensor.tensor);
 
   napi_value array_buffer_value;
   nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,
@@ -198,8 +201,6 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
                                    0, result);
   ENSURE_NAPI_OK(env, nstatus);
-
-  TF_DeleteTensor(tensor);
 
   if (cleanup_handle) {
     TFE_DeleteTensorHandle(target_handle);
@@ -258,13 +259,13 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
   // OpAttr will be used beyond the scope of this function call. Stash ops in a
   // set for re-use instead of dynamically reallocating strings for operations.
   const char* attr_name;
-  auto result = ATTR_NAME_SET.find(attr_name_string);
+  std::string attr_name_str(attr_name_string);
+  auto result = ATTR_NAME_SET.find(attr_name_str);
   if (result == ATTR_NAME_SET.end()) {
-    auto insert_result = ATTR_NAME_SET.insert(std::string(attr_name_string));
-    // TODO assert success?
-    result = insert_result.first;
+    attr_name = ATTR_NAME_SET.insert(attr_name_str).first->c_str();
+  } else {
+    attr_name = (*result).c_str();
   }
-  attr_name = (*result).c_str();
 
   napi_value attr_type_value;
   nstatus = napi_get_named_property(env, attr_value, "type", &attr_type_value);
@@ -282,6 +283,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
   switch (tf_attr_type) {
     case TF_ATTR_STRING: {
+      // NOTE: String attribute values do not have to be utf8 encoded strings
+      // (could be arbitrary byte sequences).
       char value[NAPI_STRING_SIZE];
       nstatus = napi_get_value_string_utf8(env, type_input_value, value,
                                            NAPI_STRING_SIZE, nullptr);
@@ -305,7 +308,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
       nstatus = napi_get_value_bool(env, type_input_value, &value);
       ENSURE_NAPI_OK(env, nstatus);
 
-      TFE_OpSetAttrBool(tfe_op, attr_name, value);
+      TFE_OpSetAttrBool(tfe_op, attr_name, value ? 1 : 0);
       break;
     }
 
@@ -329,6 +332,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
       ENSURE_TF_OK(env, tf_status);
       break;
     }
+
+      // TODO(kreeger): Add support for list-value attributes.
 
     default:
       REPORT_UNKNOWN_TF_ATTR_TYPE(env, tf_attr_type);

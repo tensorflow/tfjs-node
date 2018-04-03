@@ -23,12 +23,10 @@
 
 namespace tfnodejs {
 
-// Copies a JS typed-array to the wrapped TF/TFE pointers.
-void CreateTFE_TensorHandleFromTypedArray(napi_env env, int64_t* shape,
-                                          uint32_t shape_length,
-                                          TF_DataType dtype,
-                                          napi_value typed_array_value,
-                                          TFE_TensorHandle** tfe_tensor_handle);
+// Creates a TFE_TensorHandle from a typed array.
+TFE_TensorHandle* CreateTFE_TensorHandleFromTypedArray(
+    napi_env env, int64_t* shape, uint32_t shape_length, TF_DataType dtype,
+    napi_value typed_array_value);
 
 // Returns a typed-array as a `napi_value` with the data associated with the
 // TF/TFE pointers.
