@@ -172,7 +172,8 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
     cleanup_handle = true;
   }
 
-  TF_AutoTensor tensor(TFE_TensorHandleResolve(target_handle, tf_status.status));
+  TF_AutoTensor tensor(
+      TFE_TensorHandleResolve(target_handle, tf_status.status));
   ENSURE_TF_OK(env, tf_status);
 
   // Determine the length of the array based on the shape of the tensor.
@@ -258,14 +259,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
   // OpAttr will be used beyond the scope of this function call. Stash ops in a
   // set for re-use instead of dynamically reallocating strings for operations.
-  const char* attr_name;
-  std::string attr_name_str(attr_name_string);
-  auto result = ATTR_NAME_SET.find(attr_name_str);
-  if (result == ATTR_NAME_SET.end()) {
-    attr_name = ATTR_NAME_SET.insert(attr_name_str).first->c_str();
-  } else {
-    attr_name = (*result).c_str();
-  }
+  const char* attr_name = ATTR_NAME_SET.insert(attr_name_string).first->c_str();
 
   napi_value attr_type_value;
   nstatus = napi_get_named_property(env, attr_value, "type", &attr_type_value);

@@ -28,7 +28,7 @@ class TFJSBackend {
  public:
   // TODO(kreeger): Move to a factory and make this private.
   TFJSBackend(napi_env env);
-  virtual ~TFJSBackend();
+  ~TFJSBackend();
 
   // Creates a new Tensor with given shape and data and returns an ID that
   // refernces the new Tensor.

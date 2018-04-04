@@ -33,9 +33,8 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
 }
 
 TFJSBackend::~TFJSBackend() {
-  for (auto iter = tfe_handle_map_.begin(); iter != tfe_handle_map_.end();
-       ++iter) {
-    TFE_DeleteTensorHandle(iter->second);
+  for (auto& kv : tfe_handle_map_) {
+    TFE_DeleteTensorHandle(kv.second);
   }
   if (tfe_context_ != nullptr) {
     TF_AutoStatus tf_status;
@@ -44,10 +43,8 @@ TFJSBackend::~TFJSBackend() {
 }
 
 int32_t TFJSBackend::InsertHandle(TFE_TensorHandle* tfe_handle) {
-  auto pair =
-      std::pair<int32_t, TFE_TensorHandle*>(next_tensor_id_++, tfe_handle);
-  tfe_handle_map_.insert(pair);
-  return pair.first;
+  return tfe_handle_map_.insert(std::make_pair(next_tensor_id_++, tfe_handle))
+      .first->first;
 }
 
 napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
