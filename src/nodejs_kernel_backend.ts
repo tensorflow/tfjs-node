@@ -599,7 +599,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   pad<T extends Tensor<Rank>>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
     // Bind tensor values
-    const paddingsTensor = tensor2d(paddings, [2, 2], 'int32');
+    const paddingsTensor = tensor2d(paddings, [paddings.length, 2], 'int32');
     const constantTensor = scalar(constantValue, x.dtype);
 
     const opAttrs = [

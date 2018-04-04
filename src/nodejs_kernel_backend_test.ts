@@ -19,13 +19,9 @@ import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:max-line-length
 import {expectArraysClose, expectArraysEqual, expectNumbersClose} from '@tensorflow/tfjs-core/dist/test_util';
 
-import {bindTensorFlowBackend} from '.';
-
-// BeforeEach?
-bindTensorFlowBackend();
-
 describe('delayed upload', () => {
   it('should handle data before op execution', () => {
+    console.log('!!!!!!!!!', tf.getBackend());
     const t = tf.tensor1d([1, 2, 3]);
     expectArraysClose(t, [1, 2, 3]);
 
