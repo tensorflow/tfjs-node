@@ -145,12 +145,16 @@ export class NodeJSKernelBackend implements KernelBackend {
     if (info.values != null) {
       return info.values;
     } else {
-      return this.binding.tensorDataSync(info.id);
+      const values = this.binding.tensorDataSync(info.id);
+      info.values = values;
+      this.tensorMap.set(dataId, info);
+      return values;
     }
   }
 
   disposeData(dataId: object): void {
     this.binding.deleteTensor(this.tensorMap.get(dataId).id);
+    this.tensorMap.delete(dataId);
   }
 
   write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {

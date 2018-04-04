@@ -199,6 +199,8 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
                                              nullptr, &array_buffer_value);
   ENSURE_NAPI_OK(env, nstatus);
 
+  // TODO(kreeger): Experiment with returning an ArrayBuffer instead of a
+  // TypedArray here.
   nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
                                    0, result);
   ENSURE_NAPI_OK(env, nstatus);
