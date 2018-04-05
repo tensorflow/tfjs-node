@@ -410,6 +410,16 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleInput('Tanh', x) as T;
   }
 
+  squaredDifference(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    throw new Error('Method not implemented.');
+  }
+  expm1<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  atan2<T extends Tensor<Rank>>(a: T, b: T): T {
+    throw new Error('Method not implemented.');
+  }
+
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
     const dtype = x.dtype;
     const nans = this.isNaN(x);
