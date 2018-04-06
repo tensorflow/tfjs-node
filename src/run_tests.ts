@@ -1,7 +1,13 @@
+import * as tfc from '@tensorflow/tfjs-core';
 import {bindTensorFlowBackend} from './index';
+
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
 bindTensorFlowBackend();
+
+tfc.test_util.setBeforeAll(() => {});
+tfc.test_util.setAfterAll(() => {});
+tfc.test_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 
 const IGNORE_LIST: string[] = [
   // Methods using browser-specific api.

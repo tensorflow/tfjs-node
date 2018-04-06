@@ -14,7 +14,7 @@
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "lint": "tslint -p . -t verbose",
     "test": "jasmine-ts \"src/**/*_test.ts\"",
-    "test-core": "node-ts src/run_tests.ts"
+    "test-core": "ts-node src/run_tests.ts"
   },
   "devDependencies": {
     "@tensorflow/tfjs-core": "0.6.0",
