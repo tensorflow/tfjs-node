@@ -21,7 +21,6 @@ import {expectArraysClose, expectArraysEqual, expectNumbersClose} from '@tensorf
 
 describe('delayed upload', () => {
   it('should handle data before op execution', () => {
-    console.log('!!!!!!!!!', tf.getBackend());
     const t = tf.tensor1d([1, 2, 3]);
     expectArraysClose(t, [1, 2, 3]);
 
