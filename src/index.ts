@@ -29,4 +29,5 @@ export function bindTensorFlowBackend() {
 
   tfc.ENV.registerBackend(
       'tensorflow', () => new NodeJSKernelBackend(nodeBinding));
+  tfc.setBackend('tensorflow');
 }
