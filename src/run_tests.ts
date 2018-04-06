@@ -11,26 +11,76 @@ tfc.test_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 
 const IGNORE_LIST: string[] = [
   // Methods using browser-specific api.
-  'loadWeights', 'time',
+  'loadWeights',
+  'time',
 
-  // Depends on backend.memory to be implemented.
+  // Backend methods.
+  'memory',
   'variable',
+  'debug',
+  'tidy',
 
   // Optimizers.
-  'RMSPropOptimizer', 'MomentumOptimizer', 'AdagradOptimizer',
-  'AdamaxOptimizer', 'AdamOptimizer', 'SGDOptimizer', 'AdadeltaOptimizer',
+  'RMSPropOptimizer',
+  'MomentumOptimizer',
+  'AdagradOptimizer',
+  'AdamaxOptimizer',
+  'AdamOptimizer',
+  'SGDOptimizer',
+  'AdadeltaOptimizer',
   'optimizer',
 
   // Unimplemented ops.
-  'clip', 'leakyRelu', 'elu', 'expm1', 'log1p', 'resizeBilinear', 'argmin',
-  'argmax', 'avgPool', 'multinomial', 'localResponseNormalization',
+  'clip',
+  'leakyRelu',
+  'elu',
+  'expm1',
+  'log1p',
+  'resizeBilinear',
+  'argmin',
+  'argmax',
+  'avgPool',
+  'multinomial',
+  'localResponseNormalization',
   'logicalXor',
+  'depthwiseConv2D',
+  'conv1d',
+  'conv2dTranspose',
+  'conv2d',
+  'atan2',
+  'squaredDifference',
+  'prelu',
+  'batchNormalization2D',
+  'batchNormalization3D',
+  'batchNormalization4D',
+  'tile',
 
   // Ops with bugs. Some are higher-level ops.
-  'mean', 'relu', 'norm', 'moments',
+  'mean',
+  'relu',
+  'norm',
+  'moments',
   'sum',  // In browser we allow sum(bool), but TF requires numeric dtype.
   'max',  // Doesn't propagate NaN.
   'min',  // Doesn't propagate NaN.
+  'logicalAnd',
+  'logicalNot',
+  'greaterEqual',
+  'greater',
+  'lessEqual',
+  'less',
+  'notEqualStrict',
+  'notEqual',
+  'equalStrict',
+  'equal',
+  'oneHot',
+  'gather',
+  'fromPixels',
+  'pow',
+
+  // Depends on ops being fixed first.
+  'gradients',
+  'customGradient',
 ];
 
 const runner = new jasmineCtor();
