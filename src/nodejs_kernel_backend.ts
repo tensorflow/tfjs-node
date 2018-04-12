@@ -153,7 +153,10 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   disposeData(dataId: object): void {
-    this.binding.deleteTensor(this.tensorMap.get(dataId).id);
+    const id = this.tensorMap.get(dataId).id;
+    if (id != null && id >= 0) {
+      this.binding.deleteTensor(id);
+    }
     this.tensorMap.delete(dataId);
   }
 
@@ -450,6 +453,31 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   tanh<T extends Tensor<Rank>>(x: T): T {
     return this.executeSingleInput('Tanh', x) as T;
+  }
+
+  mod(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    throw new Error('Method not implemented.');
+  }
+  round<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  sign<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  rsqrt<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  reciprocal<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  asinh<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  acosh<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  atanh<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
   }
 
   squaredDifference(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {

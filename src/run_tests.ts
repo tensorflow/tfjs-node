@@ -7,6 +7,8 @@ bindTensorFlowBackend();
 
 tfc.test_util.setBeforeAll(() => {});
 tfc.test_util.setAfterAll(() => {});
+tfc.test_util.setBeforeEach(() => {});
+tfc.test_util.setAfterEach(() => {});
 tfc.test_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 
 const IGNORE_LIST: string[] = [
@@ -54,6 +56,15 @@ const IGNORE_LIST: string[] = [
   'batchNormalization3D',
   'batchNormalization4D',
   'tile',
+  'rsqrt',
+  'sign',
+  'acosh',
+  'asinh',
+  'atanh',
+  'reciprocal',
+  'round',
+  'separableConv2d',
+  'mod',
 
   // Ops with bugs. Some are higher-level ops.
   'mean',
@@ -77,6 +88,8 @@ const IGNORE_LIST: string[] = [
   'gather',
   'fromPixels',
   'pow',
+  'absoluteDifference',
+  'computeWeightedLoss',
 
   // Depends on ops being fixed first.
   'gradients',
