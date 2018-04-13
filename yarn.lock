@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@tensorflow/tfjs-core":
+"@tensorflow/tfjs-core@tensorflow/tfjs-core#master":
   version "0.7.1"
-  resolved "https://codeload.github.com/tensorflow/tfjs-core/tar.gz/af4ca075dbfafd7469f54b7e926b680792aa3585"
+  resolved "https://codeload.github.com/tensorflow/tfjs-core/tar.gz/bea84530b516180775d9037e472e2d1159d723f1"
   dependencies:
     seedrandom "~2.4.3"
 

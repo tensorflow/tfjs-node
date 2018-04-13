@@ -78,24 +78,13 @@ const IGNORE_LIST: string[] = [
   'round',
   'separableConv2d',
   'mod',
+  'maxPool',
+  'minPool',
 
   // Ops with bugs. Some are higher-level ops.
-  'norm',
-  'max',  // Doesn't propagate NaN.
-  'min',  // Doesn't propagate NaN.
-  'logicalAnd',
-  'logicalNot',
-  'greaterEqual',
-  'greater',
-  'lessEqual',
-  'less',
-  'notEqualStrict',
-  'notEqual',
-  'equalStrict',
-  'equal',
+  'norm',  // Depends on tf.pow being fixed.
   'oneHot',
   'gather',
-  'fromPixels',
   'pow',
   'absoluteDifference',
   'computeWeightedLoss',
