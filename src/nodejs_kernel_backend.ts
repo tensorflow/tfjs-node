@@ -402,18 +402,6 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleInput('Selu', x) as T;
   }
 
-  leakyRelu<T extends Tensor>(x: T, alpha: number): T {
-    throw new Error('Method not implemented.');
-  }
-
-  prelu<T extends Tensor>(x: T, alpha: T): T {
-    throw new Error('Method not implemented.');
-  }
-
-  preluDer<T extends Tensor>(x: T, alpha: T): T {
-    throw new Error('Method not implemented.');
-  }
-
   int<T extends Tensor>(x: T): T {
     throw new Error('Method not implemented.');
   }
@@ -792,9 +780,23 @@ export class NodeJSKernelBackend implements KernelBackend {
       normRegion: 'acrossChannels'|'withinChannel'): Tensor4D {
     throw new Error('Method not implemented.');
   }
-  multinomial(probabilities: Tensor2D, numSamples: number, seed: number):
-      Tensor2D {
-    throw new Error('Method not implemented.');
+  multinomial(
+      logits: Tensor2D, normalized: boolean, numSamples: number,
+      seed: number): Tensor2D {
+    if (normalized) {
+      throw new Error(
+          'TF Node backend does not support normalized logits ' +
+          'passed to multinomial');
+    }
+    const opAttrs = [
+      this.createTypeOpAttr('T', logits.dtype),
+      this.createTypeOpAttr('output_dtype', 'int32'),
+      {name: 'seed', type: this.binding.TF_ATTR_INT, value: seed},
+      {name: 'seed2', type: this.binding.TF_ATTR_INT, value: seed * seed},
+    ];
+    return this.executeSingleOutput(
+               'Multinomial', opAttrs, [logits, scalar(numSamples, 'int32')]) as
+        Tensor2D;
   }
 
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
