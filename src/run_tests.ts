@@ -29,12 +29,8 @@ tfc.test_util.setAfterEach(() => {});
 tfc.test_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 
 const IGNORE_LIST: string[] = [
-  // Unimplemented ops.
-  'resizeBilinear',
-  'localResponseNormalization',
   'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
-  'batchNormalization',
-  'separableConv2d',
+  'separableConv2d',  // Requires space_to_batch() for dilation > 1.
 ];
 
 const runner = new jasmineCtor();

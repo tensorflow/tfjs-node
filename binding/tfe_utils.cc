@@ -322,6 +322,14 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
       break;
     }
 
+    case TF_ATTR_FLOAT: {
+      double value;
+      auto nstatus = napi_get_value_double(env, js_value, &value);
+      ENSURE_NAPI_OK(env, nstatus);
+      TFE_OpSetAttrFloat(tfe_op, attr_name, static_cast<float>(value));
+      break;
+    }
+
     case TF_ATTR_BOOL: {
       bool value;
       nstatus = napi_get_value_bool(env, js_value, &value);

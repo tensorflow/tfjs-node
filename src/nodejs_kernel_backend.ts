@@ -127,6 +127,14 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.createOutputTensor(outputMetadata[0]);
   }
 
+  private executeMultipleOutputs(
+      name: string, opAttrs: TFEOpAttr[], inputs: Tensor[],
+      numOutputs: number): Tensor[] {
+    const outputMetadata = this.binding.executeOp(
+        name, opAttrs, this.getInputTensorIds(inputs), numOutputs);
+    return outputMetadata.map(m => this.createOutputTensor(m));
+  }
+
   dispose(): void {
     throw new Error('Method not implemented.');
   }
@@ -517,13 +525,14 @@ export class NodeJSKernelBackend implements KernelBackend {
     const opAttrs = [
       this.createTypeOpAttr('T', x.dtype),
       {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
-      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding},
+      {
         name: 'data_format',
         type: this.binding.TF_ATTR_STRING,
         value: dataFormat
       },
       {name: 'use_cudnn_on_gpu', type: this.binding.TF_ATTR_BOOL, value: true},
-      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
+      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations},
     ];
     return this.executeSingleOutput('Conv2D', opAttrs, [x, filter]) as Tensor4D;
   }
@@ -767,18 +776,61 @@ export class NodeJSKernelBackend implements KernelBackend {
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      {
+        name: 'align_corners',
+        type: this.binding.TF_ATTR_BOOL,
+        value: alignCorners
+      },
+    ];
+    const size = tensor1d([newHeight, newWidth], 'int32');
+    return this.executeSingleOutput('ResizeBilinear', opAttrs, [x, size]) as
+        Tensor4D;
   }
-  batchNormalization4D(
+  batchNormalization(
       x: Tensor4D, mean: Tensor1D|Tensor4D, variance: Tensor1D|Tensor4D,
-      varianceEpsilon: number, scale: Tensor1D|Tensor4D,
-      offset: Tensor1D|Tensor4D): Tensor4D {
-    throw new Error('Method not implemented.');
+      varianceEpsilon: number, scale?: Tensor1D|Tensor4D,
+      offset?: Tensor1D|Tensor4D): Tensor4D {
+    const dataFormat = 'NHWC';
+    const depth = x.shape[3];
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      {
+        name: 'epsilon',
+        type: this.binding.TF_ATTR_FLOAT,
+        value: varianceEpsilon
+      },
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+      {name: 'is_training', type: this.binding.TF_ATTR_BOOL, value: false},
+    ];
+    const numOutputs = 5;
+    if (scale == null) {
+      scale = fill([depth], 1) as Tensor1D;
+    }
+    if (offset == null) {
+      offset = fill([depth], 0) as Tensor1D;
+    }
+    return this.executeMultipleOutputs(
+               'FusedBatchNorm', opAttrs, [x, scale, offset, mean, variance],
+               numOutputs)[0] as Tensor4D;
   }
+
   localResponseNormalization4D(
-      x: Tensor4D, radius: number, bias: number, alpha: number, beta: number,
-      normRegion: 'acrossChannels'|'withinChannel'): Tensor4D {
-    throw new Error('Method not implemented.');
+      x: Tensor4D, radius: number, bias: number, alpha: number,
+      beta: number): Tensor4D {
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      {name: 'depth_radius', type: this.binding.TF_ATTR_INT, value: radius},
+      {name: 'bias', type: this.binding.TF_ATTR_FLOAT, value: bias},
+      {name: 'alpha', type: this.binding.TF_ATTR_FLOAT, value: alpha},
+      {name: 'beta', type: this.binding.TF_ATTR_FLOAT, value: beta},
+    ];
+    return this.executeSingleOutput('LRN', opAttrs, [x]) as Tensor4D;
   }
   multinomial(
       logits: Tensor2D, normalized: boolean, numSamples: number,
