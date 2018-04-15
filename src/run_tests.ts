@@ -31,33 +31,15 @@ tfc.test_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 const IGNORE_LIST: string[] = [
   // Unimplemented ops.
   'leakyRelu',
-  'elu',
-  'expm1',
-  'log1p',
   'resizeBilinear',
   'multinomial',
   'localResponseNormalization',
-  'logicalXor',
-  'depthwiseConv2D',
-  'conv1d',
-  'conv2dTranspose',
-  'conv2d',
-  'atan2',
-  'squaredDifference',
+  'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
   'prelu',
   'batchNormalization2D',
   'batchNormalization3D',
   'batchNormalization4D',
-  'tile',
-  'rsqrt',
-  'sign',
-  'acosh',
-  'asinh',
-  'atanh',
-  'reciprocal',
-  'round',
   'separableConv2d',
-  'mod',
 ];
 
 const runner = new jasmineCtor();
