@@ -15,14 +15,13 @@
  * =============================================================================
  */
 
-import {fill, ones, scalar, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line:max-line-length
+import {fill, ones, scalar, Tensor, tensor1d, Tensor1D, tensor2d, Tensor2D, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:max-line-length
 import {BackendTimingInfo, KernelBackend} from '@tensorflow/tfjs-core/dist/kernels/backend';
-// tslint:disable-next-line:max-line-length
-import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core/dist/tensor';
+import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 // tslint:disable-next-line:max-line-length
 import {DataType, Rank, ShapeMap, upcastType} from '@tensorflow/tfjs-core/dist/types';
-
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
@@ -31,6 +30,8 @@ type TensorInfo = {
   values: Float32Array|Int32Array|Uint8Array,
   id: number
 };
+
+interface DataId {}
 
 export class NodeJSKernelBackend implements KernelBackend {
   private binding: TFJSBinding;
@@ -252,11 +253,24 @@ export class NodeJSKernelBackend implements KernelBackend {
         'Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
   }
 
-  argMin(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+  argMin(x: Tensor<Rank>, axis: number): Tensor<Rank> {
+    const axisScalar = scalar(axis, 'int32');
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tidx', 'int32'),
+      this.createTypeOpAttr('output_type', 'int32')
+    ];
+    return this.executeSingleOutput('ArgMin', opAttrs, [x, axisScalar]);
   }
-  argMax(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+
+  argMax(x: Tensor<Rank>, axis: number): Tensor<Rank> {
+    const axisScalar = scalar(axis, 'int32');
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tidx', 'int32'),
+      this.createTypeOpAttr('output_type', 'int32')
+    ];
+    return this.executeSingleOutput('ArgMax', opAttrs, [x, axisScalar]);
   }
 
   equal(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
@@ -408,7 +422,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   clip<T extends Tensor<Rank>>(x: T, min: number, max: number): T {
-    throw new Error('Method not implemented.');
+    const xMin = this.minimum(x, scalar(max));
+    return this.maximum(xMin, scalar(min)) as T;
   }
 
   abs<T extends Tensor<Rank>>(x: T): T {
@@ -499,158 +514,116 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.where(nans, x, stepNoNans, dtype) as T;
   }
 
-  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
-    batchSize: number; inHeight: number; inWidth: number; inChannels: number;
-    outHeight: number;
-    outWidth: number;
-    outChannels: number;
-    dataFormat: 'channelsFirst' | 'channelsLast';
-    strideHeight: number;
-    strideWidth: number;
-    filterHeight: number;
-    filterWidth: number;
-    padInfo: {top: number; left: number; right: number; bottom: number;};
-    inShape: [number, number, number, number];
-    outShape: [number, number, number, number];
-    filterShape: [number, number, number, number];
-  }): Tensor4D {
+  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     throw new Error('Method not implemented.');
   }
-  conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: {
-    batchSize: number; inHeight: number; inWidth: number; inChannels: number;
-    outHeight: number;
-    outWidth: number;
-    outChannels: number;
-    dataFormat: 'channelsFirst' | 'channelsLast';
-    strideHeight: number;
-    strideWidth: number;
-    filterHeight: number;
-    filterWidth: number;
-    padInfo: {top: number; left: number; right: number; bottom: number;};
-    inShape: [number, number, number, number];
-    outShape: [number, number, number, number];
-    filterShape: [number, number, number, number];
-  }): Tensor4D {
+  conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     throw new Error('Method not implemented.');
   }
-  conv2dDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: {
-    batchSize: number; inHeight: number; inWidth: number; inChannels: number;
-    outHeight: number;
-    outWidth: number;
-    outChannels: number;
-    dataFormat: 'channelsFirst' | 'channelsLast';
-    strideHeight: number;
-    strideWidth: number;
-    filterHeight: number;
-    filterWidth: number;
-    padInfo: {top: number; left: number; right: number; bottom: number;};
-    inShape: [number, number, number, number];
-    outShape: [number, number, number, number];
-    filterShape: [number, number, number, number];
-  }): Tensor4D {
+  conv2dDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     throw new Error('Method not implemented.');
   }
-  depthwiseConv2D(input: Tensor4D, filter: Tensor4D, convInfo: {
-    batchSize: number; inHeight: number; inWidth: number; inChannels: number;
-    outHeight: number;
-    outWidth: number;
-    outChannels: number;
-    dataFormat: 'channelsFirst' | 'channelsLast';
-    strideHeight: number;
-    strideWidth: number;
-    filterHeight: number;
-    filterWidth: number;
-    padInfo: {top: number; left: number; right: number; bottom: number;};
-    inShape: [number, number, number, number];
-    outShape: [number, number, number, number];
-    filterShape: [number, number, number, number];
-  }): Tensor4D {
+  depthwiseConv2D(input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     throw new Error('Method not implemented.');
   }
-  maxPool(x: Tensor4D, convInfo: {
-    batchSize: number; inHeight: number; inWidth: number; inChannels: number;
-    outHeight: number;
-    outWidth: number;
-    outChannels: number;
-    dataFormat: 'channelsFirst' | 'channelsLast';
-    strideHeight: number;
-    strideWidth: number;
-    filterHeight: number;
-    filterWidth: number;
-    padInfo: {top: number; left: number; right: number; bottom: number;};
-    inShape: [number, number, number, number];
-    outShape: [number, number, number, number];
-    filterShape: [number, number, number, number];
-  }): Tensor4D {
-    throw new Error('Method not implemented.');
+  maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+      throw new Error(
+          `TF Backend supports only 'valid' and 'same' padding ` +
+          `while padding was ${convInfo.padInfo.type}`);
+    }
+    const ksize = [1, convInfo.filterHeight, convInfo.filterWidth, 1];
+    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding},
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+    ];
+    return this.executeSingleOutput('MaxPool', opAttrs, [x]) as Tensor4D;
   }
-  maxPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: {
-    batchSize: number; inHeight: number; inWidth: number; inChannels: number;
-    outHeight: number;
-    outWidth: number;
-    outChannels: number;
-    dataFormat: 'channelsFirst' | 'channelsLast';
-    strideHeight: number;
-    strideWidth: number;
-    filterHeight: number;
-    filterWidth: number;
-    padInfo: {top: number; left: number; right: number; bottom: number;};
-    inShape: [number, number, number, number];
-    outShape: [number, number, number, number];
-    filterShape: [number, number, number, number];
-  }): Tensor4D {
-    throw new Error('Method not implemented.');
+  maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
+    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+      throw new Error(
+          `TF Backend supports only 'valid' and 'same' padding ` +
+          `while padding type was ${convInfo.padInfo.type}`);
+    }
+    const ksize = [1, convInfo.filterHeight, convInfo.filterWidth, 1];
+    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding},
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+    ];
+    return this.executeSingleOutput('MaxPoolGrad', opAttrs, [x, y, dy]) as
+        Tensor4D;
   }
-  minPool(x: Tensor4D, convInfo: {
-    batchSize: number; inHeight: number; inWidth: number; inChannels: number;
-    outHeight: number;
-    outWidth: number;
-    outChannels: number;
-    dataFormat: 'channelsFirst' | 'channelsLast';
-    strideHeight: number;
-    strideWidth: number;
-    filterHeight: number;
-    filterWidth: number;
-    padInfo: {top: number; left: number; right: number; bottom: number;};
-    inShape: [number, number, number, number];
-    outShape: [number, number, number, number];
-    filterShape: [number, number, number, number];
-  }): Tensor4D {
-    throw new Error('Method not implemented.');
+
+  avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+      throw new Error(
+          `TF Backend supports only 'valid' and 'same' padding ` +
+          `while padding was ${convInfo.padInfo.type}`);
+    }
+    const ksize = [1, convInfo.filterHeight, convInfo.filterWidth, 1];
+    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding},
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+    ];
+    return this.executeSingleOutput('AvgPool', opAttrs, [x]) as Tensor4D;
   }
-  avgPool(x: Tensor4D, convInfo: {
-    batchSize: number; inHeight: number; inWidth: number; inChannels: number;
-    outHeight: number;
-    outWidth: number;
-    outChannels: number;
-    dataFormat: 'channelsFirst' | 'channelsLast';
-    strideHeight: number;
-    strideWidth: number;
-    filterHeight: number;
-    filterWidth: number;
-    padInfo: {top: number; left: number; right: number; bottom: number;};
-    inShape: [number, number, number, number];
-    outShape: [number, number, number, number];
-    filterShape: [number, number, number, number];
-  }): Tensor4D {
-    throw new Error('Method not implemented.');
-  }
-  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: {
-    batchSize: number; inHeight: number; inWidth: number; inChannels: number;
-    outHeight: number;
-    outWidth: number;
-    outChannels: number;
-    dataFormat: 'channelsFirst' | 'channelsLast';
-    strideHeight: number;
-    strideWidth: number;
-    filterHeight: number;
-    filterWidth: number;
-    padInfo: {top: number; left: number; right: number; bottom: number;};
-    inShape: [number, number, number, number];
-    outShape: [number, number, number, number];
-    filterShape: [number, number, number, number];
-  }): Tensor4D {
-    throw new Error('Method not implemented.');
+  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+    if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+      throw new Error(
+          `TF Backend supports only 'valid' and 'same' padding ` +
+          `while padding type was ${convInfo.padInfo.type}`);
+    }
+    const ksize = [1, convInfo.filterHeight, convInfo.filterWidth, 1];
+    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      {name: 'ksize', type: this.binding.TF_ATTR_INT, value: ksize},
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding},
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+    ];
+    const origInputShape = tensor1d(x.shape, 'int32');
+    return this.executeSingleOutput(
+               'AvgPoolGrad', opAttrs, [origInputShape, dy]) as Tensor4D;
   }
 
   reshape<T extends Tensor<Rank>, R extends Rank>(x: T, shape: ShapeMap[R]):
@@ -755,12 +728,20 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
 
-  memory(): {unreliable: boolean;} {
-    throw new Error('Method not implemented.');
+  memory() {
+    // Due to automatic garbage collection, the numbers are unreliable.
+    // TODO: Since there is finalization in C, count the true
+    // number of undisposed tensors.
+    return {unreliable: true};
   }
 
-  time(f: () => void): Promise<BackendTimingInfo> {
-    throw new Error('Method not implemented.');
+  async time(f: () => void): Promise<BackendTimingInfo> {
+    const start = process.hrtime();
+    f();
+    // hrtime() returns tuple of [seconds, nanoseconds], and we need to return
+    // milliseconds.
+    const elapsed = process.hrtime(start);
+    return {kernelMs: elapsed[0] * 1000 + elapsed[1] / 1000000};
   }
 
   isNaN<T extends Tensor<Rank>>(x: T): T {

@@ -29,32 +29,12 @@ tfc.test_util.setAfterEach(() => {});
 tfc.test_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 
 const IGNORE_LIST: string[] = [
-  // Backend methods.
-  'memory',
-  'variable',  // Depends on backend.memory
-  'debug',     // Depends on backend.time
-  'tidy',      // Depeonds on backend.memory
-
-  // Optimizers.
-  'RMSPropOptimizer',
-  'MomentumOptimizer',
-  'AdagradOptimizer',
-  'AdamaxOptimizer',
-  'AdamOptimizer',
-  'SGDOptimizer',
-  'AdadeltaOptimizer',
-  'optimizer',
-
   // Unimplemented ops.
-  'clip',
   'leakyRelu',
   'elu',
   'expm1',
   'log1p',
   'resizeBilinear',
-  'argmin',
-  'argmax',
-  'avgPool',
   'multinomial',
   'localResponseNormalization',
   'logicalXor',
@@ -78,20 +58,6 @@ const IGNORE_LIST: string[] = [
   'round',
   'separableConv2d',
   'mod',
-  'maxPool',
-  'minPool',
-
-  // Ops with bugs. Some are higher-level ops.
-  'norm',  // Depends on tf.pow being fixed.
-  'oneHot',
-  'gather',
-  'pow',
-  'absoluteDifference',
-  'computeWeightedLoss',
-
-  // Depends on ops being fixed first.
-  'gradients',
-  'customGradient',
 ];
 
 const runner = new jasmineCtor();
