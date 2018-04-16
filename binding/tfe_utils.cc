@@ -312,7 +312,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
           ENSURE_NAPI_OK(env, nstatus);
           data[i] = value;
         }
-        TFE_OpSetAttrIntList(tfe_op, attr_name, data.get(), static_cast<int>(length));
+        TFE_OpSetAttrIntList(
+            tfe_op, attr_name, data.get(), static_cast<int>(length));
       } else {
         int64_t value;
         nstatus = napi_get_value_int64(env, js_value, &value);
@@ -338,7 +339,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
           ENSURE_NAPI_OK(env, nstatus);
           data[i] = static_cast<float>(value);
         }
-        TFE_OpSetAttrFloatList(tfe_op, attr_name, data.get(), static_cast<int>(length));
+        TFE_OpSetAttrFloatList(
+            tfe_op, attr_name, data.get(), static_cast<int>(length));
       } else {
         double value;
         nstatus = napi_get_value_double(env, js_value, &value);
@@ -363,7 +365,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
           ENSURE_NAPI_OK(env, nstatus);
           data[i] = value ? 1 : 0;
         }
-        TFE_OpSetAttrBoolList(tfe_op, attr_name, data.get(), static_cast<int>(length));
+        TFE_OpSetAttrBoolList(
+            tfe_op, attr_name, data.get(), static_cast<int>(length));
       } else {
         bool value;
         nstatus = napi_get_value_bool(env, js_value, &value);
