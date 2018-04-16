@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {BackendTimingInfo, DataType, fill, KernelBackend, logicalAnd, logicalOr, ones, Rank, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
@@ -318,11 +318,6 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   logicalOr(a: Tensor, b: Tensor): Tensor {
     return this.executeSingleOutput('LogicalOr', [], [a, b]);
-  }
-
-  logicalXor(a: Tensor, b: Tensor): Tensor {
-    // x ^ y = (x | y) & ~(x & y)
-    return logicalOr(a, b).logicalAnd(logicalAnd(a, b).logicalNot());
   }
 
   where(condition: Tensor, a: Tensor, b: Tensor, dtype: DataType): Tensor {
