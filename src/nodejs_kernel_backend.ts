@@ -493,6 +493,10 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleInput('Expm1', x) as T;
   }
 
+  softplus<T extends Tensor>(x: T): T {
+    return this.executeSingleInput('Softplus', x) as T;
+  }
+
   atan2<T extends Tensor>(a: T, b: T): T {
     const opAttrs = [this.createTypeOpAttr('T', a.dtype)];
     return this.executeSingleOutput('Atan2', opAttrs, [a, b]) as T;
