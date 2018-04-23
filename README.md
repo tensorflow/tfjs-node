@@ -25,6 +25,9 @@ yarn
 
 # Link the tfjs-node NPM we published above.
 yarn link-local tfjs-node
+
+# Run the training script.
+yarn mnist
 ```
 
 The important line to note is at the top of `mnist.ts`, which sets the backend to
