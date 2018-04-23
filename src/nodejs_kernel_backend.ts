@@ -16,9 +16,12 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+import {fill, ones, Rank, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line:max-line-length
+import {BackendTimingInfo, KernelBackend} from '@tensorflow/tfjs-core/dist/kernels/backend';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
-import {upcastType} from '@tensorflow/tfjs-core/dist/types';
+import {DataType, ShapeMap, upcastType} from '@tensorflow/tfjs-core/dist/types';
+
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
@@ -31,6 +34,14 @@ type TensorInfo = {
 interface DataId {}
 
 export class NodeJSKernelBackend implements KernelBackend {
+  erf<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  resizeNearestNeighbor(
+      x: Tensor<Rank.R4>, newHEight: number, newWidth: number,
+      alignCorners: boolean): Tensor<Rank.R4> {
+    throw new Error('Method not implemented.');
+  }
   private binding: TFJSBinding;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
@@ -810,9 +821,6 @@ export class NodeJSKernelBackend implements KernelBackend {
     const numOutputs = 5;
     if (scale == null) {
       scale = fill([depth], 1) as Tensor1D;
-    }
-    if (offset == null) {
-      offset = fill([depth], 0) as Tensor1D;
     }
     return this.executeMultipleOutputs(
                'FusedBatchNorm', opAttrs, [x, scale, offset, mean, variance],
