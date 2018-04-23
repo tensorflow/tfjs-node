@@ -26,7 +26,7 @@ yarn
 # Link the tfjs-node NPM we published above.
 yarn link-local tfjs-node
 
-# Run the training script.
+# Run the training script. See demo/package.json for this script.
 yarn mnist
 ```
 
