@@ -484,7 +484,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleInput('Atanh', x) as T;
   }
 
-  erf<T extends Tensor<Rank>>(x: T): T {
+  erf<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Erf', x) as T;
   }
 
@@ -793,8 +793,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   resizeNearestNeighbor(
-      x: Tensor<Rank.R4>, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor<Rank.R4> {
+      x: Tensor4D, newHeight: number, newWidth: number,
+      alignCorners: boolean): Tensor4D {
     const opAttrs = [
       this.createTypeOpAttr('T', x.dtype),
       {
