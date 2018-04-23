@@ -8,11 +8,8 @@ repository, however we plan on publishing on NPM soon.
 
 ## Trying it out
 
-When you run `yarn`, it downloads a libtensorflow binary (v1.8) for your system and installs
-JavaScript dependencies.
-
 ```sh
-# Download and install depencies, including libtensorflow
+# Download and install JS depencies, including libtensorflow 1.8.
 yarn
 
 # Publish the NPM locally for usage with other packages.
