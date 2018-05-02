@@ -20,9 +20,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <string>
-#include <memory>
 #include <vector>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 #include "tf_auto_status.h"
@@ -44,6 +44,32 @@ bool IsCPUDevice(std::string& device_name) {
                  ::tolower);
   return std::equal(CPU_DEVICE_0.rbegin(), CPU_DEVICE_0.rend(),
                     device_name.rbegin());
+}
+
+bool GetGPUDeviceName(napi_env env, TFE_Context* ctx,
+                      std::string* gpu_device_name) {
+  TF_AutoStatus tf_status;
+
+  TF_DeviceList* devices = TFE_ContextListDevices(ctx, tf_status.status);
+  ENSURE_TF_OK_RETVAL(env, tf_status, false);
+
+  const int num_devices = TF_DeviceListCount(devices);
+  for (int i = 0; i < num_devices; i++) {
+    const std::string device_type(
+        TF_DeviceListType(devices, i, tf_status.status));
+    ENSURE_TF_OK_RETVAL(env, tf_status, false);
+    const std::string device_name(
+        TF_DeviceListName(devices, i, tf_status.status));
+    ENSURE_TF_OK_RETVAL(env, tf_status, false);
+    if (device_type == "GPU") {
+      *gpu_device_name = device_name;
+      /* printf("Found GPU device: %s\n", device_name.c_str()); */
+      TF_DeleteDeviceList(devices);
+      return true;
+    }
+  }
+  TF_DeleteDeviceList(devices);
+  return false;
 }
 
 TFE_TensorHandle* CreateTFE_TensorHandleFromTypedArray(
@@ -312,8 +338,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
           ENSURE_NAPI_OK(env, nstatus);
           data[i] = value;
         }
-        TFE_OpSetAttrIntList(
-            tfe_op, attr_name, data.get(), static_cast<int>(length));
+        TFE_OpSetAttrIntList(tfe_op, attr_name, data.get(),
+                             static_cast<int>(length));
       } else {
         int64_t value;
         nstatus = napi_get_value_int64(env, js_value, &value);
@@ -339,8 +365,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
           ENSURE_NAPI_OK(env, nstatus);
           data[i] = static_cast<float>(value);
         }
-        TFE_OpSetAttrFloatList(
-            tfe_op, attr_name, data.get(), static_cast<int>(length));
+        TFE_OpSetAttrFloatList(tfe_op, attr_name, data.get(),
+                               static_cast<int>(length));
       } else {
         double value;
         nstatus = napi_get_value_double(env, js_value, &value);
@@ -365,8 +391,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
           ENSURE_NAPI_OK(env, nstatus);
           data[i] = value ? 1 : 0;
         }
-        TFE_OpSetAttrBoolList(
-            tfe_op, attr_name, data.get(), static_cast<int>(length));
+        TFE_OpSetAttrBoolList(tfe_op, attr_name, data.get(),
+                              static_cast<int>(length));
       } else {
         bool value;
         nstatus = napi_get_value_bool(env, js_value, &value);

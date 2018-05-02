@@ -15,6 +15,7 @@
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "lint": "tslint -p . -t verbose",
     "test": "ts-node src/run_tests.ts",
+    "debug": "node-gyp -d rebuild",
     "publish-local": "yarn prep && yarn build && yalc push"
   },
   "devDependencies": {
