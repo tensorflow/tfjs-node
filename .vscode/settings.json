@@ -22,8 +22,7 @@
     "*.ipp": "cpp",
     "array": "cpp",
     "initializer_list": "cpp",
-    "string_view": "cpp",
-    "__tuple": "cpp"
+    "string_view": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,
