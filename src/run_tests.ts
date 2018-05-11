@@ -15,12 +15,14 @@
  * =============================================================================
  */
 
+import './index';
+import * as tfc from '@tensorflow/tfjs-core';
+tfc.setBackend('tensorflow');
+
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
-import {bindTensorFlowBackend} from './index';
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
-bindTensorFlowBackend();
 
 jasmine_util.setBeforeAll(() => {});
 jasmine_util.setAfterAll(() => {});
@@ -30,10 +32,12 @@ jasmine_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 
 const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
-  'depthwiseConv2D',       // Requires space_to_batch() for dilation > 1.
-  'separableConv2d',       // Requires space_to_batch() for dilation > 1.
-  'div',                   // https://github.com/tensorflow/tfjs/issues/215
-  'resizeNearestNeighbor'  // https://github.com/tensorflow/tfjs/issues/221
+  'depthwiseConv2D',        // Requires space_to_batch() for dilation > 1.
+  'separableConv2d',        // Requires space_to_batch() for dilation > 1.
+  'div',                    // https://github.com/tensorflow/tfjs/issues/215
+  'resizeNearestNeighbor',  // https://github.com/tensorflow/tfjs/issues/221
+  // https://github.com/tensorflow/tfjs/issues/279
+  'browser', 'LocalStorage', 'arrayBufferToBase64String', 'stringByteLength'
 ];
 
 const runner = new jasmineCtor();

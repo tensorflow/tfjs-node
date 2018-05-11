@@ -1,6 +1,11 @@
 .vscode/
 demo/
-scripts/
+deps/tensorflow/*
+scripts/build-npm.sh
+scripts/make-version
+scripts/tag-version
+scripts/publish-npm.sh
+build/
 src/
 node_modules/
 *.tgz
@@ -10,4 +15,5 @@ CONTRIBUTING.md
 tslint.json
 yarn.lock
 yalc.lock
+yarn-error.log
 .yalc/

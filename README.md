@@ -1,19 +1,33 @@
 # TensorFlow backend for TensorFlow.js via Node.js
 
-**This repo is under active development and is not production-ready. We will be
-actively developing this in open source. Stay tuned for an official release.**
+**This repo is under active development and is not production-ready. We are
+actively developing as an open source project.**
 
-Currently, we only support developing TensorFlow.js code directly inside of this
-repository, however we plan on publishing on NPM soon.
-
-## Trying it out
+## Installing 
 
 ```sh
-# Download and install JS depencies, including libtensorflow 1.8.
+npm install @tensorflow/tfjs-node
+(or)
+yarn add @tensorflow/tfjs-node
+```
+
+Before executing any TensorFlow.js code, load and set the backend to 'tensorflow'.
+
+```js
+import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-node';
+
+tf.setBackend('tensorflow');
+```
+
+## Development
+
+```sh
+# Download and install JS dependencies, including libtensorflow 1.8.
 yarn
 
-# Publish the NPM locally for usage with other packages.
-yarn publish-local
+# Run TFJS tests against Node.js backend:
+yarn test
 ```
 
 See the `demo` directory that trains MNIST using TensorFlow.js with the
@@ -23,20 +37,12 @@ TensorFlow C backend.
 cd demo/
 yarn
 
-# Link the tfjs-node NPM we published above.
-yarn link-local @tensorflow/tfjs-node
-
 # Run the training script. See demo/package.json for this script.
 yarn mnist
 ```
 
 The important line to note is at the top of `mnist.ts`, which sets the backend to
 TensorFlow.
-
-```js
-bindTensorFlowBackend();
-```
-
 
 ### Optional: Build libtensorflow From TensorFlow source
 
