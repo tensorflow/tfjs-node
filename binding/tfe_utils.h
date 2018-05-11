@@ -19,13 +19,9 @@
 #define TF_NODEJS_TFE_UTILS_H_
 
 #include <node_api.h>
-#include <string>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 
 namespace tfnodejs {
-
-bool GetGPUDeviceName(napi_env env, TFE_Context* ctx,
-                      std::string* gpu_device_name);
 
 // Creates a TFE_TensorHandle from a typed array.
 TFE_TensorHandle* CreateTFE_TensorHandleFromTypedArray(

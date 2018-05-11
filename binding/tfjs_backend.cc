@@ -25,14 +25,10 @@ namespace tfnodejs {
 TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   TF_AutoStatus tf_status;
   TFE_ContextOptions* tfe_options = TFE_NewContextOptions();
-  TFE_ContextOptionsSetDevicePlacementPolicy(
-      tfe_options, TFE_DEVICE_PLACEMENT_SILENT_FOR_INT32);
   tfe_context_ = TFE_NewContext(tfe_options, tf_status.status);
   if (TF_GetCode(tf_status.status) != TF_OK) {
     NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
   }
-  /* TFE_ContextSetThreadLocalDevicePlacementPolicy(tfe_context_,
-   * TFE_DEVICE_PLACEMENT_SILENT); */
   TFE_DeleteContextOptions(tfe_options);
 }
 
@@ -70,17 +66,6 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
   TFE_TensorHandle* tfe_handle = CreateTFE_TensorHandleFromTypedArray(
       env, shape_vector.data(), shape_vector.size(),
       static_cast<TF_DataType>(dtype_int32), typed_array_value);
-
-  std::string gpu_device_name;
-  if (GetGPUDeviceName(env, tfe_context_, &gpu_device_name)) {
-    TF_AutoStatus tf_status;
-    TFE_TensorHandle* test = TFE_TensorHandleCopyToDevice(
-        tfe_handle, tfe_context_, gpu_device_name.c_str(), tf_status.status);
-    ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
-
-    // HACK
-    tfe_handle = test;
-  }
 
   napi_value output_tensor_id;
   nstatus = napi_create_int32(env, InsertHandle(tfe_handle), &output_tensor_id);
@@ -136,12 +121,6 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   TF_AutoStatus tf_status;
   TFE_AutoOp tfe_op(TFE_NewOp(tfe_context_, op_name, tf_status.status));
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
-
-  std::string gpu_device_name;
-  if (GetGPUDeviceName(env, tfe_context_, &gpu_device_name)) {
-    TFE_OpSetDevice(tfe_op.op, gpu_device_name.c_str(), tf_status.status);
-    ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
-  }
 
   uint32_t num_input_ids;
   nstatus = napi_get_array_length(env, input_tensor_ids, &num_input_ids);
