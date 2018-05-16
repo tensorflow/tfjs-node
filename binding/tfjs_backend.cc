@@ -24,7 +24,7 @@ namespace tfnodejs {
 
 TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   TF_AutoStatus tf_status;
-  TFE_ContextOptions* tfe_options = TFE_NewContextOptions();
+  TFE_ContextOptions *tfe_options = TFE_NewContextOptions();
   tfe_context_ = TFE_NewContext(tfe_options, tf_status.status);
   if (TF_GetCode(tf_status.status) != TF_OK) {
     NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
@@ -33,7 +33,7 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
 }
 
 TFJSBackend::~TFJSBackend() {
-  for (auto& kv : tfe_handle_map_) {
+  for (auto &kv : tfe_handle_map_) {
     TFE_DeleteTensorHandle(kv.second);
   }
   if (tfe_context_ != nullptr) {
@@ -42,7 +42,7 @@ TFJSBackend::~TFJSBackend() {
   }
 }
 
-int32_t TFJSBackend::InsertHandle(TFE_TensorHandle* tfe_handle) {
+int32_t TFJSBackend::InsertHandle(TFE_TensorHandle *tfe_handle) {
   return tfe_handle_map_.insert(std::make_pair(next_tensor_id_++, tfe_handle))
       .first->first;
 }
@@ -63,7 +63,7 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
   nstatus = napi_get_value_int32(env, dtype_value, &dtype_int32);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  TFE_TensorHandle* tfe_handle = CreateTFE_TensorHandleFromTypedArray(
+  TFE_TensorHandle *tfe_handle = CreateTFE_TensorHandleFromTypedArray(
       env, shape_vector.data(), shape_vector.size(),
       static_cast<TF_DataType>(dtype_int32), typed_array_value);
 
@@ -168,7 +168,7 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   // Push `nullptr` to get a valid pointer in the call to `TFE_Execute()` below.
-  std::vector<TFE_TensorHandle*> result_handles(num_outputs, nullptr);
+  std::vector<TFE_TensorHandle *> result_handles(num_outputs, nullptr);
 
   int size = result_handles.size();
   TFE_Execute(tfe_op.op, result_handles.data(), &size, tf_status.status);
@@ -184,7 +184,7 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
     nstatus = napi_create_object(env, &tensor_info_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-    TFE_TensorHandle* handle = result_handles[i];
+    TFE_TensorHandle *handle = result_handles[i];
 
     // Output tensor ID:
     napi_value output_tensor_id_value;
