@@ -34,6 +34,24 @@ namespace tfnodejs {
 // Used to hold strings beyond the lifetime of a JS call.
 static std::set<std::string> ATTR_NAME_SET;
 
+void PrintFloatValues(TFE_TensorHandle *handle) {
+  TF_AutoStatus tf_status;
+
+  TF_AutoTensor tensor(TFE_TensorHandleResolve(handle, tf_status.status));
+  void *data = TF_TensorData(tensor.tensor);
+  size_t byte_length = TF_TensorByteSize(tensor.tensor);
+
+  std::string device_name =
+      std::string(TFE_TensorHandleDeviceName(handle, tf_status.status));
+  printf(" >> DEVICE NAME: %s\n", device_name.c_str());
+
+  // Test print array:
+  float *f_data = static_cast<float *>(data);
+  for (size_t i = 0; i < byte_length / sizeof(float); i++) {
+    printf(" - %f\n", f_data[i]);
+  }
+}
+
 TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
     napi_env env, int64_t *shape, uint32_t shape_length, TF_DataType dtype,
     napi_value typed_array_value) {
@@ -57,12 +75,6 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
         return nullptr;
       }
       width = sizeof(float);
-
-      // Test print array:
-      float *f_data = static_cast<float *>(array_data);
-      for (size_t i = 0; i < array_length; i++) {
-        printf(" - %f\n", f_data[i]);
-      }
       break;
     }
     case napi_int32_array:
@@ -108,20 +120,25 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
       TF_AllocateTensor(dtype, shape, shape_length, byte_size));
   memcpy(TF_TensorData(tensor.tensor), array_data, byte_size);
 
-  // TODO - do we need to set the device off the bat?
-  // TODO(kreeger): Left off right here.
   TF_AutoStatus tf_status;
   TFE_TensorHandle *tfe_tensor_handle =
       TFE_NewTensorHandle(tensor.tensor, tf_status.status);
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
-  // Copy to device.
-
-  std::string device_name = std::string(
-      TFE_TensorHandleDeviceName(tfe_tensor_handle, tf_status.status));
-  printf(" IN DEVICE NAME: %s\n", device_name.c_str());
-
   return tfe_tensor_handle;
+}
+
+TFE_TensorHandle *CopyTFE_TensorHandleToDevice(napi_env env,
+                                               const char *device_name,
+                                               TFE_TensorHandle *handle,
+                                               TFE_Context *tfe_context) {
+  TF_AutoStatus tf_status;
+
+  TFE_TensorHandle *new_handle = TFE_TensorHandleCopyToDevice(
+      handle, tfe_context, device_name, tf_status.status);
+  ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+
+  return new_handle;
 }
 
 void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
@@ -183,10 +200,7 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
 
   // hack
   // Test print array:
-  float *f_data = static_cast<float *>(data);
-  for (size_t i = 0; i < length; i++) {
-    printf("OUT - %f\n", f_data[i]);
-  }
+  PrintFloatValues(tfe_tensor_handle);
 
   napi_value array_buffer_value;
   nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,

@@ -50,7 +50,11 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
     std::string device_name(
         TF_DeviceListName(device_list, i, tf_status.status));
     printf("type: %s : %s\n", device_type.c_str(), device_name.c_str());
+
+    gpu_device_name = device_name;
   }
+
+  printf(" --> using: %s\n", gpu_device_name.c_str());
   TF_DeleteDeviceList(device_list);
 }
 
@@ -88,6 +92,11 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
   TFE_TensorHandle *tfe_handle = CreateTFE_TensorHandleFromTypedArray(
       env, shape_vector.data(), shape_vector.size(),
       static_cast<TF_DataType>(dtype_int32), typed_array_value);
+
+  // Hack part two:
+  tfe_handle = CopyTFE_TensorHandleToDevice(env, gpu_device_name.c_str(),
+                                            tfe_handle, tfe_context_);
+  PrintFloatValues(tfe_handle);
 
   napi_value output_tensor_id;
   nstatus = napi_create_int32(env, InsertHandle(tfe_handle), &output_tensor_id);

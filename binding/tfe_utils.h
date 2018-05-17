@@ -28,6 +28,12 @@ TFE_TensorHandle* CreateTFE_TensorHandleFromTypedArray(
     napi_env env, int64_t* shape, uint32_t shape_length, TF_DataType dtype,
     napi_value typed_array_value);
 
+// Copies a handle to a device
+TFE_TensorHandle* CopyTFE_TensorHandleToDevice(napi_env env,
+                                               const char* device_name,
+                                               TFE_TensorHandle* handle,
+                                               TFE_Context* tfe_context);
+
 // Returns a typed-array as a `napi_value` with the data associated with the
 // TF/TFE pointers.
 void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
@@ -45,6 +51,8 @@ void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle* handle,
 
 // Assigns attributes to an Op from a given list of inputs attributes.
 void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value);
+
+void PrintFloatValues(TFE_TensorHandle* handle);
 
 }  // namespace tfnodejs
 
