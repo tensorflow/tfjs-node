@@ -29,6 +29,11 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   if (TF_GetCode(tf_status.status) != TF_OK) {
     NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
   }
+
+  // Test
+  TFE_ContextOptionsSetDevicePlacementPolicy(
+      tfe_options, TFE_DEVICE_PLACEMENT_SILENT_FOR_INT32);
+
   TFE_DeleteContextOptions(tfe_options);
 
   TF_DeviceList *device_list =
