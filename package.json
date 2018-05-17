@@ -16,6 +16,7 @@
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
     "test": "ts-node src/run_tests.ts",
+    "debug": "ts-node src/test.ts",
     "publish-local": "yarn prep && yarn build && yalc push"
   },
   "devDependencies": {

@@ -51,13 +51,20 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
   // typed-array.
   size_t width = 0;
   switch (array_type) {
-    case napi_float32_array:
+    case napi_float32_array: {
       if (dtype != TF_FLOAT) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Float32Array");
         return nullptr;
       }
       width = sizeof(float);
+
+      // Test print array:
+      float *f_data = static_cast<float *>(array_data);
+      for (size_t i = 0; i < array_length; i++) {
+        printf(" - %f\n", f_data[i]);
+      }
       break;
+    }
     case napi_int32_array:
       if (dtype != TF_INT32) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Int32Array");
@@ -101,10 +108,19 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
       TF_AllocateTensor(dtype, shape, shape_length, byte_size));
   memcpy(TF_TensorData(tensor.tensor), array_data, byte_size);
 
+  // TODO - do we need to set the device off the bat?
+  // TODO(kreeger): Left off right here.
   TF_AutoStatus tf_status;
   TFE_TensorHandle *tfe_tensor_handle =
       TFE_NewTensorHandle(tensor.tensor, tf_status.status);
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+
+  // Copy to device.
+
+  std::string device_name = std::string(
+      TFE_TensorHandleDeviceName(tfe_tensor_handle, tf_status.status));
+  printf(" IN DEVICE NAME: %s\n", device_name.c_str());
+
   return tfe_tensor_handle;
 }
 
@@ -143,10 +159,6 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
 
   TF_AutoStatus tf_status;
 
-  std::string device_name = std::string(
-      TFE_TensorHandleDeviceName(tfe_tensor_handle, tf_status.status));
-  ENSURE_TF_OK(env, tf_status);
-
   TF_AutoTensor tensor(
       TFE_TensorHandleResolve(tfe_tensor_handle, tf_status.status));
   ENSURE_TF_OK(env, tf_status);
@@ -168,6 +180,13 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
 
   void *data = TF_TensorData(tensor.tensor);
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
+
+  // hack
+  // Test print array:
+  float *f_data = static_cast<float *>(data);
+  for (size_t i = 0; i < length; i++) {
+    printf("OUT - %f\n", f_data[i]);
+  }
 
   napi_value array_buffer_value;
   nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,

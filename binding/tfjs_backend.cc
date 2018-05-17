@@ -30,6 +30,23 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
     NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
   }
   TFE_DeleteContextOptions(tfe_options);
+
+  TF_DeviceList *device_list =
+      TFE_ContextListDevices(tfe_context_, tf_status.status);
+  if (TF_GetCode(tf_status.status) != TF_OK) {
+    NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
+  }
+
+  const int num_devices = TF_DeviceListCount(device_list);
+  for (int i = 0; i < num_devices; i++) {
+    std::string device_type(
+        TF_DeviceListType(device_list, i, tf_status.status));
+
+    std::string device_name(
+        TF_DeviceListName(device_list, i, tf_status.status));
+    printf("type: %s : %s\n", device_type.c_str(), device_name.c_str());
+  }
+  TF_DeleteDeviceList(device_list);
 }
 
 TFJSBackend::~TFJSBackend() {
