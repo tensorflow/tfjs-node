@@ -198,7 +198,6 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   void *data = TF_TensorData(tensor.tensor);
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
 
-  // hack
   // Test print array:
   PrintFloatValues(tfe_tensor_handle);
 

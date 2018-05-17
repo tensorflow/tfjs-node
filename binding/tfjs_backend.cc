@@ -153,6 +153,9 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   TFE_AutoOp tfe_op(TFE_NewOp(tfe_context_, op_name, tf_status.status));
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
+  TFE_OpSetDevice(tfe_op.op, gpu_device_name.c_str(), tf_status.status);
+  ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+
   uint32_t num_input_ids;
   nstatus = napi_get_array_length(env, input_tensor_ids, &num_input_ids);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
