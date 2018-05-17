@@ -91,7 +91,7 @@ export class NodeJSKernelBackend implements KernelBackend {
         // execution and clear stored values.
         info.id =
             this.binding.createTensor(info.shape, info.dtype, info.values);
-        console.log(`sending tensors: ${info.values}`);
+        // console.log(`sending tensors: ${info.values}`);
         info.values = null;
         this.tensorMap.set(tensors[i].dataId, info);
       }
