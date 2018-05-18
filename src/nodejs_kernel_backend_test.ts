@@ -28,25 +28,12 @@ describe('delayed upload', () => {
     expectArraysClose(r, [5, 7, 9]);
   });
 
-  it('should do something', () => {
-    // Softmax:
+  it('Should not cache tensors in the tensor map for device support. ', () => {
     const logits = tf.tensor1d([1, 2, 3]);
-    const labels = tf.tensor1d([0.3, 0.6, 0.1]);
-
     const softmaxLogits = tf.softmax(logits);
-    console.log('softmax', softmaxLogits.dataSync());
-
-    const y = tf.losses.softmaxCrossEntropy(labels, logits);
-    console.log('y', y.dataSync());
-
-    const t = -Math.log(softmaxLogits.get(0)) * labels.get(0) +
-        -Math.log(softmaxLogits.get(1)) * labels.get(1) +
-        -Math.log(softmaxLogits.get(2)) * labels.get(2);
-
-    console.log(softmaxLogits.get(0));
-    console.log(softmaxLogits.get(1));
-    console.log(softmaxLogits.get(2));
-
-    console.log(`yV: ${y.dataSync()}, t: ${t}`);
+    const data = softmaxLogits.dataSync();
+    expect(softmaxLogits.get(0)).toEqual(data[0]);
+    expect(softmaxLogits.get(1)).toEqual(data[1]);
+    expect(softmaxLogits.get(2)).toEqual(data[2]);
   });
 });
