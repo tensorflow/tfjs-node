@@ -2,6 +2,22 @@ import './index';
 import * as tf from '@tensorflow/tfjs-core';
 tf.setBackend('tensorflow');
 
+const a = tf.tensor2d([1, 2, -3, 5], [2, 2]);
+const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+
+const da = tf.grad(a => tf.logSigmoid(a))(a, dy);
+
+const expected = [];
+const aVals = a.dataSync();
+const dyVals = dy.dataSync();
+for (let i = 0; i < a.size; i++) {
+  const y = 1 / (1 + Math.exp(aVals[i]));
+  expected[i] = dyVals[i] * y;
+}
+
+console.log(`expected : ${expected}`);
+console.log(`da       : ${da.dataSync()}`);
+
 // expectArraysClose(tf.equalStrict(a, b), [0, 0, 0, 0, 0, 1]);
 
 // Nans:
@@ -33,21 +49,21 @@ tf.setBackend('tensorflow');
 // }
 
 // Softmax:
-const logits = tf.tensor1d([1, 2, 3]);
-const labels = tf.tensor1d([0.3, 0.6, 0.1]);
+// const logits = tf.tensor1d([1, 2, 3]);
+// const labels = tf.tensor1d([0.3, 0.6, 0.1]);
 
-const softmaxLogits = tf.softmax(logits);
-console.log('softmax', softmaxLogits.dataSync());
+// const softmaxLogits = tf.softmax(logits);
+// console.log('softmax', softmaxLogits.dataSync());
 
-const y = tf.losses.softmaxCrossEntropy(labels, logits);
-console.log('y', y.dataSync());
+// const y = tf.losses.softmaxCrossEntropy(labels, logits);
+// console.log('y', y.dataSync());
 
-const t = -Math.log(softmaxLogits.get(0)) * labels.get(0) +
-    -Math.log(softmaxLogits.get(1)) * labels.get(1) +
-    -Math.log(softmaxLogits.get(2)) * labels.get(2);
+// const t = -Math.log(softmaxLogits.get(0)) * labels.get(0) +
+//     -Math.log(softmaxLogits.get(1)) * labels.get(1) +
+//     -Math.log(softmaxLogits.get(2)) * labels.get(2);
 
-console.log(softmaxLogits.get(0));
-console.log(softmaxLogits.get(1));
-console.log(softmaxLogits.get(2));
+// console.log(softmaxLogits.get(0));
+// console.log(softmaxLogits.get(1));
+// console.log(softmaxLogits.get(2));
 
-console.log(`yV: ${y.dataSync()}, t: ${t}`);
+// console.log(`yV: ${y.dataSync()}, t: ${t}`);
