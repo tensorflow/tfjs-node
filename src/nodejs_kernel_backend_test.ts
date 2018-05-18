@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:max-line-length
-import {expectArraysClose, expectArraysEqual, expectNumbersClose} from '@tensorflow/tfjs-core/dist/test_util';
+import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 describe('delayed upload', () => {
   it('should handle data before op execution', () => {
@@ -29,10 +29,24 @@ describe('delayed upload', () => {
   });
 
   it('should do something', () => {
-    const t = tf.tensor1d([1, 2, 3]);
-    expectArraysClose(t, [1, 2, 3]);
+    // Softmax:
+    const logits = tf.tensor1d([1, 2, 3]);
+    const labels = tf.tensor1d([0.3, 0.6, 0.1]);
 
-    const r = t.add(tf.tensor1d([4, 5, 6]));
-    expectArraysClose(r, [5, 7, 9]);
+    const softmaxLogits = tf.softmax(logits);
+    console.log('softmax', softmaxLogits.dataSync());
+
+    const y = tf.losses.softmaxCrossEntropy(labels, logits);
+    console.log('y', y.dataSync());
+
+    const t = -Math.log(softmaxLogits.get(0)) * labels.get(0) +
+        -Math.log(softmaxLogits.get(1)) * labels.get(1) +
+        -Math.log(softmaxLogits.get(2)) * labels.get(2);
+
+    console.log(softmaxLogits.get(0));
+    console.log(softmaxLogits.get(1));
+    console.log(softmaxLogits.get(2));
+
+    console.log(`yV: ${y.dataSync()}, t: ${t}`);
   });
 });
