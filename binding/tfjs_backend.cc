@@ -94,7 +94,7 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
       env, shape_vector.data(), shape_vector.size(),
       static_cast<TF_DataType>(dtype_int32), typed_array_value);
 
-  // TODO(kreeger): Is this the best option?
+  // TODO - copy most comments...
   if (dtype_int32 != TF_INT32) {
     TFE_TensorHandle *new_handle = CopyTFE_TensorHandleToDevice(
         env, gpu_device_name.c_str(), tfe_handle, tfe_context_);
@@ -158,8 +158,9 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   TFE_AutoOp tfe_op(TFE_NewOp(tfe_context_, op_name, tf_status.status));
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
-  TFE_OpSetDevice(tfe_op.op, gpu_device_name.c_str(), tf_status.status);
-  ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+  // // Need to update the device logic here.
+  // TFE_OpSetDevice(tfe_op.op, gpu_device_name.c_str(), tf_status.status);
+  // ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
   uint32_t num_input_ids;
   nstatus = napi_get_array_length(env, input_tensor_ids, &num_input_ids);

@@ -35,21 +35,21 @@ namespace tfnodejs {
 static std::set<std::string> ATTR_NAME_SET;
 
 void PrintFloatValues(TFE_TensorHandle *handle) {
-  TF_AutoStatus tf_status;
+  // TF_AutoStatus tf_status;
 
-  TF_AutoTensor tensor(TFE_TensorHandleResolve(handle, tf_status.status));
-  void *data = TF_TensorData(tensor.tensor);
-  size_t byte_length = TF_TensorByteSize(tensor.tensor);
+  // TF_AutoTensor tensor(TFE_TensorHandleResolve(handle, tf_status.status));
+  // void *data = TF_TensorData(tensor.tensor);
+  // size_t byte_length = TF_TensorByteSize(tensor.tensor);
 
-  std::string device_name =
-      std::string(TFE_TensorHandleDeviceName(handle, tf_status.status));
-  printf(" >> DEVICE NAME: %s\n", device_name.c_str());
+  // std::string device_name =
+  //     std::string(TFE_TensorHandleDeviceName(handle, tf_status.status));
+  // printf(" >> DEVICE NAME: %s\n", device_name.c_str());
 
-  // Test print array:
-  float *f_data = static_cast<float *>(data);
-  for (size_t i = 0; i < byte_length / sizeof(float); i++) {
-    printf(" - %f\n", f_data[i]);
-  }
+  // // Test print array:
+  // float *f_data = static_cast<float *>(data);
+  // for (size_t i = 0; i < byte_length / sizeof(float); i++) {
+  //   printf(" - %f\n", f_data[i]);
+  // }
 }
 
 TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
@@ -199,9 +199,9 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
 
   // Test print array:
-  printf("------- Copy to TypedArray --------\n");
-  PrintFloatValues(tfe_tensor_handle);
-  printf("-----------------------------------\n");
+  // printf("------- Copy to TypedArray --------\n");
+  // PrintFloatValues(tfe_tensor_handle);
+  // printf("-----------------------------------\n");
 
   napi_value array_buffer_value;
   nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,
