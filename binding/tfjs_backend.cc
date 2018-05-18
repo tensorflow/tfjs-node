@@ -30,10 +30,6 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
     NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
   }
 
-  // Test
-  TFE_ContextOptionsSetDevicePlacementPolicy(
-      tfe_options, TFE_DEVICE_PLACEMENT_SILENT_FOR_INT32);
-
   TFE_DeleteContextOptions(tfe_options);
 
   TF_DeviceList *device_list =
@@ -44,18 +40,18 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
 
   const int num_devices = TF_DeviceListCount(device_list);
   for (int i = 0; i < num_devices; i++) {
-    std::string device_type(
+    std::string cur_device_type(
         TF_DeviceListType(device_list, i, tf_status.status));
 
-    std::string device_name(
+    std::string cur_device_name(
         TF_DeviceListName(device_list, i, tf_status.status));
-    printf("type: %s : %s\n", device_type.c_str(), device_name.c_str());
+    printf("type: %s\n", cur_device_type.c_str());
 
     // TODO - this type needs to be checked for "GPU"
-    gpu_device_name = device_name;
+    device_name = cur_device_name;
   }
 
-  printf(" --> using: %s\n", gpu_device_name.c_str());
+  printf(" --> using: %s\n", device_name.c_str());
   TF_DeleteDeviceList(device_list);
 }
 
@@ -94,10 +90,13 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
       env, shape_vector.data(), shape_vector.size(),
       static_cast<TF_DataType>(dtype_int32), typed_array_value);
 
-  // TODO - copy most comments...
+  // Copy non-int32 tensors to a device. Most GPU kernels expect to have int32
+  // tensors in host memory.
   if (dtype_int32 != TF_INT32) {
+    // Note that this is a shallow copy and will share the underlying buffer
+    // if copying to the same device.
     TFE_TensorHandle *new_handle = CopyTFE_TensorHandleToDevice(
-        env, gpu_device_name.c_str(), tfe_handle, tfe_context_);
+        env, device_name.c_str(), tfe_handle, tfe_context_);
 
     TFE_DeleteTensorHandle(tfe_handle);
     tfe_handle = new_handle;
@@ -155,10 +154,6 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   TF_AutoStatus tf_status;
   TFE_AutoOp tfe_op(TFE_NewOp(tfe_context_, op_name, tf_status.status));
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
-
-  // // Need to update the device logic here.
-  // TFE_OpSetDevice(tfe_op.op, gpu_device_name.c_str(), tf_status.status);
-  // ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
   uint32_t num_input_ids;
   nstatus = napi_get_array_length(env, input_tensor_ids, &num_input_ids);

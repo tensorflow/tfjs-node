@@ -51,14 +51,13 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
   // typed-array.
   size_t width = 0;
   switch (array_type) {
-    case napi_float32_array: {
+    case napi_float32_array:
       if (dtype != TF_FLOAT) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Float32Array");
         return nullptr;
       }
       width = sizeof(float);
       break;
-    }
     case napi_int32_array:
       if (dtype != TF_INT32) {
         NAPI_THROW_ERROR(env, "Tensor type does not match Int32Array");

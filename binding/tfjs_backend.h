@@ -65,8 +65,7 @@ class TFJSBackend {
   std::map<int32_t, TFE_TensorHandle*> tfe_handle_map_;
   int32_t next_tensor_id_;
 
-  // slight hack.
-  std::string gpu_device_name;
+  std::string device_name;
 };
 
 }  // namespace tfnodejs
