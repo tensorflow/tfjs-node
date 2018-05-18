@@ -40,7 +40,7 @@
         "/usr/include",
         "/usr/local/include",
         "${workspaceFolder}",
-        "/home/kreeger/.node-gyp/10.1.0/include/node"
+        "${workspaceFolder}/../../.node-gyp/10.1.0/include/node"
       ],
       "defines": [],
       "intelliSenseMode": "clang-x64",
@@ -49,7 +49,8 @@
           "/usr/include",
           "/usr/local/include",
           "${workspaceFolder}",
-          "/home/kreeger/.node-gyp/10.1.0/include/node"
+          "${workspaceFolder}/deps/tensorflow/include",
+          "${workspaceFolder}/../../.node-gyp/10.1.0/include/node"
         ],
         "limitSymbolsToIncludedHeaders": true,
         "databaseFilename": ""

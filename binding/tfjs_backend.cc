@@ -51,6 +51,7 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
         TF_DeviceListName(device_list, i, tf_status.status));
     printf("type: %s : %s\n", device_type.c_str(), device_name.c_str());
 
+    // TODO - this type needs to be checked for "GPU"
     gpu_device_name = device_name;
   }
 
@@ -93,10 +94,16 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
       env, shape_vector.data(), shape_vector.size(),
       static_cast<TF_DataType>(dtype_int32), typed_array_value);
 
-  // Hack part two:
-  tfe_handle = CopyTFE_TensorHandleToDevice(env, gpu_device_name.c_str(),
-                                            tfe_handle, tfe_context_);
-  PrintFloatValues(tfe_handle);
+  // TODO(kreeger): Is this the best option?
+  if (dtype_int32 != TF_INT32) {
+    TFE_TensorHandle *new_handle = CopyTFE_TensorHandleToDevice(
+        env, gpu_device_name.c_str(), tfe_handle, tfe_context_);
+
+    TFE_DeleteTensorHandle(tfe_handle);
+    tfe_handle = new_handle;
+
+    PrintFloatValues(tfe_handle);
+  }
 
   napi_value output_tensor_id;
   nstatus = napi_create_int32(env, InsertHandle(tfe_handle), &output_tensor_id);
@@ -110,7 +117,6 @@ void TFJSBackend::DeleteTensor(napi_env env, napi_value tensor_id_value) {
 
   auto tensor_entry = tfe_handle_map_.find(tensor_id);
   if (tensor_entry == tfe_handle_map_.end()) {
-    // TODO(kreeger): Print out the tensor ID?
     NAPI_THROW_ERROR(env, "Delete called on a Tensor not referenced");
     return;
   }
@@ -127,7 +133,6 @@ napi_value TFJSBackend::GetTensorData(napi_env env,
 
   auto tensor_entry = tfe_handle_map_.find(tensor_id);
   if (tensor_entry == tfe_handle_map_.end()) {
-    // TODO(kreeger): Print out the tensor ID?
     NAPI_THROW_ERROR(env, "Get data called on a Tensor not referenced");
     return nullptr;
   }
@@ -171,7 +176,6 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
 
     auto input_tensor_entry = tfe_handle_map_.find(cur_input_tensor_id);
     if (input_tensor_entry == tfe_handle_map_.end()) {
-      // TODO(kreeger): Print out the tensor ID?
       NAPI_THROW_ERROR(env, "Input Tensor ID not referenced");
       return nullptr;
     }

@@ -18,6 +18,7 @@
 #ifndef TF_NODEJS_UTILS_H_
 #define TF_NODEJS_UTILS_H_
 
+#include <node_api.h>
 #include <stdio.h>
 #include <cstdlib>
 #include <sstream>
@@ -31,7 +32,7 @@
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define DEBUG_LOG(message, file, lineNumber)                             \
   do {                                                                   \
