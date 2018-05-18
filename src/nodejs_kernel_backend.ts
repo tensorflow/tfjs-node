@@ -151,7 +151,6 @@ export class NodeJSKernelBackend implements KernelBackend {
     if (info.values != null) {
       return info.values;
     } else {
-      // TODO - fix on master.
       return this.binding.tensorDataSync(info.id);
     }
   }
