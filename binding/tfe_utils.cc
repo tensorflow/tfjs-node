@@ -34,24 +34,6 @@ namespace tfnodejs {
 // Used to hold strings beyond the lifetime of a JS call.
 static std::set<std::string> ATTR_NAME_SET;
 
-void PrintFloatValues(TFE_TensorHandle *handle) {
-  // TF_AutoStatus tf_status;
-
-  // TF_AutoTensor tensor(TFE_TensorHandleResolve(handle, tf_status.status));
-  // void *data = TF_TensorData(tensor.tensor);
-  // size_t byte_length = TF_TensorByteSize(tensor.tensor);
-
-  // std::string device_name =
-  //     std::string(TFE_TensorHandleDeviceName(handle, tf_status.status));
-  // printf(" >> DEVICE NAME: %s\n", device_name.c_str());
-
-  // // Test print array:
-  // float *f_data = static_cast<float *>(data);
-  // for (size_t i = 0; i < byte_length / sizeof(float); i++) {
-  //   printf(" - %f\n", f_data[i]);
-  // }
-}
-
 TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(
     napi_env env, int64_t *shape, uint32_t shape_length, TF_DataType dtype,
     napi_value typed_array_value) {
@@ -197,11 +179,6 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
 
   void *data = TF_TensorData(tensor.tensor);
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
-
-  // Test print array:
-  // printf("------- Copy to TypedArray --------\n");
-  // PrintFloatValues(tfe_tensor_handle);
-  // printf("-----------------------------------\n");
 
   napi_value array_buffer_value;
   nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,

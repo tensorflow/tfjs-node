@@ -52,8 +52,6 @@ void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle* handle,
 // Assigns attributes to an Op from a given list of inputs attributes.
 void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value);
 
-void PrintFloatValues(TFE_TensorHandle* handle);
-
 }  // namespace tfnodejs
 
 #endif  // TF_NODEJS_TFE_UTILS_H_

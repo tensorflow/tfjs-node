@@ -101,8 +101,6 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
 
     TFE_DeleteTensorHandle(tfe_handle);
     tfe_handle = new_handle;
-
-    PrintFloatValues(tfe_handle);
   }
 
   napi_value output_tensor_id;
