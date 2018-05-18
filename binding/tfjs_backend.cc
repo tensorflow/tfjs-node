@@ -40,18 +40,12 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
 
   const int num_devices = TF_DeviceListCount(device_list);
   for (int i = 0; i < num_devices; i++) {
-    std::string cur_device_type(
-        TF_DeviceListType(device_list, i, tf_status.status));
-
-    std::string cur_device_name(
-        TF_DeviceListName(device_list, i, tf_status.status));
-    printf("type: %s\n", cur_device_type.c_str());
-
-    // TODO - this type needs to be checked for "GPU"
-    device_name = cur_device_name;
+    // Always use the last device (CPU is listed first).
+    // TODO(kreeger): Add better support for this in the future through the JS
+    // API.
+    device_name =
+        std::string(TF_DeviceListName(device_list, i, tf_status.status));
   }
-
-  printf(" --> using: %s\n", device_name.c_str());
   TF_DeleteDeviceList(device_list);
 }
 
