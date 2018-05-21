@@ -5,17 +5,37 @@ actively developing as an open source project.**
 
 ## Installing 
 
+TensorFlow.js for Node currently supports the following platforms:
+- Mac OS X 10.12.6 (Sierra) or higher
+- Linux CPU (Ubuntu 16.04 or higher)
+- Linux GPU (Cuda 9.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/install_linux))
+
+#### Installing CPU TensorFlow.js for Node:
+
 ```sh
 npm install @tensorflow/tfjs-node
 (or)
 yarn add @tensorflow/tfjs-node
 ```
 
+#### Installing Linux GPU TensorFlow.js for Node:
+
+```sh
+npm install @tensorflow/tfjs-node-gpu
+(or)
+yarn add @tensorflow/tfjs-node-gpu
+```
+
 Before executing any TensorFlow.js code, load and set the backend to 'tensorflow'.
 
 ```js
 import * as tf from '@tensorflow/tfjs';
+
+// Load the binding
 import '@tensorflow/tfjs-node';
+
+// Or if running with GPU:
+import '@tensorflow/tfjs-node-gpu';
 
 tf.setBackend('tensorflow');
 ```
@@ -49,11 +69,5 @@ TensorFlow.
 This requires installing bazel first.
 
 ```sh
-bazel build //tensorflow/tools/lib_package:libtensorflow
+bazel build --config=monolithic //tensorflow/tools/lib_package:libtensorflow
 ```
-
-## Supported Platforms
-
-- Mac OS
-- Linux
-- ***Windows coming soon***
