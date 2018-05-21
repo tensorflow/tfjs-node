@@ -186,7 +186,7 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
 
   // TFE_TensorHandleResolve can use a shared data pointer, memcpy() the current
   // value to the newly allocated NAPI buffer.
-  mempcpy(array_buffer_data, TF_TensorData(tensor.tensor), byte_length);
+  memcpy(array_buffer_data, TF_TensorData(tensor.tensor), byte_length);
 
   nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
                                    0, result);
