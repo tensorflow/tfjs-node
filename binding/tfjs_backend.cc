@@ -84,6 +84,11 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
       env, shape_vector.data(), shape_vector.size(),
       static_cast<TF_DataType>(dtype_int32), typed_array_value);
 
+  // Check to see if an exception exists, if so return a failure.
+  if (IsExceptionPending(env)) {
+    return nullptr;
+  }
+
   // Copy non-int32 tensors to a device. Most GPU kernels expect to have int32
   // tensors in host memory.
   if (dtype_int32 != TF_INT32) {

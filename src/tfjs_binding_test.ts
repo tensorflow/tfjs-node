@@ -75,13 +75,12 @@ describe('tensor management', () => {
       binding.createTensor([4], binding.TF_INT32, new Int32Array([1, 2, 3]));
     }).toThrowError();
   });
-  // TODO(kreeger): This causes a sig-fault, fix it.
-  // it('throws exception with invalid dtype', () => {
-  //   expect(() => {
-  //     // tslint:disable-next-line:no-unused-expression
-  //     binding.createTensor([1], 1000, new Int32Array([1]));
-  //   }).toThrowError();
-  // });
+  it('throws exception with invalid dtype', () => {
+    expect(() => {
+      // tslint:disable-next-line:no-unused-expression
+      binding.createTensor([1], 1000, new Int32Array([1]));
+    }).toThrowError();
+  });
   it('works with 0-dim tensors', () => {
     // Reduce op (e.g 'Max') will produce a 0-dim TFE_Tensor.
 
