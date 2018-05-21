@@ -176,16 +176,18 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
     }
   }
 
-  void *data = TF_TensorData(tensor.tensor);
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
 
   napi_value array_buffer_value;
-  nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,
-                                             nullptr, &array_buffer_value);
+  void *array_buffer_data;
+  nstatus = napi_create_arraybuffer(env, byte_length, &array_buffer_data,
+                                    &array_buffer_value);
   ENSURE_NAPI_OK(env, nstatus);
 
-  // TODO(kreeger): Experiment with returning an ArrayBuffer instead of a
-  // TypedArray here.
+  // TFE_TensorHandleResolve can use a shared data pointer, memcpy() the current
+  // value to the newly allocated NAPI buffer.
+  mempcpy(array_buffer_data, TF_TensorData(tensor.tensor), byte_length);
+
   nstatus = napi_create_typedarray(env, array_type, length, array_buffer_value,
                                    0, result);
   ENSURE_NAPI_OK(env, nstatus);

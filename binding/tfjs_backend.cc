@@ -145,8 +145,6 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
                                        NAPI_STRING_SIZE, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  printf("  -> Executing: %s\n", op_name);
-
   TF_AutoStatus tf_status;
   TFE_AutoOp tfe_op(TFE_NewOp(tfe_context_, op_name, tf_status.status));
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
