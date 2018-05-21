@@ -11,13 +11,12 @@
   "scripts": {
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "build": "tsc",
-    "clean": "rm -rf deps/tensorflow/*",
-    "download-gpu": "yarn clean && ./scripts/download-libtensorflow.sh linux-gpu && yarn",
+    "clean-deps": "rm -rf deps/tensorflow/*",
+    "enable-gpu": "yarn clean && ./scripts/download-libtensorflow.sh linux-gpu && yarn",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
     "test": "ts-node src/run_tests.ts",
-    "debug": "ts-node src/test.ts",
     "publish-local": "yarn prep && yarn build && yalc push"
   },
   "devDependencies": {
