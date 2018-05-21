@@ -12,7 +12,7 @@
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "build": "tsc",
     "clean-deps": "rm -rf deps/tensorflow/*",
-    "enable-gpu": "yarn clean && ./scripts/download-libtensorflow.sh linux-gpu && yarn",
+    "enable-gpu": "yarn clean-deps && ./scripts/download-libtensorflow.sh linux-gpu && yarn",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
