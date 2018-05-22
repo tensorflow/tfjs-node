@@ -925,10 +925,6 @@ export class NodeJSKernelBackend implements KernelBackend {
   cumsum(x: Tensor<Rank>, axis: number, exclusive: boolean, reverse: boolean):
       Tensor<Rank> {
     const axisTensor = scalar(axis, 'int32');
-    console.log(`x: ${x.dataSync()}`);
-    console.log(`axis: ${axis}`);
-    console.log(`exclusive: ${exclusive}`);
-    console.log(`reverse: ${reverse}`);
     const opAttrs = [
       {name: 'exclusive', type: this.binding.TF_ATTR_BOOL, value: exclusive},
       {name: 'reverse', type: this.binding.TF_ATTR_BOOL, value: reverse},
