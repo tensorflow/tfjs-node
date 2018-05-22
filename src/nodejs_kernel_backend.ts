@@ -201,7 +201,10 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('T', x.dtype),
       this.createTypeOpAttr('Index', 'int32'),
       {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: beginMask},
-      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: endMask}
+      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: endMask},
+      {name: 'ellipsis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'new_axis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'shrink_axis_mask', type: this.binding.TF_ATTR_INT, value: 0}
     ];
     return this.executeSingleOutput(
                'StridedSlice', opAttrs,
@@ -921,7 +924,18 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   cumsum(x: Tensor<Rank>, axis: number, exclusive: boolean, reverse: boolean):
       Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const axisTensor = scalar(axis, 'int32');
+    console.log(`x: ${x.dataSync()}`);
+    console.log(`axis: ${axis}`);
+    console.log(`exclusive: ${exclusive}`);
+    console.log(`reverse: ${reverse}`);
+    const opAttrs = [
+      {name: 'exclusive', type: this.binding.TF_ATTR_BOOL, value: exclusive},
+      {name: 'reverse', type: this.binding.TF_ATTR_BOOL, value: reverse},
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tidx', 'int32')
+    ];
+    return this.executeSingleOutput('Cumsum', opAttrs, [x, axisTensor]);
   }
 
   fromPixels(
