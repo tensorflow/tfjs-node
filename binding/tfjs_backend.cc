@@ -42,7 +42,7 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   for (int i = 0; i < num_devices; i++) {
     // Always use the last device (CPU is listed first).
     // TODO(kreeger): Add better support for this in the future through the JS
-    // API.
+    // API. https://github.com/tensorflow/tfjs/issues/320
     device_name =
         std::string(TF_DeviceListName(device_list, i, tf_status.status));
   }
