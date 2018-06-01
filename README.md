@@ -42,6 +42,8 @@ $ xcode-select --install
 
 After that operation completes, re-run `yarn add` or `npm install` for the `@tensorflow/tfjs-node` package.
 
+## Loading the binding
+
 Before executing any TensorFlow.js code, load and set the backend to 'tensorflow'.
 
 ```js
