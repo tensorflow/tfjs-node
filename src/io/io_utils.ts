@@ -29,17 +29,17 @@ export function toBuffer(ab: ArrayBuffer): Buffer {
 
 /**
  * Convert a Buffer or an Array of Buffers to an ArrayBuffer.
+ *
+ * If the input is an Array of Buffers, they will be concatenated in the
+ * specified order to form the output ArrayBuffer.
  */
 export function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
   if (Array.isArray(buf)) {
-    console.log('buf.length = ', buf.length);  // DEBUG
     // An Array of Buffers.
     let totalLength = 0;
     buf.forEach(buffer => {
-      console.log('Adding:', buffer.length);  // DEBUG
       totalLength += buffer.length;
     });
-    console.log('totalLength:', totalLength);  // DEBUG
 
     const ab = new ArrayBuffer(totalLength);
     const view = new Uint8Array(ab);

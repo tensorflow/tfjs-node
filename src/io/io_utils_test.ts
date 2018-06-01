@@ -15,7 +15,15 @@
  * =============================================================================
  */
 
-import {toArrayBuffer} from './io_utils';
+import {toArrayBuffer, toBuffer} from './io_utils';
+
+describe('toBuffer', () => {
+  it('Simple case', () => {
+    const ab = new Uint8Array([3, 2, 1]).buffer;
+    const buffer = toBuffer(ab);
+    expect(new Uint8Array(buffer)).toEqual(new Uint8Array([3, 2, 1]));
+  });
+});
 
 describe('toArrayBuffer', () => {
   it('Single Buffer', () => {

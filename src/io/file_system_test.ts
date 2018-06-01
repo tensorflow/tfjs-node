@@ -16,12 +16,13 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
 import * as tmp from 'tmp';
 
-import {NodeFileSystem} from './file_system';
+import {toBuffer} from './io_utils';
 
 describe('File system IOHandler', () => {
   const modelTopology1: {} = {
@@ -82,7 +83,7 @@ describe('File system IOHandler', () => {
   it('save succeeds with nonexistent path', done => {
     const t0 = new Date();
     testDir = path.join(testDir, 'save-destination');
-    const handler = new NodeFileSystem(testDir);
+    const handler = tfc.io.getSaveHandlers(`file://${testDir}`)[0];
     handler
         .save({
           modelTopology: modelTopology1,
@@ -103,8 +104,7 @@ describe('File system IOHandler', () => {
           expect(modelJSON.weightsManifest[0].paths).toEqual(['weights.bin']);
           expect(modelJSON.weightsManifest[0].weights).toEqual(weightSpecs1);
 
-          const weightData = new Uint8Array(
-              new Buffer(fs.readFileSync(weightsBinPath, 'binary')));
+          const weightData = new Uint8Array(fs.readFileSync(weightsBinPath));
           expect(weightData.length).toEqual(16);
           weightData.forEach(value => expect(value).toEqual(0));
 
@@ -118,7 +118,7 @@ describe('File system IOHandler', () => {
     testDir = path.join(testDir, 'save-destination');
     // Create a file at the locatin.
     fs.writeFileSync(testDir, 'foo');
-    const handler = new NodeFileSystem(testDir);
+    const handler = tfc.io.getSaveHandlers(`file://${testDir}`)[0];
     handler
         .save({
           modelTopology: modelTopology1,
@@ -135,7 +135,7 @@ describe('File system IOHandler', () => {
   });
 
   it('save-load round trip: one weight file', done => {
-    const handler1 = new NodeFileSystem(testDir);
+    const handler1 = tfc.io.getSaveHandlers(`file://${testDir}`)[0];
     handler1
         .save({
           modelTopology: modelTopology1,
@@ -144,7 +144,7 @@ describe('File system IOHandler', () => {
         })
         .then(saveResult => {
           const modelJSONPath = path.join(testDir, 'model.json');
-          const handler2 = new NodeFileSystem(modelJSONPath);
+          const handler2 = tfc.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
           handler2.load()
               .then(modelArtifacts => {
                 expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
@@ -159,7 +159,6 @@ describe('File system IOHandler', () => {
   });
 
   it('save-load round trip: two weight files', done => {
-    console.log('=============== BEGIN ===============');  // DEBUG
     const weightsManifest: tfc.io.WeightsManifestConfig = [
       {
         paths: ['weights.1.bin'],
@@ -185,27 +184,21 @@ describe('File system IOHandler', () => {
     };
 
     // Write model.json file.
-    console.log('testDir = ' + testDir);  // DEBUG
     const modelJSONPath = path.join(testDir, 'model.json');
     fs.writeFileSync(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
 
     // Write the two binary weights files.
-    console.log('----------------------------------------');   // DEBUG
-    console.log(new Float32Array([-1.1, -3.3, -3.3]).buffer);  // DEBUG
-    console.log(new Float32Array([-7.7]).buffer);              // DEBUG
-    console.log('----------------------------------------');   // DEBUG
     const weightsData1 =
-        new Buffer(new Float32Array([-1.1, -3.3, -3.3]).buffer);
+        Buffer.from(new Float32Array([-1.1, -3.3, -3.3]).buffer);
     fs.writeFileSync(
         path.join(testDir, 'weights.1.bin'), weightsData1, 'binary');
-
-    const weightsData2 = new Buffer(new Float32Array([-7.7]).buffer);
+    const weightsData2 = toBuffer(new Float32Array([-7.7]).buffer);
     fs.writeFileSync(
         path.join(testDir, 'weights.2.bin'), weightsData2, 'binary');
 
     // Load the artifacts consisting of a model.json and two binary weight
     // files.
-    const handler = new NodeFileSystem(modelJSONPath);
+    const handler = tfc.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
     handler.load()
         .then(modelArtifacts => {
           expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
@@ -221,10 +214,9 @@ describe('File system IOHandler', () => {
               dtype: 'float32',
             }
           ]);
-          console.log(modelArtifacts.weightData);
-          // console.log(new Float32Array(modelArtifacts.weightData));
-          // .toEqual(new Float32Array([0, 0, 0, 0]));
-          console.log('=============== DONE ===============');  // DEBUG
+          expectArraysClose(
+              new Float32Array(modelArtifacts.weightData),
+              new Float32Array([-1.1, -3.3, -3.3, -7.7]));
           done();
         })
         .catch(err => done.fail(err.stack));

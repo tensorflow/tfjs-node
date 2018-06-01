@@ -29,6 +29,23 @@ export class NodeFileSystem implements tfc.io.IOHandler {
   readonly MODEL_JSON_FILENAME = 'model.json';
   readonly WEIGHTS_BINARY_FILENAME = 'weights.bin';
 
+  /**
+   * Constructor of the NodeFileSystem IOHandler.
+   * @param path A single path or an array of paths.
+   *   For saving: a single path pointing to a existing or nonexistent directory
+   *     is expected. If the directory does not exist, it will be created.
+   *   For loading:
+   *     - If the model has JSON topology (e.g., `tf.Model`), a single path
+   *       pointing to the JSON file (usually named `model.json`) is expected.
+   *       The JSON file is expected to contain `modelTopology` and/or
+   *       `weightsManifest`. If `weightManifest` exists, the values of the
+   *       weights will be loaded from relative paths as contained in
+   *       `weightManifest`.
+   *     - If the model has binary (protocol buffer GraphDef) topology,
+   *       an Array of two paths is expected: the first path should point to the
+   *       .pb file and the second path should point to the weight manifest
+   *       JSON file.
+   */
   constructor(path: string|string[]) {
     if (Array.isArray(path)) {
       this.path = path.map(p => resolve(p));
@@ -82,7 +99,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
     }
 
     // `this.path` can be either a directory or a file. If it is a file, assume
-    // it is mode.json file.
+    // it is model.json file.
     if (fs.statSync(this.path).isFile()) {
       const modelJSON = JSON.parse(fs.readFileSync(this.path, 'utf8'));
 
@@ -95,9 +112,8 @@ export class NodeFileSystem implements tfc.io.IOHandler {
         const weightSpecs: tfc.io.WeightsManifestEntry[] = [];
         for (const group of modelJSON.weightsManifest) {
           group.paths.forEach((path: string) => {
-            console.log('pushing data from path = ' + path);  // DEBUG
-            buffers.push(
-                new Buffer(fs.readFileSync(join(dirName, path), 'binary')));
+            const buffer = new Buffer(fs.readFileSync(join(dirName, path)));
+            buffers.push(buffer);
           });
           weightSpecs.push(...group.weights);
         }
@@ -113,7 +129,8 @@ export class NodeFileSystem implements tfc.io.IOHandler {
   }
 
   /**
-   * Create a directory at `this.path` or verify that the directory exists.
+   * For each item in `this.path`, create a directory at the path or verify that
+   * the path exists as a directory.
    */
   protected createOrVerifyDirectory() {
     for (const path of Array.isArray(this.path) ? this.path : [this.path]) {
@@ -141,8 +158,7 @@ export const nodeFileSystemRouter = (url: string) => {
     }
   }
 };
-tfc.io.registerSaveRouter(nodeFileSystemRouter);
-tfc.io.registerLoadRouter(nodeFileSystemRouter);
+// Registration of `nodeFileSystemRouter` is done in index.ts.
 
 // TODO(cais): Deduplicate with tfjs-core once the dependency version is
 //   updated to >= 0.11.3.
