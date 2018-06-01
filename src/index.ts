@@ -17,7 +17,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-// tslint:disable-next-line:no-unused-variable
 import {nodeFileSystemRouter} from './io/file_system';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
