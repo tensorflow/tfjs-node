@@ -65,7 +65,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
     if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
       throw new Error(
           'NodeFileSystem.save() does not support saving model topology ' +
-          'in binary formats yet.');
+          'in binary format yet.');
     } else {
       const weightsBinPath = join(this.path, this.WEIGHTS_BINARY_FILENAME);
       const weightsManifest = [{
@@ -77,8 +77,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
         weightsManifest,
       };
       const modelJSONPath = join(this.path, this.MODEL_JSON_FILENAME);
-      fs.writeFileSync(modelJSONPath, JSON.stringify(modelJSON));
-
+      fs.writeFileSync(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
       fs.writeFileSync(
           weightsBinPath, toBuffer(modelArtifacts.weightData), 'binary');
 
