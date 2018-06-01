@@ -16,18 +16,16 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {getModelArtifactsInfoForJSON} from '@tensorflow/tfjs-core/dist/io/io';
 import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
-import * as tmp from 'tmp';
 import {promisify} from 'util';
 
 import {toBuffer} from './io_utils';
 
 describe('File system IOHandler', () => {
-  const tmpDir = promisify(tmp.dir);
+  const mkdtemp = promisify(fs.mkdtemp);
   const readFile = promisify(fs.readFile);
   const writeFile = promisify(fs.writeFile);
   const rimrafPromise = promisify(rimraf);
@@ -80,8 +78,17 @@ describe('File system IOHandler', () => {
 
   let testDir: string;
   beforeEach(async done => {
-    testDir = await tmpDir();
+    testDir = await mkdtemp('tfjs_node_fs_test');
+    console.log('testDir = ' + testDir);  // DEBUG
     done();
+    // tmp.dir((err: any, path: string, cleanupCallback: () => void) => {
+    //   if (err) {
+    //     done.fail('Failed to create temporary directory.');
+    //   } else {
+    //     testDir = path;
+    //     done();
+    //   }
+    // });
   });
 
   afterEach(async done => {
