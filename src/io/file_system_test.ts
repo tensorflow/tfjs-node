@@ -79,16 +79,7 @@ describe('File system IOHandler', () => {
   let testDir: string;
   beforeEach(async done => {
     testDir = await mkdtemp('tfjs_node_fs_test');
-    console.log('testDir = ' + testDir);  // DEBUG
     done();
-    // tmp.dir((err: any, path: string, cleanupCallback: () => void) => {
-    //   if (err) {
-    //     done.fail('Failed to create temporary directory.');
-    //   } else {
-    //     testDir = path;
-    //     done();
-    //   }
-    // });
   });
 
   afterEach(async done => {

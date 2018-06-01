@@ -68,6 +68,8 @@ export class NodeFileSystem implements tfc.io.IOHandler {
       throw new Error(
           'NodeFileSystem.save() does not support saving model topology ' +
           'in binary format yet.');
+      // TODO(cais, nkreeger): Implement this. See
+      //   https://github.com/tensorflow/tfjs/issues/343
     } else {
       const weightsBinPath = join(this.path, this.WEIGHTS_BINARY_FILENAME);
       const weightsManifest = [{
@@ -96,6 +98,8 @@ export class NodeFileSystem implements tfc.io.IOHandler {
   async load(): Promise<tfc.io.ModelArtifacts> {
     if (Array.isArray(this.path)) {
       throw new Error('Loading from multiple paths is not supported yet.');
+      // TODO(cais, nkreeger): Implement this. See
+      //   https://github.com/tensorflow/tfjs/issues/343
     }
 
     const exists = promisify(fs.exists);
