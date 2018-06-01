@@ -19,21 +19,30 @@ import * as tfc from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
 
-import {toBuffer} from './io_utils';
+import {toArrayBuffer, toBuffer} from './io_utils';
 
 export class NodeFileSystem implements tfc.io.IOHandler {
   static readonly URL_SCHEME = 'file://';
 
-  protected readonly path: string;
+  protected readonly path: string|string[];
 
   readonly MODEL_JSON_FILENAME = 'model.json';
   readonly WEIGHTS_BINARY_FILENAME = 'weights.bin';
 
-  constructor(path: string) {
-    this.path = resolve(path);
+  constructor(path: string|string[]) {
+    if (Array.isArray(path)) {
+      this.path = path.map(p => resolve(p));
+    } else {
+      this.path = resolve(path);
+    }
   }
 
-  async save(modelArtifacts: ModelArtifacts): Promise<SaveResult> {
+  async save(modelArtifacts: tfc.io.ModelArtifacts):
+      Promise<tfc.io.SaveResult> {
+    if (Array.isArray(this.path)) {
+      throw new Error('Cannot perform saving to multiple paths.');
+    }
+
     this.createOrVerifyDirectory();
 
     if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
@@ -49,25 +58,25 @@ export class NodeFileSystem implements tfc.io.IOHandler {
       const modelJSON = {
         modelTopology: modelArtifacts.modelTopology,
         weightsManifest,
-        // TODO(cais): Add weightManifest;
       };
-      // const topology = JSON.stringify();
-      // const weightSpecs = JSON.stringify(modelArtifacts.weightSpecs);
       const modelJSONPath = join(this.path, this.MODEL_JSON_FILENAME);
-      console.log(`modelJSONPath = ${modelJSONPath}`);  // DEBUG
-
       fs.writeFileSync(modelJSONPath, JSON.stringify(modelJSON));
-      // const weightStream = fs.createWriteStream(weightsBinPath);
 
-      console.log('Writing:', modelArtifacts.weightData);  // DEBUG
       fs.writeFileSync(
           weightsBinPath, toBuffer(modelArtifacts.weightData), 'binary');
 
-      return getModelArtifactsInfoForJSON(modelArtifacts);
+      return {
+        // tslint:disable-next-line:no-any
+        modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts) as any
+      };
     }
   }
 
-  async load(): Promise<ModelArtifacts> {
+  async load(): Promise<tfc.io.ModelArtifacts> {
+    if (Array.isArray(this.path)) {
+      throw new Error('Loading from multiple paths is not supported yet.');
+    }
+
     if (!fs.existsSync(this.path)) {
       throw new Error(`Path ${this.path} does not exist: loading failed.`);
     }
@@ -75,29 +84,31 @@ export class NodeFileSystem implements tfc.io.IOHandler {
     // `this.path` can be either a directory or a file. If it is a file, assume
     // it is mode.json file.
     if (fs.statSync(this.path).isFile()) {
-      const modelJSON = JSON.parse(fs.readFileSync(this.path));
+      const modelJSON = JSON.parse(fs.readFileSync(this.path, 'utf8'));
 
-      if (modelJSON.weightsManifest != null) {
-        const dirName = dirname(this.path);
-        for (let i = 0; i < modelJSON.weightsManifest.length; ++i) {
-          const group = modelJSON.weightsManifest[i];
-
-          // const buffers: Buffer[] = [];
-          group.paths.forEach(path => {
-            const buffer =
-                new Buffer(fs.readFileSync(join(dirName, path), 'binary'));
-            console.log(buffer);  // DEBUG
-          });
-          console.log('paths:', JSON.stringify(group.paths));  // DEBUG
-          console.log(Object.keys(tfc.io));                    // DEBUG
-        }
-      }
-
-      return {
+      const modelArtifacts: tfc.io.ModelArtifacts = {
         modelTopology: modelJSON.modelTopology,
       };
+      if (modelJSON.weightsManifest != null) {
+        const dirName = dirname(this.path);
+        const buffers: Buffer[] = [];
+        const weightSpecs: tfc.io.WeightsManifestEntry[] = [];
+        for (const group of modelJSON.weightsManifest) {
+          group.paths.forEach((path: string) => {
+            console.log('pushing data from path = ' + path);  // DEBUG
+            buffers.push(
+                new Buffer(fs.readFileSync(join(dirName, path), 'binary')));
+          });
+          weightSpecs.push(...group.weights);
+        }
+        modelArtifacts.weightSpecs = weightSpecs;
+        modelArtifacts.weightData = toArrayBuffer(buffers);
+      }
+      return modelArtifacts;
     } else {
-      throw new Error('Loading from directory is not implemented yet');
+      throw new Error(
+          'The path to load from must be a file. Loading from a directory ' +
+          'is not supported yet.');
     }
   }
 
@@ -105,24 +116,26 @@ export class NodeFileSystem implements tfc.io.IOHandler {
    * Create a directory at `this.path` or verify that the directory exists.
    */
   protected createOrVerifyDirectory() {
-    if (fs.existsSync(this.path)) {
-      if (fs.statSync(this.path).isFile()) {
-        throw new Error(
-            `Path ${this.path} exists as a file. The path must be ` +
-            `nonexistent or point to a directory.`);
+    for (const path of Array.isArray(this.path) ? this.path : [this.path]) {
+      if (fs.existsSync(path)) {
+        if (fs.statSync(path).isFile()) {
+          throw new Error(
+              `Path ${path} exists as a file. The path must be ` +
+              `nonexistent or point to a directory.`);
+        }
+      } else {
+        fs.mkdirSync(path);
       }
-    } else {
-      fs.mkdirSync(this.path);
     }
   }
 }
 
-export const nodeFileSystemRouter: tfc.io.IORouter = (url: string) => {
+export const nodeFileSystemRouter = (url: string) => {
   if (tfc.ENV.get('IS_BROWSER')) {
     return null;
   } else {
     if (url.startsWith(NodeFileSystem.URL_SCHEME)) {
-      return browserLocalStorage(url.slice(NodeFileSystem.URL_SCHEME.length));
+      return new NodeFileSystem(url.slice(NodeFileSystem.URL_SCHEME.length));
     } else {
       return null;
     }
@@ -131,14 +144,15 @@ export const nodeFileSystemRouter: tfc.io.IORouter = (url: string) => {
 tfc.io.registerSaveRouter(nodeFileSystemRouter);
 tfc.io.registerLoadRouter(nodeFileSystemRouter);
 
-// TODO(cais): Deduplicate with tfjs-core.
+// TODO(cais): Deduplicate with tfjs-core once the dependency version is
+//   updated to >= 0.11.3.
 /**
  * Populate ModelArtifactsInfo fields for a model with JSON topology.
  * @param modelArtifacts
  * @returns A ModelArtifactsInfo object.
  */
 export function getModelArtifactsInfoForJSON(
-    modelArtifacts: tfc.io.ModelArtifacts): tfc.io.ModelArtifactsInfo {
+    modelArtifacts: tfc.io.ModelArtifacts) {
   if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
     throw new Error('Expected JSON model topology, received ArrayBuffer.');
   }

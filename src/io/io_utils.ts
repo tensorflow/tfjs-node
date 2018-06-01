@@ -31,16 +31,19 @@ export function toBuffer(ab: ArrayBuffer): Buffer {
  * Convert a Buffer or an Array of Buffers to an ArrayBuffer.
  */
 export function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
-  if (Array.isArray(buffer)) {
+  if (Array.isArray(buf)) {
+    console.log('buf.length = ', buf.length);  // DEBUG
     // An Array of Buffers.
     let totalLength = 0;
     buf.forEach(buffer => {
+      console.log('Adding:', buffer.length);  // DEBUG
       totalLength += buffer.length;
     });
+    console.log('totalLength:', totalLength);  // DEBUG
 
     const ab = new ArrayBuffer(totalLength);
     const view = new Uint8Array(ab);
-    const pos = 0;
+    let pos = 0;
     buf.forEach(buffer => {
       for (let i = 0; i < buffer.length; ++i) {
         view[pos++] = buffer[i];

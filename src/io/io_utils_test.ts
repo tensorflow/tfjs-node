@@ -19,8 +19,32 @@ import {toArrayBuffer} from './io_utils';
 
 describe('toArrayBuffer', () => {
   it('Single Buffer', () => {
-    const buf = new Buffer([1, 2, 3]);
+    const buf = new Buffer([10, 20, 30]);
     const ab = toArrayBuffer(buf);
-    console.log('ab:', ab);  // DEBUG
+    expect(new Uint8Array(ab)).toEqual(new Uint8Array([10, 20, 30]));
+  });
+
+  it('Two Buffers', () => {
+    const buf1 = new Buffer([10, 20, 30]);
+    const buf2 = new Buffer([40, 50, 60]);
+    const ab = toArrayBuffer([buf1, buf2]);
+    expect(new Uint8Array(ab)).toEqual(new Uint8Array([
+      10, 20, 30, 40, 50, 60
+    ]));
+  });
+
+  it('Three Buffers', () => {
+    const buf1 = new Buffer([10, 20, 30]);
+    const buf2 = new Buffer([40, 50, 60]);
+    const buf3 = new Buffer([3, 2, 1]);
+    const ab = toArrayBuffer([buf1, buf2, buf3]);
+    expect(new Uint8Array(ab)).toEqual(new Uint8Array([
+      10, 20, 30, 40, 50, 60, 3, 2, 1
+    ]));
+  });
+
+  it('Zero buffers', () => {
+    const ab = toArrayBuffer([]);
+    expect(new Uint8Array(ab)).toEqual(new Uint8Array([]));
   });
 });

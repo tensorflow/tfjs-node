@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as tfc from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
@@ -55,7 +56,7 @@ describe('File system IOHandler', () => {
     }],
     'backend': 'tensorflow'
   };
-  const weightSpecs1: tf.io.WeightsManifestEntry[] = [
+  const weightSpecs1: tfc.io.WeightsManifestEntry[] = [
     {
       name: 'dense/kernel',
       shape: [3, 1],
@@ -72,7 +73,6 @@ describe('File system IOHandler', () => {
   let testDir: string;
   beforeEach(() => {
     testDir = tmp.dirSync().name;
-    console.log('testDir:', testDir);  // DEBUG
   });
 
   afterEach(() => {
@@ -90,9 +90,10 @@ describe('File system IOHandler', () => {
           weightData: weightData1,
         })
         .then(saveResult => {
-          expect(saveResult.dateSaved.getTime())
+          expect(saveResult.modelArtifactsInfo.dateSaved.getTime())
               .toBeGreaterThanOrEqual(t0.getTime());
-          expect(saveResult.modelTopologyType).toEqual('JSON');
+          expect(saveResult.modelArtifactsInfo.modelTopologyType)
+              .toEqual('JSON');
 
           const modelJSONPath = path.join(testDir, 'model.json');
           const weightsBinPath = path.join(testDir, 'weights.bin');
@@ -133,7 +134,7 @@ describe('File system IOHandler', () => {
         });
   });
 
-  it('save-load round trip', done => {
+  it('save-load round trip: one weight file', done => {
     const handler1 = new NodeFileSystem(testDir);
     handler1
         .save({
@@ -147,9 +148,84 @@ describe('File system IOHandler', () => {
           handler2.load()
               .then(modelArtifacts => {
                 expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+                expect(modelArtifacts.weightSpecs).toEqual(weightSpecs1);
+                expect(new Float32Array(modelArtifacts.weightData))
+                    .toEqual(new Float32Array([0, 0, 0, 0]));
                 done();
               })
               .catch(err => done.fail(err.stack));
+        })
+        .catch(err => done.fail(err.stack));
+  });
+
+  it('save-load round trip: two weight files', done => {
+    console.log('=============== BEGIN ===============');  // DEBUG
+    const weightsManifest: tfc.io.WeightsManifestConfig = [
+      {
+        paths: ['weights.1.bin'],
+        weights: [{
+          name: 'dense/kernel',
+          shape: [3, 1],
+          dtype: 'float32',
+        }],
+      },
+
+      {
+        paths: ['weights.2.bin'],
+        weights: [{
+          name: 'dense/bias',
+          shape: [1],
+          dtype: 'float32',
+        }]
+      }
+    ];
+    const modelJSON = {
+      modelTopology: modelTopology1,
+      weightsManifest,
+    };
+
+    // Write model.json file.
+    console.log('testDir = ' + testDir);  // DEBUG
+    const modelJSONPath = path.join(testDir, 'model.json');
+    fs.writeFileSync(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
+
+    // Write the two binary weights files.
+    console.log('----------------------------------------');   // DEBUG
+    console.log(new Float32Array([-1.1, -3.3, -3.3]).buffer);  // DEBUG
+    console.log(new Float32Array([-7.7]).buffer);              // DEBUG
+    console.log('----------------------------------------');   // DEBUG
+    const weightsData1 =
+        new Buffer(new Float32Array([-1.1, -3.3, -3.3]).buffer);
+    fs.writeFileSync(
+        path.join(testDir, 'weights.1.bin'), weightsData1, 'binary');
+
+    const weightsData2 = new Buffer(new Float32Array([-7.7]).buffer);
+    fs.writeFileSync(
+        path.join(testDir, 'weights.2.bin'), weightsData2, 'binary');
+
+    // Load the artifacts consisting of a model.json and two binary weight
+    // files.
+    const handler = new NodeFileSystem(modelJSONPath);
+    handler.load()
+        .then(modelArtifacts => {
+          expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+          expect(modelArtifacts.weightSpecs).toEqual([
+            {
+              name: 'dense/kernel',
+              shape: [3, 1],
+              dtype: 'float32',
+            },
+            {
+              name: 'dense/bias',
+              shape: [1],
+              dtype: 'float32',
+            }
+          ]);
+          console.log(modelArtifacts.weightData);
+          // console.log(new Float32Array(modelArtifacts.weightData));
+          // .toEqual(new Float32Array([0, 0, 0, 0]));
+          console.log('=============== DONE ===============');  // DEBUG
+          done();
         })
         .catch(err => done.fail(err.stack));
   });
