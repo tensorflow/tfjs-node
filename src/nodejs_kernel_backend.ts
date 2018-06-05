@@ -357,6 +357,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   topKValues<T extends Tensor>(x: T, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
+
   topKIndices(x: Tensor, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
@@ -625,13 +626,44 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   depthwiseConv2DDerInput(
       dy: Tensor<Rank.R4>, filter: Tensor<Rank.R4>,
-      convInfo: Conv2DInfo): Tensor<Rank.R4> {
-    throw new Error('Method not implemented.');
+      convInfo: Conv2DInfo): Tensor4D {
+    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
+    const dilations = [1, convInfo.dilationHeight, convInfo.dilationWidth, 1];
+    const opAttrs = [
+      this.createTypeOpAttr('T', 'float32'),
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
+    ];
+
+    const inputSizes = tensor1d(convInfo.inShape, 'int32');
+    return this.executeSingleOutput(
+               'DepthwiseConv2dNativeBackpropInput', opAttrs,
+               [inputSizes, filter, dy]) as Tensor4D;
   }
 
   depthwiseConv2DDerFilter(
       x: Tensor<Rank.R4>, dY: Tensor<Rank.R4>,
       convInfo: Conv2DInfo): Tensor<Rank.R4> {
+    // const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
+    // const padding = convInfo.padInfo.type;
+
+    // const opAttrs = [
+    //   this.createTypeOpAttr('T', x.dtype),
+    //   {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+    //   {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}
+    // ];
+
+    // // return this.executeSingleOutput('DepthwiseConv2dNativeBackpropInput',
+    // // opAttrs, []) throw new Error('Method not implemented.');
+
+    // const filterSizes = tensor1d(convInfo.filterShape, 'int32');
     throw new Error('Method not implemented.');
   }
 
