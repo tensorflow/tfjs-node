@@ -16,9 +16,6 @@
  */
 
 import './index';
-import * as tfc from '@tensorflow/tfjs-core';
-tfc.setBackend('tensorflow');
-
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // tslint:disable-next-line:no-require-imports
