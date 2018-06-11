@@ -1042,6 +1042,4 @@ export class NodeJSKernelBackend implements KernelBackend {
   isNaN<T extends Tensor>(x: T): T {
     return this.executeSingleInput('IsNan', x) as T;
   }
-
-  reset() {}
 }
