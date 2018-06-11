@@ -28,18 +28,12 @@ import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
-jasmine_util.setBeforeAll(() => {});
-jasmine_util.setAfterAll(() => {});
-jasmine_util.setBeforeEach(() => {});
-jasmine_util.setAfterEach(() => {});
 jasmine_util.setTestBackends([{
   name: 'test-tensorflow',
   factory: () =>
       new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding),
   priority: 100
 }]);
-
-// jasmine_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 
 const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
