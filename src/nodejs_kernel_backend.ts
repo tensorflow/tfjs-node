@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 
@@ -1017,10 +1017,33 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('Cumsum', opAttrs, [x, axisTensor]);
   }
 
-  fromPixels(
-      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): Tensor3D {
-    throw new Error('Method not implemented.');
+  fromPixels(pixels: HTMLCanvasElement, numChannels: number): Tensor3D {
+    if (pixels == null) {
+      throw new Error('pixels can not be null');
+    }
+    if (pixels.getContext == null) {
+      throw new Error(
+          'pixels must be a canvas object as returned by the ' +
+          '`node-canvas` npm package.');
+    }
+    const vals = pixels.getContext('2d')
+                     .getImageData(0, 0, pixels.width, pixels.height)
+                     .data;
+    let values: Int32Array;
+    if (numChannels === 4) {
+      values = new Int32Array(vals);
+    } else {
+      const numPixels = pixels.width * pixels.height;
+      values = new Int32Array(numPixels * numChannels);
+      for (let i = 0; i < numPixels; i++) {
+        for (let channel = 0; channel < numChannels; ++channel) {
+          values[i * numChannels + channel] = vals[i * 4 + channel];
+        }
+      }
+    }
+    const outShape: [number, number, number] =
+        [pixels.height, pixels.width, numChannels];
+    return tensor3d(values, outShape, 'int32');
   }
 
   memory() {
