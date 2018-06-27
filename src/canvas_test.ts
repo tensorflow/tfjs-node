@@ -16,7 +16,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
 
 class MockContext {
   getImageData(x: number, y: number, width: number, height: number) {
@@ -42,7 +41,8 @@ describe('tf.fromPixels', () => {
     const t = tf.fromPixels(c as any);
     expect(t.dtype).toBe('int32');
     expect(t.shape).toEqual([2, 2, 3]);
-    expectArraysEqual(t, [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]);
+    tf.test_util.expectArraysEqual(
+        t, [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]);
   });
 
   it('accepts a canvas-like element, numChannels=4', () => {
@@ -51,7 +51,7 @@ describe('tf.fromPixels', () => {
     const t = tf.fromPixels(c as any, 4);
     expect(t.dtype).toBe('int32');
     expect(t.shape).toEqual([2, 2, 4]);
-    expectArraysEqual(
+    tf.test_util.expectArraysEqual(
         t, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
   });
 
