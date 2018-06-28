@@ -4,7 +4,7 @@
 # `bazel build //tensorflow/tools/lib_package:libtensorflow`
 
 CPU_DARWIN="https://storage.googleapis.com/tf-builds/libtensorflow_r1_8_darwin.tar.gz"
-CPU_LINUX="https://storage.googleapis.com/tf-builds/libtensorflow_r1_8_linux_cpu.tar.gz"
+CPU_LINUX="https://storage.googleapis.com/tf-builds/libtensorflow_r1_8_linux_cpu2.tar.gz"
 GPU_LINUX="https://storage.googleapis.com/tf-builds/libtensorflow_r1_8_linux_gpu.tar.gz"
 
 target=""
