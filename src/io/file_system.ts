@@ -20,7 +20,6 @@ import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
 import {promisify} from 'util';
 
-const exists = promisify(fs.exists);
 const stat = promisify(fs.stat);
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
@@ -28,6 +27,18 @@ const mkdir = promisify(fs.mkdir);
 
 // tslint:disable-next-line:max-line-length
 import {getModelArtifactsInfoForJSON, toArrayBuffer, toBuffer} from './io_utils';
+
+function doesNotExistHandler(name: string):
+    (e: NodeJS.ErrnoException) => never {
+  return e => {
+    switch (e.code) {
+      case 'ENOENT':
+        throw new Error(`${name} ${e.path} does not exist: loading failed`);
+      default:
+        throw e;
+    }
+  };
+}
 
 export class NodeFileSystem implements tfc.io.IOHandler {
   static readonly URL_SCHEME = 'file://';
@@ -107,13 +118,11 @@ export class NodeFileSystem implements tfc.io.IOHandler {
       //   https://github.com/tensorflow/tfjs/issues/343
     }
 
-    if (!await exists(this.path)) {
-      throw new Error(`Path ${this.path} does not exist: loading failed.`);
-    }
+    const info = await stat(this.path).catch(doesNotExistHandler('Path'));
 
     // `this.path` can be either a directory or a file. If it is a file, assume
     // it is model.json file.
-    if ((await stat(this.path)).isFile()) {
+    if (info.isFile()) {
       const modelJSON = JSON.parse(await readFile(this.path, 'utf8'));
 
       const modelArtifacts: tfc.io.ModelArtifacts = {
@@ -126,11 +135,8 @@ export class NodeFileSystem implements tfc.io.IOHandler {
         for (const group of modelJSON.weightsManifest) {
           for (const path of group.paths) {
             const weightFilePath = join(dirName, path);
-            if (!await exists(weightFilePath)) {
-              throw new Error(`Weight file ${
-                  weightFilePath} does not exist: loading failed`);
-            }
-            const buffer = await readFile(weightFilePath);
+            const buffer = await readFile(weightFilePath)
+              .catch(doesNotExistHandler('Weight file'));
             buffers.push(buffer);
           }
           weightSpecs.push(...group.weights);
