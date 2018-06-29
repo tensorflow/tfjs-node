@@ -151,15 +151,21 @@ export class NodeFileSystem implements tfc.io.IOHandler {
    * that the path exists as a directory.
    */
   protected async createOrVerifyDirectory() {
-    for (const path of Array.isArray(this.path) ? this.path : [this.path]) {
-      if (await exists(path)) {
-        if ((await stat(path)).isFile()) {
-          throw new Error(
+    const paths = Array.isArray(this.path) ? this.path : [this.path];
+    for (const path of paths) {
+      try {
+        await mkdir(path);
+      } catch (e) {
+        if (e.code === 'EEXIST') {
+          if ((await stat(path)).isFile()) {
+            throw new Error(
               `Path ${path} exists as a file. The path must be ` +
               `nonexistent or point to a directory.`);
+          }
+          // else continue, the directory exists
+        } else {
+          throw e;
         }
-      } else {
-        await mkdir(path);
       }
     }
   }
