@@ -20,6 +20,12 @@ import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
 import {promisify} from 'util';
 
+const exists = promisify(fs.exists);
+const stat = promisify(fs.stat);
+const writeFile = promisify(fs.writeFile);
+const readFile = promisify(fs.readFile);
+const mkdir = promisify(fs.mkdir);
+
 // tslint:disable-next-line:max-line-length
 import {getModelArtifactsInfoForJSON, toArrayBuffer, toBuffer} from './io_utils';
 
@@ -81,7 +87,6 @@ export class NodeFileSystem implements tfc.io.IOHandler {
         weightsManifest,
       };
       const modelJSONPath = join(this.path, this.MODEL_JSON_FILENAME);
-      const writeFile = promisify(fs.writeFile);
       await writeFile(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
       await writeFile(
           weightsBinPath, toBuffer(modelArtifacts.weightData), 'binary');
@@ -102,16 +107,13 @@ export class NodeFileSystem implements tfc.io.IOHandler {
       //   https://github.com/tensorflow/tfjs/issues/343
     }
 
-    const exists = promisify(fs.exists);
     if (!await exists(this.path)) {
       throw new Error(`Path ${this.path} does not exist: loading failed.`);
     }
 
     // `this.path` can be either a directory or a file. If it is a file, assume
     // it is model.json file.
-    const stat = promisify(fs.stat);
     if ((await stat(this.path)).isFile()) {
-      const readFile = promisify(fs.readFile);
       const modelJSON = JSON.parse(await readFile(this.path, 'utf8'));
 
       const modelArtifacts: tfc.io.ModelArtifacts = {
@@ -150,8 +152,6 @@ export class NodeFileSystem implements tfc.io.IOHandler {
    */
   protected async createOrVerifyDirectory() {
     for (const path of Array.isArray(this.path) ? this.path : [this.path]) {
-      const exists = promisify(fs.exists);
-      const stat = promisify(fs.stat);
       if (await exists(path)) {
         if ((await stat(path)).isFile()) {
           throw new Error(
@@ -159,7 +159,6 @@ export class NodeFileSystem implements tfc.io.IOHandler {
               `nonexistent or point to a directory.`);
         }
       } else {
-        const mkdir = promisify(fs.mkdir);
         await mkdir(path);
       }
     }
