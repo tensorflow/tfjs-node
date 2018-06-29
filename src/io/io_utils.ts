@@ -35,27 +35,20 @@ export function toArrayBuffer(buf: Buffer|Buffer[]): ArrayBuffer {
   if (Array.isArray(buf)) {
     // An Array of Buffers.
     let totalLength = 0;
-    buf.forEach(buffer => {
+    for (const buffer of buf) {
       totalLength += buffer.length;
-    });
+    }
 
     const ab = new ArrayBuffer(totalLength);
     const view = new Uint8Array(ab);
     let pos = 0;
-    buf.forEach(buffer => {
-      for (let i = 0; i < buffer.length; ++i) {
-        view[pos++] = buffer[i];
-      }
-    });
-    return ab;
-  } else {
-    // A single Buffer.
-    const ab = new ArrayBuffer(buf.length);
-    const view = new Uint8Array(ab);
-    for (let i = 0; i < buf.length; ++i) {
-      view[i] = buf[i];
+    for (const buffer of buf) {
+      pos += buffer.copy(view, pos);
     }
     return ab;
+  } else {
+    // A single Buffer. Return a copy of the underlying ArrayBuffer.
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
   }
 }
 
