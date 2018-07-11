@@ -28,30 +28,32 @@ import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
-jasmine_util.setTestBackends([{
+process.on('unhandledRejection', e => { throw e; });
+
+jasmine_util.setTestEnvs([{
   name: 'test-tensorflow',
   factory: () =>
       new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding),
-  priority: 100
+  features: {}
 }]);
 
 const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
-  'depthwiseConv2D',   // Requires space_to_batch() for dilation > 1.
-  'separableConv2d',   // Requires space_to_batch() for dilation > 1.
-  'IORouterRegistry',  // https://github.com/tensorflow/tfjs/issues/303
-  // https://github.com/tensorflow/tfjs/issues/417
-  'unsortedSegmentSum', 'gather {} gradient',
-  // https://github.com/tensorflow/tfjs/issues/279
-  'arrayBufferToBase64String', 'stringByteLength'
+  'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
+  'separableConv2d',  // Requires space_to_batch() for dilation > 1.
 ];
 
 const runner = new jasmineCtor();
 runner.loadConfig({
   spec_files: [
     'src/**/*_test.ts', 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js'
-  ]
+  ],
+  random: false
 });
+
+if (process.env.JASMINE_SEED) {
+  runner.seed(process.env.JASMINE_SEED);
+}
 
 const env = jasmine.getEnv();
 

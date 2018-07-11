@@ -21,7 +21,7 @@ import {dirname, join, resolve} from 'path';
 import {promisify} from 'util';
 
 // tslint:disable-next-line:max-line-length
-import {getModelArtifactsInfoForJSON, toArrayBuffer, toBuffer} from './io_utils';
+import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
 
 export class NodeFileSystem implements tfc.io.IOHandler {
   static readonly URL_SCHEME = 'file://';
@@ -84,7 +84,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
       const writeFile = promisify(fs.writeFile);
       await writeFile(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
       await writeFile(
-          weightsBinPath, toBuffer(modelArtifacts.weightData), 'binary');
+          weightsBinPath, Buffer.from(modelArtifacts.weightData), 'binary');
 
       return {
         // TODO(cais): Use explicit tfc.io.ModelArtifactsInfo type below once it
@@ -128,7 +128,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
               throw new Error(`Weight file ${
                   weightFilePath} does not exist: loading failed`);
             }
-            const buffer = new Buffer(await readFile(weightFilePath));
+            const buffer = await readFile(weightFilePath);
             buffers.push(buffer);
           }
           weightSpecs.push(...group.weights);
