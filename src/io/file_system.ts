@@ -26,7 +26,7 @@ const readFile = promisify(fs.readFile);
 const mkdir = promisify(fs.mkdir);
 
 // tslint:disable-next-line:max-line-length
-import {getModelArtifactsInfoForJSON, toArrayBuffer, toBuffer} from './io_utils';
+import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
 
 function doesNotExistHandler(name: string):
     (e: NodeJS.ErrnoException) => never {
@@ -100,7 +100,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
       const modelJSONPath = join(this.path, this.MODEL_JSON_FILENAME);
       await writeFile(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
       await writeFile(
-          weightsBinPath, toBuffer(modelArtifacts.weightData), 'binary');
+          weightsBinPath, Buffer.from(modelArtifacts.weightData), 'binary');
 
       return {
         // TODO(cais): Use explicit tfc.io.ModelArtifactsInfo type below once it
