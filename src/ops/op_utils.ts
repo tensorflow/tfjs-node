@@ -18,7 +18,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-/** Returns an instance of the Node JS backend. */
-export function nodeJSBackend(): NodeJSKernelBackend {
+/** Returns an instance of the Node.js backend. */
+export function nodeBackend(): NodeJSKernelBackend {
   return (tfc.ENV.findBackend('tensorflow') as NodeJSKernelBackend);
 }

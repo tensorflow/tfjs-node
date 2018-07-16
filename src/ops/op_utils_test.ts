@@ -15,11 +15,13 @@
  * =============================================================================
  */
 
-import {nodeJSBackend} from './op_utils';
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
+
+import {nodeBackend} from './op_utils';
 
 describe('Exposes Backend for internal Op execution.', () => {
-  it('Provides the NodeJS backend over a function', () => {
-    const backend = nodeJSBackend();
-    expect(backend).toBeDefined();
+  it('Provides the Node backend over a function', () => {
+    const backend = nodeBackend();
+    expect(backend instanceof NodeJSKernelBackend).toBeTruthy();
   });
 });
