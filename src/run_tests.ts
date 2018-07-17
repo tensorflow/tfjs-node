@@ -71,7 +71,7 @@ env.specFilter = spec => {
   return true;
 };
 
-// TODO - move to C code?
+// TODO(kreeger): Consider moving to C-code.
 console.log(`Running tests against TensorFlow: ${
     (bindings('tfjs_binding.node') as TFJSBinding).TF_Version}`);
 runner.execute();
