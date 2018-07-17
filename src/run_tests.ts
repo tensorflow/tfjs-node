@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import './index';
+import '.';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 Error.stackTraceLimit = Infinity;
