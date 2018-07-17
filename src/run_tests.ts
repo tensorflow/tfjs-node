@@ -28,12 +28,14 @@ import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
-process.on('unhandledRejection', e => { throw e; });
+process.on('unhandledRejection', e => {
+  throw e;
+});
 
 jasmine_util.setTestEnvs([{
   name: 'test-tensorflow',
   factory: () =>
-      new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding),
+      new NodeJSKernelBackend(bindings('tfjs_binding.node') as tfjsbinding),
   features: {}
 }]);
 
@@ -69,4 +71,7 @@ env.specFilter = spec => {
   return true;
 };
 
+// TODO - move to C code?
+console.log(`Running tests against TensorFlow: ${
+    (bindings('tfjs_binding.node') as TFJSBinding).TF_Version}`);
 runner.execute();
