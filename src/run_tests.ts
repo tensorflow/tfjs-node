@@ -35,7 +35,7 @@ process.on('unhandledRejection', e => {
 jasmine_util.setTestEnvs([{
   name: 'test-tensorflow',
   factory: () =>
-      new NodeJSKernelBackend(bindings('tfjs_binding.node') as tfjsbinding),
+      new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding),
   features: {}
 }]);
 
