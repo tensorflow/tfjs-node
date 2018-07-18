@@ -17,7 +17,7 @@
 
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-import {nodeBackend} from './op_utils';
+import {getTFDType, nodeBackend} from './op_utils';
 
 describe('Exposes Backend for internal Op execution.', () => {
   it('Provides the Node backend over a function', () => {
@@ -27,5 +27,22 @@ describe('Exposes Backend for internal Op execution.', () => {
 
   it('Provides internal access to the binding', () => {
     expect(nodeBackend().binding).toBeDefined();
+  });
+});
+
+describe('TFJS binding dtypes for Tensors', () => {
+  const binding = nodeBackend().binding;
+
+  it('handles float32', () => {
+    expect(getTFDType('float32')).toBe(binding.TF_FLOAT);
+  });
+  it('handles int32', () => {
+    expect(getTFDType('int32')).toBe(binding.TF_INT32);
+  });
+  it('handles bool', () => {
+    expect(getTFDType('bool')).toBe(binding.TF_BOOL);
+  });
+  it('handles unknown types', () => {
+    expect(() => getTFDType(null)).toThrowError();
   });
 });
