@@ -17,7 +17,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {getLoadHandlers} from '../../node_modules/@tensorflow/tfjs-core/dist/io/io';
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 // tslint:disable-next-line:max-line-length
