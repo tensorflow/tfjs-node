@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {isArray} from 'util';
+import {isArray, isNullOrUndefined} from 'util';
 
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 import {TFEOpAttr} from '../tfjs_binding';
@@ -53,6 +53,9 @@ export function createTypeOpAttr(
 
 /** Returns the dtype number for a single or list of input Tensors. */
 export function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
+  if (isNullOrUndefined(tensors)) {
+    throw new Error('Invalid input tensors value.');
+  }
   if (isArray(tensors)) {
     for (let i = 0; i < tensors.length; i++) {
       return getTFDType(tensors[i].dtype);
