@@ -71,7 +71,7 @@ describe('Returns TFDtype values for Tensor or list of Tensors', () => {
   });
   it('handles a list of Tensors', () => {
     const inputs = [tfc.scalar(1, 'int32'), tfc.scalar(20.1, 'float32')];
-    expect(getTFDTypeForInputs(inputs)).toBe('float32');
+    expect(getTFDTypeForInputs(inputs)).toBe('int32');
   });
   it('handles null', () => {
     expect(() => getTFDTypeForInputs(null)).toThrowError();
