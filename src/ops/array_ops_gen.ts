@@ -13,8 +13,8 @@ import {createTypeOpAttr, getTFDTypeForInputs, nodeBackend} from './op_utils';
 export function Concat(values: tfc.Tensor[], axis: tfc.Tensor): tfc.Tensor {
   const opAttrs = [
     {name: 'N', type: nodeBackend().binding.TF_ATTR_INT, value: values.length},
-    createTypeOpAttr('T', getTFDTypeForInputs(values)),
-    createTypeOpAttr('Tidx', getTFDTypeForInputs(axis))
+    createTypeOpAttr('Tidx', getTFDTypeForInputs(axis)),
+    createTypeOpAttr('T', getTFDTypeForInputs(values))
   ];
   const inputs = [] as tfc.Tensor[];
   values.forEach((input) => inputs.push(input));
