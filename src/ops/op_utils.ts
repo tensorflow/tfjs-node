@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {isArray, isNullOrUndefined} from 'util';
+import {isArray, isNullOrUndefined, isString} from 'util';
 
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 import {TFEOpAttr} from '../tfjs_binding';
@@ -43,11 +43,11 @@ export function getTFDType(dataType: tfc.DataType): number {
 
 /** Creates a TFEOpAttr for a 'type' OpDef attribute. */
 export function createTypeOpAttr(
-    attrName: string, dtype: tfc.DataType): TFEOpAttr {
+    attrName: string, dtype: tfc.DataType|number): TFEOpAttr {
   return {
     name: attrName,
     type: nodeBackend().binding.TF_ATTR_TYPE,
-    value: getTFDType(dtype)
+    value: typeof dtype === 'string' ? getTFDType(dtype as tfc.DataType) : dtype
   };
 }
 

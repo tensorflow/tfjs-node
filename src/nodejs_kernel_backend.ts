@@ -20,6 +20,7 @@ import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, sca
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 
+import {Concat} from './ops/array_ops_gen';
 import {createTypeOpAttr, getTFDType} from './ops/op_utils';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -221,14 +222,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   concat(a: Tensor2D, b: Tensor2D): Tensor2D {
-    const opAttrs = [
-      {name: 'N', type: this.binding.TF_ATTR_INT, value: 2},
-      createTypeOpAttr('Tidx', 'int32'), createTypeOpAttr('T', a.dtype)
-    ];
-    // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
-    const axisTensor = scalar(1, 'int32');
-    return this.executeSingleOutput('ConcatV2', opAttrs, [a, b, axisTensor]) as
-        Tensor2D;
+    return Concat([a, b], scalar(1, 'int32')) as Tensor2D;
   }
 
   neg<T extends Tensor>(a: T): T {
