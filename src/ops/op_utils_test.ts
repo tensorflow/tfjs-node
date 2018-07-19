@@ -66,15 +66,12 @@ describe('createTypeOpAttr()', () => {
 });
 
 describe('Returns TFDtype values for Tensor or list of Tensors', () => {
-  const binding = nodeBackend().binding;
-
   it('handles a single Tensor', () => {
-    expect(getTFDTypeForInputs(tfc.scalar(13, 'float32')))
-        .toBe(binding.TF_FLOAT);
+    expect(getTFDTypeForInputs(tfc.scalar(13, 'float32'))).toBe('float32');
   });
   it('handles a list of Tensors', () => {
     const inputs = [tfc.scalar(1, 'int32'), tfc.scalar(20.1, 'float32')];
-    expect(getTFDTypeForInputs(inputs)).toBe(binding.TF_INT32);
+    expect(getTFDTypeForInputs(inputs)).toBe('float32');
   });
   it('handles null', () => {
     expect(() => getTFDTypeForInputs(null)).toThrowError();

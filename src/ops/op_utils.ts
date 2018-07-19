@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {isArray, isNullOrUndefined, isString} from 'util';
+import {isArray, isNullOrUndefined} from 'util';
 
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 import {TFEOpAttr} from '../tfjs_binding';
@@ -43,25 +43,26 @@ export function getTFDType(dataType: tfc.DataType): number {
 
 /** Creates a TFEOpAttr for a 'type' OpDef attribute. */
 export function createTypeOpAttr(
-    attrName: string, dtype: tfc.DataType|number): TFEOpAttr {
+    attrName: string, dtype: tfc.DataType): TFEOpAttr {
   return {
     name: attrName,
     type: nodeBackend().binding.TF_ATTR_TYPE,
-    value: typeof dtype === 'string' ? getTFDType(dtype as tfc.DataType) : dtype
+    value: getTFDType(dtype)
   };
 }
 
 /** Returns the dtype number for a single or list of input Tensors. */
-export function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
+export function getTFDTypeForInputs(tensors: tfc.Tensor|
+                                    tfc.Tensor[]): tfc.DataType {
   if (isNullOrUndefined(tensors)) {
     throw new Error('Invalid input tensors value.');
   }
   if (isArray(tensors)) {
     for (let i = 0; i < tensors.length; i++) {
-      return getTFDType(tensors[i].dtype);
+      return tensors[i].dtype;
     }
-    return -1;
+    throw new Error(`Could not find a dtype for any input Tensor!`);
   } else {
-    return getTFDType(tensors.dtype);
+    return tensors.dtype;
   }
 }
