@@ -38,6 +38,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding) {
+    console.log('---------------------> CREATING BACKEND');
     this.binding = binding;
   }
 
