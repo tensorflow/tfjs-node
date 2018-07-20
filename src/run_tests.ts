@@ -22,6 +22,7 @@ Error.stackTraceLimit = Infinity;
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
+// tslint:disable-next-line:no-require-imports
 import {nodeBackend} from './ops/op_utils';
 
 process.on('unhandledRejection', e => {
