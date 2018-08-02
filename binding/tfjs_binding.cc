@@ -40,8 +40,8 @@ static napi_value CreateTensor(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
   // Create tensor takes 3 params: shape, dtype, typed-array:
-  size_t argc = 3;
-  napi_value args[argc];
+  size_t argc;
+  napi_value args[3];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
@@ -62,8 +62,8 @@ static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
   // Delete tensor takes 1 param: tensor ID;
-  size_t argc = 1;
-  napi_value args[argc];
+  size_t argc;
+  napi_value args[1];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
@@ -83,8 +83,8 @@ static napi_value TensorDataSync(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
   // Tensor data-sync takes 1 param: tensor ID;
-  size_t argc = 1;
-  napi_value args[argc];
+  size_t argc;
+  napi_value args[1];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
@@ -104,8 +104,8 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
 
   // Create tensor takes 3 params: op-name, op-attrs, input-tensor-ids,
   // num-outputs:
-  size_t argc = 4;
-  napi_value args[argc];
+  size_t argc;
+  napi_value args[4];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
