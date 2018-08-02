@@ -36,7 +36,8 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
-    "bindings": "~1.3.0"
+    "bindings": "~1.3.0",
+    "tar": "^4.4.6"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "~0.12.1"
