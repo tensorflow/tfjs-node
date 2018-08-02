@@ -48,7 +48,38 @@
           'defines': ['COMPILER_MSVC'],
           'libraries': ['tensorflow'],
           'library_dirs' : ['<(tensorflow_lib_dir)'],
-        }
+          'actions': [
+            {
+              'action_name': 'generate_def',
+              'inputs': [
+                '<(module_root_dir)/tools/generate_def.js',
+                '<@(tensorflow_headers)'
+              ],
+              'outputs': [
+                '<(INTERMEDIATE_DIR)/tensorflow.def'
+              ],
+              'action': [
+                'cmd',
+                '/c node <@(_inputs) > <@(_outputs)'
+              ]
+            },
+            {
+              'action_name': 'build-tensorflow-lib',
+              'inputs': [
+                '<(INTERMEDIATE_DIR)/tensorflow.def'
+              ],
+              'outputs': [
+                '<(INTERMEDIATE_DIR)/tensorflow.lib'
+              ],
+              'action': [
+                'lib',
+                '/def:<@(_inputs)',
+                '/out:<@(_outputs)',
+                '/machine:<@(target_arch)'
+              ]
+            },
+          ],
+        },
       ]
     ],
     # 'actions': [
