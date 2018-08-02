@@ -47,12 +47,12 @@
         'OS=="win"', {
           'defines': ['COMPILER_MSVC'],
           'libraries': ['tensorflow'],
-          'library_dirs' : ['<(tensorflow_lib_dir)'],
+          'library_dirs' : ['<(INTERMEDIATE_DIR)'],
           'actions': [
             {
               'action_name': 'generate_def',
               'inputs': [
-                '<(module_root_dir)/scripts/generate_def.js',
+                '<(module_root_dir)/scripts/generate_defs.js',
                 '<@(tensorflow_headers)'
               ],
               'outputs': [
