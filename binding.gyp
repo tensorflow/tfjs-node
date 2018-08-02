@@ -43,17 +43,32 @@
       ],
     ],
     'actions': [
+      # {
+      #   'action_name': 'download_libtensorflow',
+      #   'inputs': [
+      #     '<(module_root_dir)/scripts/download-libtensorflow.sh',
+      #   ],
+      #   'outputs': [
+      #     '<(PRODUCT_DIR)/libtensorflow.so',
+      #   ],
+      #   'action': [
+      #     'sh',
+      #     '<@(_inputs)',
+      #     '<(tensorflow-library-target)',
+      #   ]
+      # },
       {
-        'action_name': 'download_libtensorflow',
+        'action_name': 'get_libtensorflow',
         'inputs': [
-          '<(module_root_dir)/scripts/download-libtensorflow.sh',
+          '<(module_root_dir)/scripts/get_libtensorflow.js'
         ],
         'outputs': [
           '<(PRODUCT_DIR)/libtensorflow.so',
         ],
         'action': [
-          'sh',
+          'node',
           '<@(_inputs)',
+          '<(PRODUCT_DIR)',
           '<(tensorflow-library-target)',
         ]
       }
