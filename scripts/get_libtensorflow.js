@@ -2,6 +2,10 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const tar = require('tar');
+const util = require('util');
+
+const exists = util.promisify(fs.existsSync);
+const mkdir = util.promisify(fs.mkdirSync);
 
 console.log('argv: ', process.argv);
 
@@ -29,31 +33,23 @@ console.log(`* Target path: ${targetDir}`);
 console.log(`* Platform: ${platform}`);
 console.log(`* URI: ${targetUri}`);
 
-// TODO - determine where to store this stuff.
-const request = https.get(targetUri, (response) => {
-  response.pipe(tar.t()).on('entry', entry => {
-    let name = path.basename(entry.header.path);
-    let ext = path.extname(name);
+async function createPathAsNeeded(dirPath) {
+  const pathExists = await exists(dirPath);
+  console.log(` ---> pathExists: ${pathExists}`);
+  if (!pathExists) {
+    await mkdir(dirPath);
+  }
+}
 
-    console.log(`ext: ${ext}`);
+// TODO - left off right here - need to actually use Path to make this work.
+const destPath = 'deps/tensorflow';  // use path?
+
+createPathAsNeeded(destPath).then(() => {
+  const request = https.get(targetUri, (response) => {
+    response.pipe(tar.x({C: 'deps/tensorflow'}));
   });
+  request.end();
+  console.log('.... done');
 });
 
-// request.on('close', () => {
-//   console.log('.... Closed!');
-
-//   const tarPath = path.join(__dirname, '..', 'test.download');
-//   console.log(`Extracting: ${tarPath}`);
-
-//   tar.t({
-//     file: tarPath,
-//     onwarn: console.warn,
-//     onentry(entry) {
-//       let name = path.basename(entry.header.path);
-//       let ext = path.extname(name);
-
-//       console.log(`ext: ${ext}`);
-//     }
-//   });
-// });
-request.end();
+console.log('hi');
