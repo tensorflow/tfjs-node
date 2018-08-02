@@ -1,7 +1,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const tar = ('tar');
+const tar = require('tar');
 
 console.log('argv: ', process.argv);
 
@@ -29,12 +29,31 @@ console.log(`* Target path: ${targetDir}`);
 console.log(`* Platform: ${platform}`);
 console.log(`* URI: ${targetUri}`);
 
-const test = fs.createWriteStream('test.download');
+// TODO - determine where to store this stuff.
 const request = https.get(targetUri, (response) => {
-  response.pipe(test);
-  console.log(' --- piped');
+  response.pipe(tar.t()).on('entry', entry => {
+    let name = path.basename(entry.header.path);
+    let ext = path.extname(name);
+
+    console.log(`ext: ${ext}`);
+  });
 });
-request.on('close', () => {
-  console.log('.... Closed!');
-});
+
+// request.on('close', () => {
+//   console.log('.... Closed!');
+
+//   const tarPath = path.join(__dirname, '..', 'test.download');
+//   console.log(`Extracting: ${tarPath}`);
+
+//   tar.t({
+//     file: tarPath,
+//     onwarn: console.warn,
+//     onentry(entry) {
+//       let name = path.basename(entry.header.path);
+//       let ext = path.extname(name);
+
+//       console.log(`ext: ${ext}`);
+//     }
+//   });
+// });
 request.end();
