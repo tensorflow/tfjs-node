@@ -52,7 +52,7 @@
             {
               'action_name': 'generate_def',
               'inputs': [
-                '<(module_root_dir)/tools/generate_def.js',
+                '<(module_root_dir)/scripts/generate_def.js',
                 '<@(tensorflow_headers)'
               ],
               'outputs': [
