@@ -62,16 +62,24 @@ async function run() {
   if (!await exists(destLibPath)) {
     // Sym-linked library does not exist, check to see if we need to download.
     if (await exists(depsLibPath)) {
+      // Deps library exists, symlink to destination:
       await symlinkDepsLib();
     } else {
+      // Deps library does not exist, download resource package and symlink when
+      // unpacked.
+      console.error('... Downloading libtensorflow');
       const request = https.get(targetUri, response => {
-        response.pipe(tar.x({C: depsPath}));  // I think this needs a callback.
+        response
+            .pipe(tar.x({
+              C: depsPath,
+            }))
+            .on('close', async () => {
+              await symlinkDepsLib();
+            });
         request.end();
-        console.log('... Done downloading!');
       });
     }
   }
 }
 
-// run();
-symlinkDepsLib();
+run();
