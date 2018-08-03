@@ -20,10 +20,10 @@
       [
         'OS=="linux"', {
           'libraries' : [
-            '-Wl,-rpath,<@(tensorflow_lib_dir)',
+            '-Wl,-rpath,\$$ORIGIN',
             '-ltensorflow',
           ],
-          'library_dirs' : ['<(tensorflow_lib_dir)'],
+          'library_dirs' : ['<(PRODUCT_DIR)'],
           'variables': {
             'tensorflow-library-target': 'linux-cpu'
           }
