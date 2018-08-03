@@ -13,8 +13,9 @@ const CPU_DARWIN = 'libtensorflow_r1_9_darwin.tar.gz';
 const CPU_LINUX = 'libtensorflow_r1_9_linux_cpu.tar.gz';
 const GPU_LINUX = 'libtensorflow_r1_9_linux_gpu.tar.gz';
 
-const targetDir = process.argv[2];
-const platform = process.argv[3];
+const platform = process.argv[2];
+const targetDir = process.argv[3];
+console.log('targetDir: ', targetDir);
 
 // TODO(kreeger): Handle windows (dll) support!
 let targetUri = BASE_URI;
@@ -34,7 +35,8 @@ if (platform === 'linux-cpu') {
 
 const depsPath = path.join(__dirname, '..', 'deps');
 const depsLibPath = path.join(depsPath, 'lib', libName);
-const destLibPath = path.join(targetDir, libName);
+const destLibPath =
+    targetDir !== undefined ? path.join(targetDir, libName) : undefined;
 
 /**
  * Ensures a directory exists, creates as needed.
@@ -59,22 +61,26 @@ async function run() {
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
 
-  if (!await exists(destLibPath)) {
-    // Sym-linked library does not exist, check to see if we need to download.
-    if (await exists(depsLibPath)) {
+  // This script can optionally only download and not symlink:
+  const shouldSymlink = destLibPath !== undefined;
+
+  if (!shouldSymlink || !await exists(destLibPath)) {
+    if (shouldSymlink && await exists(depsLibPath)) {
       // Deps library exists, symlink to destination:
       await symlinkDepsLib();
     } else {
       // Deps library does not exist, download resource package and symlink when
       // unpacked.
-      console.error('... Downloading libtensorflow');
+      console.error('  * Downloading libtensorflow');
       const request = https.get(targetUri, response => {
         response
             .pipe(tar.x({
               C: depsPath,
             }))
             .on('close', async () => {
-              await symlinkDepsLib();
+              if (shouldSymlink) {
+                await symlinkDepsLib();
+              }
             });
         request.end();
       });

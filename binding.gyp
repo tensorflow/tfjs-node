@@ -54,8 +54,8 @@
         'action': [
           'node',
           '<@(_inputs)',
-          '<(PRODUCT_DIR)',
           '<(tensorflow-library-target)',
+          '<(PRODUCT_DIR)',
         ]
       }
     ],
