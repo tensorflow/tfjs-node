@@ -11,7 +11,7 @@
   "scripts": {
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "build": "tsc",
-    "clean-deps": "rm -rf deps/tensorflow/*",
+    "clean-deps": "rm -rf deps",
     "enable-gpu": "yarn clean-deps && ./scripts/download-libtensorflow.sh linux-gpu && yarn",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "build-npm": "./scripts/build-npm.sh",
