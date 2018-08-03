@@ -61,6 +61,9 @@
           'defines': ['COMPILER_MSVC'],
           'libraries': ['tensorflow'],
           'library_dirs' : ['<(INTERMEDIATE_DIR)'],
+          'variables': {
+            'tensorflow-library-target': 'windows'
+          },
           'actions': [
             {
               'action_name': 'generate_def',
