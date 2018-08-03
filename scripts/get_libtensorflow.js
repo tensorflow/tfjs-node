@@ -16,7 +16,8 @@ const GPU_LINUX = 'libtensorflow_r1_9_linux_gpu.tar.gz';
 const platform = process.argv[2];
 const targetDir = process.argv[3];
 
-// TODO(kreeger): Handle windows (dll) support!
+// TODO(kreeger): Handle windows (dll) support:
+// https://github.com/tensorflow/tfjs/issues/548
 let targetUri = BASE_URI;
 let libName = 'libtensorflow';
 if (platform === 'linux-cpu') {
