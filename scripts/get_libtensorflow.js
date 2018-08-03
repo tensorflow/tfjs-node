@@ -15,7 +15,6 @@ const GPU_LINUX = 'libtensorflow_r1_9_linux_gpu.tar.gz';
 
 const platform = process.argv[2];
 const targetDir = process.argv[3];
-console.log('targetDir: ', targetDir);
 
 // TODO(kreeger): Handle windows (dll) support!
 let targetUri = BASE_URI;
