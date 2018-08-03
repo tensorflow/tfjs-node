@@ -15,37 +15,40 @@
  * =============================================================================
  */
 
-import './index';
-import * as tfc from '@tensorflow/tfjs-core';
-tfc.setBackend('tensorflow');
-
+import '.';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+Error.stackTraceLimit = Infinity;
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
+// tslint:disable-next-line:no-require-imports
+import {nodeBackend} from './ops/op_utils';
 
-jasmine_util.setBeforeAll(() => {});
-jasmine_util.setAfterAll(() => {});
-jasmine_util.setBeforeEach(() => {});
-jasmine_util.setAfterEach(() => {});
-jasmine_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
+process.on('unhandledRejection', e => {
+  throw e;
+});
+
+jasmine_util.setTestEnvs(
+    [{name: 'test-tensorflow', factory: () => nodeBackend(), features: {}}]);
 
 const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
-  'depthwiseConv2D',        // Requires space_to_batch() for dilation > 1.
-  'separableConv2d',        // Requires space_to_batch() for dilation > 1.
-  'div',                    // https://github.com/tensorflow/tfjs/issues/215
-  'resizeNearestNeighbor',  // https://github.com/tensorflow/tfjs/issues/221
-  // https://github.com/tensorflow/tfjs/issues/279
-  'browser', 'LocalStorage', 'arrayBufferToBase64String', 'stringByteLength'
+  'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
+  'separableConv2d',  // Requires space_to_batch() for dilation > 1.
 ];
 
 const runner = new jasmineCtor();
 runner.loadConfig({
   spec_files: [
     'src/**/*_test.ts', 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js'
-  ]
+  ],
+  random: false
 });
+
+if (process.env.JASMINE_SEED) {
+  runner.seed(process.env.JASMINE_SEED);
+}
 
 const env = jasmine.getEnv();
 
@@ -61,4 +64,7 @@ env.specFilter = spec => {
   return true;
 };
 
+// TODO(kreeger): Consider moving to C-code.
+console.log(
+    `Running tests against TensorFlow: ${nodeBackend().binding.TF_Version}`);
 runner.execute();

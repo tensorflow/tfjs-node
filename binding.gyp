@@ -22,7 +22,6 @@
           'libraries' : [
             '-Wl,-rpath,<@(tensorflow_lib_dir)',
             '-ltensorflow',
-            '-ltensorflow_framework',
           ],
           'library_dirs' : ['<(tensorflow_lib_dir)'],
           'variables': {
@@ -35,7 +34,6 @@
           'libraries' : [
             '-Wl,-rpath,<@(tensorflow_lib_dir)',
             '-ltensorflow',
-            '-ltensorflow_framework',
           ],
           'library_dirs' : ['<(tensorflow_lib_dir)'],
           'variables': {
