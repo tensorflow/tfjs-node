@@ -39,16 +39,13 @@ let targetDir = process.argv[3];
 // TODO(kreeger): Handle windows (dll) support:
 // https://github.com/tensorflow/tfjs/issues/549
 let targetUri = BASE_URI;
-let libName = '';
+let libName = 'libtensorflow.so';
 if (platform === 'linux-cpu') {
   targetUri += CPU_LINUX;
-  libName = 'libtensorflow.so';
 } else if (platform === 'linux-gpu') {
   targetUri += GPU_LINUX;
-  libName = 'libtensorflow.so';
 } else if (platform === 'darwin') {
   targetUri += CPU_DARWIN;
-  libName = 'libtensorflow.so';
 } else if (platform.endsWith('windows')) {
   targetUri += CPU_WINDOWS;
   libName = 'tensorflow.dll';
@@ -57,6 +54,9 @@ if (platform === 'linux-cpu') {
   if (targetDir.endsWith('"')) {
     targetDir = targetDir.substr(0, targetDir.length - 1);
   }
+
+  // Use windows path
+  path = path.win32;
 } else {
   throw new Error(`Unsupported platform: ${platform}`);
 }
@@ -83,6 +83,8 @@ async function symlinkDepsLib() {
   try {
     await symlink(depsLibPath, destLibPath);
   } catch (e) {
+    console.error(
+        `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
     await copy(depsLibPath, destLibPath);
   }
 }
@@ -96,16 +98,20 @@ async function downloadLibtensorflow(shouldSymlink) {
   console.error('  * Downloading libtensorflow');
 
   const request = https.get(targetUri, response => {
-    if (platform === 'windows') {
+    if (platform.endsWith('windows')) {
       // Windows stores builds in a zip file. Save to disk, extract, and delete
       // the downloaded archive.
-      const tempFileName = '_libtensorflow.zip';
+      const tempFileName = path.join(__dirname, '_libtensorflow.zip');
       const outputFile = fs.createWriteStream(tempFileName);
       const request = https.get(targetUri, response => {
         response.pipe(outputFile).on('close', async () => {
           const zipFile = new zip(tempFileName);
           zipFile.extractAllTo(depsPath, true /* overwrite */);
           await unlink(tempFileName);
+
+          if (shouldSymlink) {
+            await symlinkDepsLib();
+          }
         });
         request.end();
       });
@@ -134,7 +140,6 @@ async function run() {
 
   // This script can optionally only download and not symlink:
   if (destLibPath !== undefined) {
-    console.log('... Looking for ', depsLibPath);
     if (await exists(depsLibPath)) {
       // The libtensorflow package has already been downloaded, simply simlink
       // to the destination path:
