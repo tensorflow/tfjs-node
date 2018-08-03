@@ -4,10 +4,9 @@ const path = require('path');
 const tar = require('tar');
 const util = require('util');
 
-const exists = util.promisify(fs.existsSync);
-const mkdir = util.promisify(fs.mkdirSync);
-
-console.log('argv: ', process.argv);
+const exists = util.promisify(fs.exists);
+const mkdir = util.promisify(fs.mkdir);
+const symlink = util.promisify(fs.symlink);
 
 const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
 const CPU_DARWIN = 'libtensorflow_r1_9_darwin.tar.gz';
@@ -17,39 +16,62 @@ const GPU_LINUX = 'libtensorflow_r1_9_linux_gpu.tar.gz';
 const targetDir = process.argv[2];
 const platform = process.argv[3];
 
+// TODO(kreeger): Handle windows (dll) support!
 let targetUri = BASE_URI;
-let targetPath;
+let libName = 'libtensorflow';
 if (platform === 'linux-cpu') {
   targetUri += CPU_LINUX;
+  libName += '.so';
 } else if (platform === 'linux-gpu') {
   targetUri += GPU_LINUX;
+  libName += '.so';
 } else if (platform === 'darwin') {
   targetUri += CPU_DARWIN;
+  libName += '.so';
 } else {
   throw new Error(`Unsupported platform: ${platform}`);
 }
 
-console.log(`* Target path: ${targetDir}`);
-console.log(`* Platform: ${platform}`);
-console.log(`* URI: ${targetUri}`);
+const depsPath = path.join(__dirname, '..', 'deps');
+const depsLibPath = path.join(depsPath, 'lib', libName);
+const destLibPath = path.join(targetDir, libName);
 
-async function createPathAsNeeded(dirPath) {
-  const pathExists = await exists(dirPath);
-  console.log(` ---> pathExists: ${pathExists}`);
-  if (!pathExists) {
+/**
+ * Ensures a directory exists, creates as needed.
+ */
+async function ensureDir(dirPath) {
+  if (!await exists(dirPath)) {
     await mkdir(dirPath);
   }
 }
 
-// TODO - left off right here - need to actually use Path to make this work.
-const destPath = 'deps/tensorflow';  // use path?
+/**
+ * Symlinks the extracted libtensorflow library to the desired directory.
+ */
+async function symlinkDepsLib() {
+  await symlink(depsLibPath, destLibPath);
+}
 
-createPathAsNeeded(destPath).then(() => {
-  const request = https.get(targetUri, (response) => {
-    response.pipe(tar.x({C: 'deps/tensorflow'}));
-  });
-  request.end();
-  console.log('.... done');
-});
+/**
+ * Ensures libtensorflow requirements are met for building the binding.
+ */
+async function run() {
+  // Ensure dependencies staged directory is available:
+  await ensureDir(depsPath);
 
-console.log('hi');
+  if (!await exists(destLibPath)) {
+    // Sym-linked library does not exist, check to see if we need to download.
+    if (await exists(depsLibPath)) {
+      await symlinkDepsLib();
+    } else {
+      const request = https.get(targetUri, response => {
+        response.pipe(tar.x({C: depsPath}));  // I think this needs a callback.
+        request.end();
+        console.log('... Done downloading!');
+      });
+    }
+  }
+}
+
+// run();
+symlinkDepsLib();

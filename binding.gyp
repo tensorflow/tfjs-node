@@ -1,8 +1,8 @@
 #Binding config
 {
   'variables' : {
-    'tensorflow_include_dir' : '<(module_root_dir)/deps/tensorflow/include',
-    'tensorflow_lib_dir' : '<(module_root_dir)/deps/tensorflow/lib',
+    'tensorflow_include_dir' : '<(module_root_dir)/deps/include',
+    'tensorflow_lib_dir' : '<(module_root_dir)/deps/lib',
     'tensorflow_headers' : [
       '<@(tensorflow_include_dir)/tensorflow/c/c_api.h',
       '<@(tensorflow_include_dir)/tensorflow/c/eager/c_api.h',
@@ -32,10 +32,10 @@
       [
         'OS=="mac"', {
           'libraries' : [
-            '-Wl,-rpath,<@(tensorflow_lib_dir)',
+            '-Wl,-rpath,@loader_path',
             '-ltensorflow',
           ],
-          'library_dirs' : ['<(tensorflow_lib_dir)'],
+          'library_dirs' : ['<(PRODUCT_DIR)'],
           'variables': {
             'tensorflow-library-target': 'darwin'
           }
@@ -43,20 +43,6 @@
       ],
     ],
     'actions': [
-      # {
-      #   'action_name': 'download_libtensorflow',
-      #   'inputs': [
-      #     '<(module_root_dir)/scripts/download-libtensorflow.sh',
-      #   ],
-      #   'outputs': [
-      #     '<(PRODUCT_DIR)/libtensorflow.so',
-      #   ],
-      #   'action': [
-      #     'sh',
-      #     '<@(_inputs)',
-      #     '<(tensorflow-library-target)',
-      #   ]
-      # },
       {
         'action_name': 'get_libtensorflow',
         'inputs': [
