@@ -369,6 +369,12 @@ describe('File system IOHandler', () => {
           .catch(err => done.fail(err.stack));
     });
 
+    it('path length does not equal 2 fails', () => {
+      expect(() => new NodeFileSystem([`${testDir}/foo/model.pb`]))
+          .toThrowError(
+              /file paths must have a length of 2.*actual length is 1.*/);
+    });
+
     it('loading from nonexistent model.json path fails', done => {
       const handler = new NodeFileSystem(
           [`${testDir}/foo/model.pb`, `${testDir}/foo/manifest.json`]);

@@ -27,8 +27,6 @@ const mkdir = promisify(fs.mkdir);
 
 // tslint:disable-next-line:max-line-length
 import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
-// tslint:disable-next-line:max-line-length
-import {WeightsManifestConfig, WeightsManifestEntry} from '@tensorflow/tfjs-core/dist/io/io';
 
 function doesNotExistHandler(name: string): (e: NodeJS.ErrnoException) =>
     never {
@@ -70,6 +68,10 @@ export class NodeFileSystem implements tfc.io.IOHandler {
    */
   constructor(path: string|string[]) {
     if (Array.isArray(path)) {
+      tfc.util.assert(
+          path.length === 2,
+          'file paths must have a length of 2, ' +
+              `(actual length is ${path.length}).`);
       this.path = path.map(p => resolve(p));
     } else {
       this.path = resolve(path);
@@ -178,8 +180,8 @@ export class NodeFileSystem implements tfc.io.IOHandler {
   }
 
   private async loadWeights(
-      weightsManifest: WeightsManifestConfig,
-      path: string): Promise<[WeightsManifestEntry[], ArrayBuffer]> {
+      weightsManifest: tfc.io.WeightsManifestConfig,
+      path: string): Promise<[tfc.io.WeightsManifestEntry[], ArrayBuffer]> {
     const dirName = dirname(path);
     const buffers: Buffer[] = [];
     const weightSpecs: tfc.io.WeightsManifestEntry[] = [];
