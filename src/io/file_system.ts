@@ -66,7 +66,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
    *     - If the model has binary (protocol buffer GraphDef) topology,
    *       an Array of two paths is expected: the first path should point to the
    *       .pb file and the second path should point to the weight manifest
-   *       JSON file..
+   *       JSON file.
    */
   constructor(path: string|string[]) {
     if (Array.isArray(path)) {
@@ -119,32 +119,36 @@ export class NodeFileSystem implements tfc.io.IOHandler {
   }
 
   protected async loadBinaryModel(): Promise<tfc.io.ModelArtifacts> {
+    const topologyPath = this.path[0];
+    const weightManifestPath = this.path[1];
     const topology =
-        await stat(this.path[0]).catch(doesNotExistHandler('Path'));
+        await stat(topologyPath).catch(doesNotExistHandler('Topology Path'));
     const weightManifest =
-        await stat(this.path[1]).catch(doesNotExistHandler('Path'));
+        await stat(weightManifestPath)
+            .catch(doesNotExistHandler('Weight Manifest Path'));
 
     // `this.path` can be either a directory or a file. If it is a file, assume
     // it is model.json file.
-    if (topology.isFile() && weightManifest.isFile()) {
-      const modelTopology = await readFile(this.path[0]);
-      const weightsManifest = JSON.parse(await readFile(this.path[1], 'utf8'));
-
-      const modelArtifacts: tfc.io.ModelArtifacts = {
-        modelTopology,
-      };
-      const [weightSpecs, weightData] =
-          await this.loadWeights(weightsManifest, this.path[1]);
-
-      modelArtifacts.weightSpecs = weightSpecs;
-      modelArtifacts.weightData = weightData;
-
-      return modelArtifacts;
-    } else {
-      throw new Error(
-          'The path to load from must be a file. Loading from a directory ' +
-          'is not supported.');
+    if (!topology.isFile()) {
+      throw new Error('File specified for topology is not a file!');
     }
+    if (!weightManifest.isFile()) {
+      throw new Error('File specified for the weight manifest is not a file!');
+    }
+
+    const modelTopology = await readFile(this.path[0]);
+    const weightsManifest = JSON.parse(await readFile(this.path[1], 'utf8'));
+
+    const modelArtifacts: tfc.io.ModelArtifacts = {
+      modelTopology,
+    };
+    const [weightSpecs, weightData] =
+        await this.loadWeights(weightsManifest, this.path[1]);
+
+    modelArtifacts.weightSpecs = weightSpecs;
+    modelArtifacts.weightData = weightData;
+
+    return modelArtifacts;
   }
 
   protected async loadJSONModel(): Promise<tfc.io.ModelArtifacts> {
