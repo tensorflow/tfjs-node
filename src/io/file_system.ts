@@ -27,6 +27,7 @@ const mkdir = promisify(fs.mkdir);
 
 // tslint:disable-next-line:max-line-length
 import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
+// tslint:disable-next-line:max-line-length
 import {WeightsManifestConfig, WeightsManifestEntry} from '@tensorflow/tfjs-core/dist/io/io';
 
 function doesNotExistHandler(name: string): (e: NodeJS.ErrnoException) =>
