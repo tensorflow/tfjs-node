@@ -21,6 +21,7 @@
     'tensorflow_headers' : [
       '<@(tensorflow_include_dir)/tensorflow/c/c_api.h',
       '<@(tensorflow_include_dir)/tensorflow/c/eager/c_api.h',
+      'tensorflow-library-action': 'symlink'
     ],
   },
   'targets' : [{
@@ -40,7 +41,7 @@
           ],
           'library_dirs' : ['<(PRODUCT_DIR)'],
           'variables': {
-            'tensorflow-library-target': 'linux-cpu'
+            'tensorflow-library-target': 'linux-cpu',
           },
           'actions': [
             {
@@ -55,6 +56,7 @@
                 'node',
                 '<@(_inputs)',
                 '<(tensorflow-library-target)',
+                '<(tensorflow-library-action)',
                 '<(PRODUCT_DIR)',
               ]
             }
@@ -84,6 +86,7 @@
                 'node',
                 '<@(_inputs)',
                 '<(tensorflow-library-target)',
+                '<(tensorflow-library-action)',
                 '<(PRODUCT_DIR)',
               ]
             }
@@ -111,6 +114,7 @@
                 'node',
                 '<@(_inputs)',
                 '<(tensorflow-library-target)',
+                '<(tensorflow-library-action)',
                 '<(PRODUCT_DIR)',
               ]
             },

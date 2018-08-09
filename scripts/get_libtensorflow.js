@@ -24,6 +24,7 @@ const zip = require('adm-zip');
 const copy = util.promisify(fs.copyFile);
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
+const move = util.promisify(fs.move);
 const symlink = util.promisify(fs.symlink);
 const unlink = util.promisify(fs.unlink);
 
@@ -34,7 +35,8 @@ const GPU_LINUX = 'libtensorflow_r1_9_linux_gpu.tar.gz';
 const CPU_WINDOWS = 'libtensorflow_r1_9_windows_cpu.zip';
 
 const platform = process.argv[2];
-let targetDir = process.argv[3];
+const action = process.argv[3];
+let targetDir = process.argv[4];
 
 // TODO(kreeger): Handle windows (dll) support:
 // https://github.com/tensorflow/tfjs/issues/549
@@ -87,6 +89,17 @@ async function symlinkDepsLib() {
         `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
     await copy(depsLibPath, destLibPath);
   }
+}
+
+// TODO DOC ME
+async function moveDepsLib() {
+  await move(depsLibPath, destLibPath);
+}
+
+async function handleLib() {
+  //
+  // TODO handle this if move or symlink.
+  //
 }
 
 /**
