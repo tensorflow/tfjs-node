@@ -144,12 +144,37 @@ async function downloadLibtensorflow(shouldSymlink) {
   });
 }
 
+async function foo(resolve) {
+  if (await exists(depsLibPath)) {
+    resolve();
+  } else {
+    downloadLibtensorflow(resolve);
+  }
+}
+
 /**
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
+
+  // Validate the action passed to the script:
+  // - 'download' - Just downloads libtensorflow
+  // - 'symlink'  - Downloads libtensorflow as needed, symlinks to dest.
+  // - 'move'     - Downloads libtensorflow as needed, copies to dest.
+
+  if (action === 'download') {
+    downloadLibtensorflow(false);
+  } else if (action === 'symlink') {
+    // download symlink?
+    foo(symlink)
+  } else if (action === 'move') {
+    // download move?
+    foo(move);
+  } else {
+    throw new Error('Invalid action: ' + action);
+  }
 
   // This script can optionally only download and not symlink:
   if (destLibPath !== undefined) {
