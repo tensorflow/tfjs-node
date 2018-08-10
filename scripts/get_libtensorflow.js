@@ -24,7 +24,7 @@ const zip = require('adm-zip');
 const copy = util.promisify(fs.copyFile);
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
-const move = util.promisify(fs.move);
+const rename = util.promisify(fs.rename);
 const symlink = util.promisify(fs.symlink);
 const unlink = util.promisify(fs.unlink);
 
@@ -35,7 +35,7 @@ const GPU_LINUX = 'libtensorflow_r1_9_linux_gpu.tar.gz';
 const CPU_WINDOWS = 'libtensorflow_r1_9_windows_cpu.zip';
 
 const platform = process.argv[2];
-const action = process.argv[3];
+let action = process.argv[3];
 let targetDir = process.argv[4];
 
 // TODO(kreeger): Handle windows (dll) support:
@@ -55,6 +55,11 @@ if (platform === 'linux-cpu') {
   // Some windows machines contain a trailing " char:
   if (targetDir != undefined && targetDir.endsWith('"')) {
     targetDir = targetDir.substr(0, targetDir.length - 1);
+  }
+
+  // Windows action can have a path passed in:
+  if (action.startsWith('..\\')) {
+    action = action.substr(3);
   }
 
   // Use windows path
@@ -78,10 +83,13 @@ async function ensureDir(dirPath) {
 }
 
 /**
- * Symlinks the extracted libtensorflow library to the desired directory. If the
- * symlink fails, a copy of the path is made.
+ * Symlinks the extracted libtensorflow library to the destination path. If the
+ * symlink fails, a copy is made.
  */
 async function symlinkDepsLib() {
+  if (destLibPath === undefined) {
+    throw new Error('Destination path not supplied!');
+  }
   try {
     await symlink(depsLibPath, destLibPath);
   } catch (e) {
@@ -91,21 +99,20 @@ async function symlinkDepsLib() {
   }
 }
 
-// TODO DOC ME
+/**
+ * Moves the deps library path to the destination path.
+ */
 async function moveDepsLib() {
-  await move(depsLibPath, destLibPath);
-}
-
-async function handleLib() {
-  //
-  // TODO handle this if move or symlink.
-  //
+  if (destLibPath === undefined) {
+    throw new Error('Destination path not supplied!');
+  }
+  await rename(depsLibPath, destLibPath);
 }
 
 /**
- * Downloads libtensorflow and optionally symlinks the library as needed.
+ * Downloads libtensorflow and notifies via a callback.
  */
-async function downloadLibtensorflow(shouldSymlink) {
+async function downloadLibtensorflow(callback) {
   // The deps folder and resources do not exist, download and symlink as
   // needed:
   console.error('  * Downloading libtensorflow');
@@ -122,8 +129,8 @@ async function downloadLibtensorflow(shouldSymlink) {
           zipFile.extractAllTo(depsPath, true /* overwrite */);
           await unlink(tempFileName);
 
-          if (shouldSymlink) {
-            await symlinkDepsLib();
+          if (callback !== undefined) {
+            callback();
           }
         });
         request.end();
@@ -134,11 +141,7 @@ async function downloadLibtensorflow(shouldSymlink) {
           .pipe(tar.x({
             C: depsPath,
           }))
-          .on('close', async () => {
-            if (shouldSymlink) {
-              await symlinkDepsLib();
-            }
-          });
+          .on('close', callback);
     }
     request.end();
   });
@@ -165,31 +168,13 @@ async function run() {
   // - 'move'     - Downloads libtensorflow as needed, copies to dest.
 
   if (action === 'download') {
-    downloadLibtensorflow(false);
+    downloadLibtensorflow();
   } else if (action === 'symlink') {
-    // download symlink?
-    foo(symlink)
+    downloadLibtensorflow(await symlinkDepsLib);
   } else if (action === 'move') {
-    // download move?
-    foo(move);
+    downloadLibtensorflow(await moveDepsLib);
   } else {
     throw new Error('Invalid action: ' + action);
-  }
-
-  // This script can optionally only download and not symlink:
-  if (destLibPath !== undefined) {
-    if (await exists(depsLibPath)) {
-      // The libtensorflow package has already been downloaded, simply simlink
-      // to the destination path:
-      await symlinkDepsLib();
-    } else {
-      // The libtensorflow package does not exist, download and symlink to the
-      // destination path:
-      downloadLibtensorflow(true);
-    }
-  } else {
-    // No symlink destination path supplied, simply download libtensorflow:
-    downloadLibtensorflow(false);
   }
 }
 
