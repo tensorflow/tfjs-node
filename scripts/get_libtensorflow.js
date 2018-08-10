@@ -106,6 +106,7 @@ async function moveDepsLib() {
   if (destLibPath === undefined) {
     throw new Error('Destination path not supplied!');
   }
+  console.log(`renaming: ${depsLibPath} ${destLibPath}`);
   await rename(depsLibPath, destLibPath);
 }
 
@@ -167,12 +168,16 @@ async function run() {
   // - 'symlink'  - Downloads libtensorflow as needed, symlinks to dest.
   // - 'move'     - Downloads libtensorflow as needed, copies to dest.
 
+  console.log('ACTION: ' + action);
+
+  // TODO - only download if the path does not exist?
+
   if (action === 'download') {
-    downloadLibtensorflow();
+    await downloadLibtensorflow();
   } else if (action === 'symlink') {
-    downloadLibtensorflow(await symlinkDepsLib);
+    await downloadLibtensorflow(await symlinkDepsLib);
   } else if (action === 'move') {
-    downloadLibtensorflow(await moveDepsLib);
+    await downloadLibtensorflow(await moveDepsLib);
   } else {
     throw new Error('Invalid action: ' + action);
   }
