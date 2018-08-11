@@ -106,7 +106,7 @@ async function moveDepsLib() {
   if (destLibPath === undefined) {
     throw new Error('Destination path not supplied!');
   }
-  console.log(`renaming: ${depsLibPath} ${destLibPath}`);
+  console.log(`moving: ${depsLibPath} to ${destLibPath}`);
   await rename(depsLibPath, destLibPath);
 }
 
@@ -138,11 +138,15 @@ async function downloadLibtensorflow(callback) {
       });
     } else {
       // All other platforms use a tarball:
+      // TODO - I think tar is failing here (need override?)...
       response
           .pipe(tar.x({
             C: depsPath,
           }))
-          .on('close', callback);
+          .on('close', () => {
+            console.log('... stream closed.');
+            callback();
+          });
     }
     request.end();
   });
@@ -173,11 +177,21 @@ async function run() {
   // TODO - only download if the path does not exist?
 
   if (action === 'download') {
-    await downloadLibtensorflow();
+    // TODO - if library exists, delete, start over.
+    if (await exists(destLibPath)) {
+      // TODO remove...
+    }
+    downloadLibtensorflow();
   } else if (action === 'symlink') {
-    await downloadLibtensorflow(await symlinkDepsLib);
+    // TODO - only copy if library does not exist at path.
+    if (!await exists(destLibPath)) {
+      downloadLibtensorflow(await symlinkDepsLib);
+    }
   } else if (action === 'move') {
-    await downloadLibtensorflow(await moveDepsLib);
+    // TODO - only copy if library does not exist at path.
+    if (!await exists(destLibPath)) {
+      downloadLibtensorflow(await moveDepsLib);
+    }
   } else {
     throw new Error('Invalid action: ' + action);
   }
