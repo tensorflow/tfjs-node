@@ -17,6 +17,7 @@
 const https = require('https');
 const fs = require('fs');
 let path = require('path');
+const rimraf = require('rimraf');
 const tar = require('tar');
 const util = require('util');
 const zip = require('adm-zip');
@@ -25,6 +26,7 @@ const copy = util.promisify(fs.copyFile);
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
+const rimrafPromise = util.promisify(rimraf);
 const symlink = util.promisify(fs.symlink);
 const unlink = util.promisify(fs.unlink);
 
@@ -38,8 +40,6 @@ const platform = process.argv[2];
 let action = process.argv[3];
 let targetDir = process.argv[4];
 
-// TODO(kreeger): Handle windows (dll) support:
-// https://github.com/tensorflow/tfjs/issues/549
 let targetUri = BASE_URI;
 let libName = 'libtensorflow.so';
 if (platform === 'linux-cpu') {
@@ -83,6 +83,16 @@ async function ensureDir(dirPath) {
 }
 
 /**
+ * Deletes the deps directory if it exists, and creates a fresh deps folder.
+ */
+async function cleanDeps() {
+  if (await exists(depsPath)) {
+    await rimrafPromise(depsPath);
+  }
+  await mkdir(depsPath);
+}
+
+/**
  * Symlinks the extracted libtensorflow library to the destination path. If the
  * symlink fails, a copy is made.
  */
@@ -106,17 +116,19 @@ async function moveDepsLib() {
   if (destLibPath === undefined) {
     throw new Error('Destination path not supplied!');
   }
-  console.log(`moving: ${depsLibPath} to ${destLibPath}`);
   await rename(depsLibPath, destLibPath);
 }
 
 /**
- * Downloads libtensorflow and notifies via a callback.
+ * Downloads libtensorflow and notifies via a callback when unpacked.
  */
 async function downloadLibtensorflow(callback) {
-  // The deps folder and resources do not exist, download and symlink as
+  // The deps folder and resources do not exist, download and callback as
   // needed:
   console.error('  * Downloading libtensorflow');
+
+  // Ensure dependencies staged directory is available:
+  await ensureDir(depsPath);
 
   const request = https.get(targetUri, response => {
     if (platform.endsWith('windows')) {
@@ -138,60 +150,40 @@ async function downloadLibtensorflow(callback) {
       });
     } else {
       // All other platforms use a tarball:
-      // TODO - I think tar is failing here (need override?)...
-      response
-          .pipe(tar.x({
-            C: depsPath,
-          }))
-          .on('close', () => {
-            console.log('... stream closed.');
-            callback();
-          });
+      response.pipe(tar.x({C: depsPath, strict: true})).on('close', () => {
+        callback();
+      });
     }
     request.end();
   });
-}
-
-async function foo(resolve) {
-  if (await exists(depsLibPath)) {
-    resolve();
-  } else {
-    downloadLibtensorflow(resolve);
-  }
 }
 
 /**
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
-  // Ensure dependencies staged directory is available:
-  await ensureDir(depsPath);
-
   // Validate the action passed to the script:
   // - 'download' - Just downloads libtensorflow
   // - 'symlink'  - Downloads libtensorflow as needed, symlinks to dest.
   // - 'move'     - Downloads libtensorflow as needed, copies to dest.
-
-  console.log('ACTION: ' + action);
-
-  // TODO - only download if the path does not exist?
-
   if (action === 'download') {
-    // TODO - if library exists, delete, start over.
-    if (await exists(destLibPath)) {
-      // TODO remove...
-    }
-    downloadLibtensorflow();
+    // This action always re-downloads. Delete existing deps and start download.
+    await cleanDeps();
+    await downloadLibtensorflow();
   } else if (action === 'symlink') {
-    // TODO - only copy if library does not exist at path.
-    if (!await exists(destLibPath)) {
-      downloadLibtensorflow(await symlinkDepsLib);
+    // First check if deps library exists:
+    if (await exists(depsLibPath)) {
+      // Library has already been downloaded, simlink:
+      await symlinkDepsLib();
+    } else {
+      // Library has not been downloaded, download and symlink:
+      await downloadLibtensorflow(symlinkDepsLib);
     }
   } else if (action === 'move') {
-    // TODO - only copy if library does not exist at path.
-    if (!await exists(destLibPath)) {
-      downloadLibtensorflow(await moveDepsLib);
-    }
+    // Move action is used when installing this module as a package, always
+    // clean, download, and move the lib.
+    await cleanDeps();
+    await downloadLibtensorflow(await moveDepsLib);
   } else {
     throw new Error('Invalid action: ' + action);
   }
