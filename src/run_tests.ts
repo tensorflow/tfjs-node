@@ -39,6 +39,7 @@ let IGNORE_LIST: string[] = [
 ];
 
 // Windows has two failing tests:
+// https://github.com/tensorflow/tfjs/issues/598
 if (process.platform === 'win32') {
   IGNORE_LIST.push('clip test-tensorflow {} propagates NaNs');
   IGNORE_LIST.push(
