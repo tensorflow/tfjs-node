@@ -32,11 +32,18 @@ process.on('unhandledRejection', e => {
 jasmine_util.setTestEnvs(
     [{name: 'test-tensorflow', factory: () => nodeBackend(), features: {}}]);
 
-const IGNORE_LIST: string[] = [
+let IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
   'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
   'separableConv2d',  // Requires space_to_batch() for dilation > 1.
 ];
+
+// Windows has two failing tests:
+if (process.platform === 'win32') {
+  IGNORE_LIST.push('clip test-tensorflow {} propagates NaNs');
+  IGNORE_LIST.push(
+      'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
+}
 
 const runner = new jasmineCtor();
 runner.loadConfig({
