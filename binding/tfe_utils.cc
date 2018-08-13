@@ -270,12 +270,13 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     case TF_ATTR_STRING: {
       // NOTE: String attribute values do not have to be utf8 encoded strings
       // (could be arbitrary byte sequences).
+      size_t value_length;
       char value[NAPI_STRING_SIZE];
       nstatus = napi_get_value_string_utf8(env, js_value, value,
-                                           NAPI_STRING_SIZE, nullptr);
+                                           NAPI_STRING_SIZE, &value_length);
       ENSURE_NAPI_OK(env, nstatus);
 
-      TFE_OpSetAttrString(tfe_op, attr_name, value);
+      TFE_OpSetAttrString(tfe_op, attr_name, value, value_length);
       break;
     }
 
