@@ -32,7 +32,7 @@ process.on('unhandledRejection', e => {
 jasmine_util.setTestEnvs(
     [{name: 'test-tensorflow', factory: () => nodeBackend(), features: {}}]);
 
-let IGNORE_LIST: string[] = [
+const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
   'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
   'separableConv2d',  // Requires space_to_batch() for dilation > 1.
