@@ -274,13 +274,16 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
 
       // TODO (kreeger): Need to alloc from the heap instead of stack for these strings.
       size_t value_length;
-      char* value = (char *)malloc(NAPI_STRING_SIZE);  // Does this leak??
-      // char value[NAPI_STRING_SIZE];
+      // char* value = (char *)malloc(NAPI_STRING_SIZE);  // Does this leak??
+      char value[NAPI_STRING_SIZE];
       nstatus = napi_get_value_string_utf8(env, js_value, value,
                                            NAPI_STRING_SIZE, &value_length);
       ENSURE_NAPI_OK(env, nstatus);
 
-      TFE_OpSetAttrString(tfe_op, attr_name, value, value_length);
+      // This requires heap:
+      std::string value_string(value);
+
+      TFE_OpSetAttrString(tfe_op, attr_name, value_string.c_str(), value_length);
       break;
     }
 
