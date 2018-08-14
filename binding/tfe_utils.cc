@@ -272,8 +272,10 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
     case TF_ATTR_STRING: {
       // NOTE: String attribute values do not have to be utf8 encoded strings
       // (could be arbitrary byte sequences).
-      std::string *str_value;
-      nstatus = scoped_strings.GetString(env, js_value, str_value);
+      // nstatus = scoped_strings.GetBuffer(env, js_value, buffer, &size);
+      // nstatus = scoped_strings.GetString(env, js_value, str_value);
+
+      std::string* str_value = scoped_strings.GetString2(env, js_value);
       ENSURE_NAPI_OK(env, nstatus);
 
       fprintf(stderr, "---> size: %lu\n", str_value->size());
