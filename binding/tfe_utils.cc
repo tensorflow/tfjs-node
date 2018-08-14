@@ -252,7 +252,6 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
 
   // OpAttr will be used beyond the scope of this function call. Stash ops in a
   // set for re-use instead of dynamically reallocating strings for operations.
-  // TODO(kreeger): Bug here?
   const char *attr_name = ATTR_NAME_SET.insert(attr_name_string).first->c_str();
 
   napi_value attr_type_value;
@@ -272,9 +271,6 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
     case TF_ATTR_STRING: {
       // NOTE: String attribute values do not have to be utf8 encoded strings
       // (could be arbitrary byte sequences).
-      // nstatus = scoped_strings.GetBuffer(env, js_value, buffer, &size);
-      // nstatus = scoped_strings.GetString(env, js_value, str_value);
-
       std::string *str_value = scoped_strings.GetString(env, js_value);
       ENSURE_VALUE_IS_NOT_NULL(env, str_value);
 

@@ -193,7 +193,6 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
     nstatus = napi_get_element(env, op_attr_inputs, i, &cur_op_attr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-    // TODO(kreeger): Need to pass in a string allocator or something.
     AssignOpAttr(env, tfe_op.op, cur_op_attr, scoped_strings);
 
     // Check to see if an exception exists, if so return a failure.
