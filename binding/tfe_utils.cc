@@ -237,7 +237,8 @@ void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle *handle,
   ENSURE_NAPI_OK(env, nstatus);
 }
 
-void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
+void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
+                  tfnodejs::TF_ScopedStrings &scoped_strings) {
   napi_status nstatus;
 
   napi_value attr_name_value;
@@ -271,15 +272,13 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     case TF_ATTR_STRING: {
       // NOTE: String attribute values do not have to be utf8 encoded strings
       // (could be arbitrary byte sequences).
-
-      // TODO(kreeger): Need a heap-based string allocator thing.
-      size_t value_length;
-      char *value = (char *)malloc(NAPI_STRING_SIZE);
-      nstatus = napi_get_value_string_utf8(env, js_value, value,
-                                           NAPI_STRING_SIZE, &value_length);
+      std::string *str_value;
+      nstatus = scoped_strings.GetString(env, js_value, str_value);
       ENSURE_NAPI_OK(env, nstatus);
 
-      TFE_OpSetAttrString(tfe_op, attr_name, value, value_length);
+      fprintf(stderr, "---> size: %lu\n", str_value->size());
+      TFE_OpSetAttrString(tfe_op, attr_name, str_value->c_str(),
+                          str_value->size());
       break;
     }
 
