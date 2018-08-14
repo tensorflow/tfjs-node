@@ -151,7 +151,9 @@ async function downloadLibtensorflow(callback) {
     } else {
       // All other platforms use a tarball:
       response.pipe(tar.x({C: depsPath, strict: true})).on('close', () => {
-        callback();
+        if (callback !== undefined) {
+          callback();
+        }
       });
     }
     request.end();
