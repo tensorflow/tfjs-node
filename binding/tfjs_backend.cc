@@ -23,6 +23,33 @@
 
 namespace tfnodejs {
 
+// TODO(kreeger): Doc me.
+class ScopedStrings {
+ public:
+  ScopedStrings();
+
+  napi_status Alloc() {
+    napi_status nstatus;
+
+    // Alloc from the heap:
+    size_t str_length;
+    char *str = (char *)malloc(NAPI_STRING_SIZE);
+    nstatus = napi_get_
+
+        // TODO(kreeger): Need a heap-based string allocator thing.
+        // size_t value_length;
+        // char *value = (char *)malloc(NAPI_STRING_SIZE);
+        // nstatus = napi_get_value_string_utf8(env, js_value, value,
+        //                                      NAPI_STRING_SIZE,
+        //                                      &value_length);
+        // ENSURE_NAPI_OK(env, nstatus);
+
+        return nstatus;
+  }
+
+ private:
+};
+
 TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   TF_AutoStatus tf_status;
   TFE_ContextOptions *tfe_options = TFE_NewContextOptions();
@@ -189,6 +216,7 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
     nstatus = napi_get_element(env, op_attr_inputs, i, &cur_op_attr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+    // TODO(kreeger): Need to pass in a string allocator or something.
     AssignOpAttr(env, tfe_op.op, cur_op_attr);
 
     // Check to see if an exception exists, if so return a failure.

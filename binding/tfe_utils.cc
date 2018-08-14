@@ -272,11 +272,9 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
       // NOTE: String attribute values do not have to be utf8 encoded strings
       // (could be arbitrary byte sequences).
 
-      // TODO (kreeger): Need to alloc from the heap instead of stack for these
-      // strings.
+      // TODO(kreeger): Need a heap-based string allocator thing.
       size_t value_length;
-      char *value = (char *)malloc(NAPI_STRING_SIZE);  // Does this leak??
-      // char value[NAPI_STRING_SIZE];
+      char *value = (char *)malloc(NAPI_STRING_SIZE);
       nstatus = napi_get_value_string_utf8(env, js_value, value,
                                            NAPI_STRING_SIZE, &value_length);
       ENSURE_NAPI_OK(env, nstatus);
