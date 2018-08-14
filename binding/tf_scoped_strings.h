@@ -51,8 +51,8 @@ class TF_ScopedStrings {
 
     fprintf(stderr, "---> string: %s\n", buffer);
     std::string *str = new std::string(buffer);
-    strings.push_back(str);
     string = str;
+    strings.push_back(str);
     // buffers.push_back(string);
     return nstatus;
   }
