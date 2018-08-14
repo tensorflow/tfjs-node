@@ -20,8 +20,8 @@
 
 #include "utils.h"
 
-#include <memory>
 #include <node_api.h>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,17 +29,13 @@ namespace tfnodejs {
 
 class TF_ScopedStrings {
  public:
-  std::string* GetString2(napi_env env, napi_value js_value) {
+  std::string* GetString(napi_env env, napi_value js_value) {
     char buffer[NAPI_STRING_SIZE];
     napi_status nstatus = napi_get_value_string_utf8(env, js_value, buffer,
                                                      NAPI_STRING_SIZE, nullptr);
-    if (nstatus != napi_ok) {
-      fprintf(stderr, "Something bad...\n");
-    }
-
-    std::auto_ptr<std::string> str(new std::string(buffer));
-    string_refs_.push_back(str);
-    return str.get();
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    string_refs_.push_back(std::auto_ptr<std::string>(new std::string(buffer)));
+    return string_refs_.back().get();
   }
 
  private:

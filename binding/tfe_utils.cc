@@ -275,10 +275,9 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
       // nstatus = scoped_strings.GetBuffer(env, js_value, buffer, &size);
       // nstatus = scoped_strings.GetString(env, js_value, str_value);
 
-      std::string* str_value = scoped_strings.GetString2(env, js_value);
-      ENSURE_NAPI_OK(env, nstatus);
+      std::string *str_value = scoped_strings.GetString(env, js_value);
+      ENSURE_VALUE_IS_NOT_NULL(env, str_value);
 
-      fprintf(stderr, "---> size: %lu\n", str_value->size());
       TFE_OpSetAttrString(tfe_op, attr_name, str_value->c_str(),
                           str_value->size());
       break;
