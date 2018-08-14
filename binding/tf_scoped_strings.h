@@ -36,12 +36,13 @@ class TF_ScopedStrings {
     napi_status nstatus = napi_get_value_string_utf8(env, js_value, buffer,
                                                      NAPI_STRING_SIZE, nullptr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-    string_refs_.push_back(std::auto_ptr<std::string>(new std::string(buffer)));
+    string_refs_.push_back(
+        std::unique_ptr<std::string>(new std::string(buffer)));
     return string_refs_.back().get();
   }
 
  private:
-  std::vector<std::auto_ptr<std::string>> string_refs_;
+  std::vector<std::unique_ptr<std::string>> string_refs_;
 };
 
 }  // namespace tfnodejs
