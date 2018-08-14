@@ -27,8 +27,10 @@
 
 namespace tfnodejs {
 
+// Manges a vector of heap-allocated strings for the life-span of the object.
 class TF_ScopedStrings {
  public:
+  // Returns a string or nullptr pointer for the underlying JS object.
   std::string* GetString(napi_env env, napi_value js_value) {
     char buffer[NAPI_STRING_SIZE];
     napi_status nstatus = napi_get_value_string_utf8(env, js_value, buffer,
