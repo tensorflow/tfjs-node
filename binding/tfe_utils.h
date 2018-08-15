@@ -53,7 +53,7 @@ void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle* handle,
 
 // Assigns attributes to an Op from a given list of inputs attributes.
 void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value,
-                  tfnodejs::TF_ScopedStrings& scoped_strings);
+                  tfnodejs::TF_ScopedStrings* scoped_strings);
 
 }  // namespace tfnodejs
 

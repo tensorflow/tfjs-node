@@ -238,7 +238,7 @@ void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle *handle,
 }
 
 void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
-                  tfnodejs::TF_ScopedStrings &scoped_strings) {
+                  tfnodejs::TF_ScopedStrings* scoped_strings) {
   napi_status nstatus;
 
   napi_value attr_name_value;
@@ -273,7 +273,8 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
       // (could be arbitrary byte sequences).
       // TODO(kreeger): Drop this class when 1.11 TensorFlow is released:
       // https://github.com/tensorflow/tfjs-node/pull/146#discussion_r210160129
-      std::string *str_value = scoped_strings.GetString(env, js_value);
+      ENSURE_VALUE_IS_NOT_NULL(env, scoped_strings);
+      std::string *str_value = scoped_strings->GetString(env, js_value);
       ENSURE_VALUE_IS_NOT_NULL(env, str_value);
 
       TFE_OpSetAttrString(tfe_op, attr_name, str_value->c_str(),
