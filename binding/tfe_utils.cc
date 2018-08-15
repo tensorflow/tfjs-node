@@ -271,6 +271,8 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value,
     case TF_ATTR_STRING: {
       // NOTE: String attribute values do not have to be utf8 encoded strings
       // (could be arbitrary byte sequences).
+      // TODO(kreeger): Drop this class when 1.11 TensorFlow is released:
+      // https://github.com/tensorflow/tfjs-node/pull/146#discussion_r210160129
       std::string *str_value = scoped_strings.GetString(env, js_value);
       ENSURE_VALUE_IS_NOT_NULL(env, str_value);
 

@@ -28,6 +28,8 @@
 namespace tfnodejs {
 
 // Manges a vector of heap-allocated strings for the life-span of the object.
+// TODO(kreeger): Drop this class when 1.11 TensorFlow is released:
+// https://github.com/tensorflow/tfjs-node/pull/146#discussion_r210160129
 class TF_ScopedStrings {
  public:
   // Returns a string or nullptr pointer for the underlying JS object.
