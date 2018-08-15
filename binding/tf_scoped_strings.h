@@ -34,12 +34,13 @@ class TF_ScopedStrings {
  public:
   // Returns a string or nullptr pointer for the underlying JS object.
   std::string* GetString(napi_env env, napi_value js_value) {
+    size_t size;
     char buffer[NAPI_STRING_SIZE];
     napi_status nstatus = napi_get_value_string_utf8(env, js_value, buffer,
-                                                     NAPI_STRING_SIZE, nullptr);
+                                                     NAPI_STRING_SIZE, &size);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
     string_refs_.push_back(
-        std::unique_ptr<std::string>(new std::string(buffer)));
+        std::unique_ptr<std::string>(new std::string(buffer, size)));
     return string_refs_.back().get();
   }
 
