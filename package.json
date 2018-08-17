@@ -20,7 +20,8 @@
     "coverage": "nyc ts-node src/run_tests.ts",
     "link-local": "yalc link",
     "publish-local": "yarn prep && yarn build && yalc push",
-    "install": "node-gyp rebuild || exit 0"
+    "install": "node scripts/install.js",
+    "compile-npm": "node scripts/install.js compile-npm"
   },
   "devDependencies": {
     "@tensorflow/tfjs-core": "~0.12.10",
