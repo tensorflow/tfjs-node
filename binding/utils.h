@@ -25,7 +25,6 @@
 #include <vector>
 #include "../deps/include/tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
-#include "tfjs_backend.h"
 
 #define NAPI_STRING_SIZE 512
 
@@ -38,7 +37,7 @@
 #define DEBUG_LOG(message, file, lineNumber)                             \
   do {                                                                   \
     if (DEBUG)                                                           \
-      fprintf(stderr, "** -%s:%lu\n-- %s\n", file, lineNumber, message); \
+      fprintf(stderr, "** -%s:%zu\n-- %s\n", file, lineNumber, message); \
   } while (0)
 
 namespace tfnodejs {
@@ -261,10 +260,16 @@ inline bool IsExceptionPending(napi_env env) {
   return has_exception;
 }
 
-inline bool EnsureValueIsNotNull(napi_env env, TFJSBackend* value) {
+#define ENSURE_VALUE_IS_NOT_NULL(env, value) \
+  if (!EnsureValueIsNotNull(env, value, __FILE__, __LINE__)) return;
+#define ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, value, retval) \
+  if (!EnsureValueIsNotNull(env, value, __FILE__, __LINE__)) return retval;
+
+inline bool EnsureValueIsNotNull(napi_env env, void* value, const char* file,
+                                 const size_t lineNumber) {
   bool is_null = value == nullptr;
   if (is_null) {
-    NAPI_THROW_ERROR(env, "Argument is null!");
+    NapiThrowError(env, "Argument is null!", file, lineNumber);
   }
   return !is_null;
 }

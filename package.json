@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "0.1.11",
+  "version": "0.1.13",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -12,7 +12,7 @@
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
     "build": "tsc",
     "clean-deps": "rm -rf deps",
-    "enable-gpu": "yarn clean-deps && node scripts/get_libtensorflow.js linux-gpu && yarn",
+    "enable-gpu": "node scripts/get_libtensorflow.js linux-gpu download && yarn",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
@@ -22,7 +22,7 @@
     "publish-local": "yarn prep && yarn build && yalc push"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "~0.12.10",
+    "@tensorflow/tfjs-core": "~0.12.12",
     "@types/bindings": "~1.3.0",
     "@types/jasmine": "~2.8.6",
     "@types/node": "^10.5.1",
@@ -38,9 +38,10 @@
   "dependencies": {
     "adm-zip": "^0.4.11",
     "bindings": "~1.3.0",
+    "rimraf": "^2.6.2",
     "tar": "^4.4.6"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "~0.12.10"
+    "@tensorflow/tfjs-core": "~0.12.12"
   }
 }
