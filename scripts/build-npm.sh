@@ -29,7 +29,8 @@ npm pack
 
 # Build GPU:
 sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
-sed -i -e s/cpu/gpu/ binding.gyp
+sed -i -e 's/installv1.js"/installv1.js gpu"/' package.json
+# sed -i -e s/cpu/gpu/ binding.gyp
 # sed -i -e s/darwin/unsupported/ binding.gyp
 rimraf dist/
 yarn

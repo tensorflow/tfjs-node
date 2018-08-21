@@ -92,14 +92,14 @@
             '-ltensorflow',
           ],
           'library_dirs' : ['<(PRODUCT_DIR)'],
-          'variables': {
-            'tensorflow-library-target': 'darwin'
-          },
+          # 'variables': {
+          #   'tensorflow-library-target': 'darwin'
+          # },
           'actions': [
             {
               'action_name': 'get_libtensorflow',
               'inputs': [
-                '<(module_root_dir)/scripts/get_libtensorflow.js'
+                '<(module_root_dir)/scripts/symlink.js'
               ],
               'outputs': [
                 '<(PRODUCT_DIR)/libtensorflow.so',
@@ -107,8 +107,8 @@
               'action': [
                 'node',
                 '<@(_inputs)',
-                '<(tensorflow-library-target)',
-                '<(tensorflow-library-action)',
+                # '<(tensorflow-library-target)',
+                # '<(tensorflow-library-action)',
                 '<(PRODUCT_DIR)',
               ]
             }

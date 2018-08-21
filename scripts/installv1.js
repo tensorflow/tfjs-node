@@ -47,30 +47,37 @@ let targetDir = process.argv[4];
 
 let targetUri = BASE_URI;
 // let libName = 'libtensorflow.so';
-if (platform === 'linux' && libType === 'cpu') {
-    targetUri += CPU_LINUX;
-} else if (platform === 'linux' && libType === 'gpu') {
-    targetUri += GPU_LINUX;
-} else if (platform === 'darwin') {
-  targetUri += CPU_DARWIN;
-} else if (platform === 'win32') {
-  targetUri += CPU_WINDOWS;
-  libName = 'tensorflow.dll';
 
-  // Some windows machines contain a trailing " char:
-  if (targetDir != undefined && targetDir.endsWith('"')) {
-    targetDir = targetDir.substr(0, targetDir.length - 1);
+async function getTargetUri() {
+  if (platform === 'linux' && libType === 'cpu') {
+      targetUri += CPU_LINUX;
+  } else if (platform === 'linux' && libType === 'gpu') {
+    if (await verifyCUDA()) {
+      targetUri += GPU_LINUX;
+    } else {
+      targetUri += CPU_LINUX;
+    }
+  } else if (platform === 'darwin') {
+    targetUri += CPU_DARWIN;
+  } else if (platform === 'win32') {
+    targetUri += CPU_WINDOWS;
+    libName = 'tensorflow.dll';
+
+    // Some windows machines contain a trailing " char:
+    if (targetDir != undefined && targetDir.endsWith('"')) {
+      targetDir = targetDir.substr(0, targetDir.length - 1);
+    }
+
+    // Windows action can have a path passed in:
+    if (action.startsWith('..\\')) {
+      action = action.substr(3);
+    }
+
+    // Use windows path
+    path = path.win32;
+  } else {
+    throw new Error(`Unsupported platform: ${platform}`);
   }
-
-  // Windows action can have a path passed in:
-  if (action.startsWith('..\\')) {
-    action = action.substr(3);
-  }
-
-  // Use windows path
-  path = path.win32;
-} else {
-  throw new Error(`Unsupported platform: ${platform}`);
 }
 
 const depsPath = path.join(__dirname, '..', 'deps');
@@ -133,6 +140,7 @@ async function moveDepsLib() {
  * Downloads libtensorflow and notifies via a callback when unpacked.
  */
 async function downloadLibtensorflow(callback) {
+  await getTargetUri();
   // The deps folder and resources do not exist, download and callback as
   // needed:
   console.error('  * Downloading libtensorflow');
@@ -174,7 +182,6 @@ async function downloadLibtensorflow(callback) {
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
-  console.log("::run");
   // Validate the action passed to the script:
   // - 'download' - Just downloads libtensorflow
   // - 'symlink'  - Downloads libtensorflow as needed, symlinks to dest.
@@ -187,8 +194,9 @@ async function run() {
     // First check if deps library exists:
     if (await exists(depsLibPath)) {
       // Library has already been downloaded, simlink:
-      await symlinkDepsLib();
-      console.log("::symlinkDepsLib down");
+      // await symlinkDepsLib();
+      await build();
+      console.log("::symlinkDepsLib done");
     } else {
       // Library has not been downloaded, download and symlink:
       await cleanDeps();
@@ -210,6 +218,21 @@ async function build() {
   cp.exec('node-gyp rebuild', (err) => {
     if (err) {
       console.log('node-gyp rebuild failed with: ' + err);
+    }
+  });
+}
+
+async function verifyCUDA() {
+  cp.exec('nvcc --version', (err, stdout) => {
+    if (err) {
+      return false;
+    }
+    if (stdout.includes('Cuda')) {
+      console.log('cuda version: '+stdout);
+      return true;
+    } else {
+      console.log('Fail to get CUDA version, compiling with CPU.');
+      return false;
     }
   });
 }
