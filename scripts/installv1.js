@@ -21,6 +21,10 @@ const rimraf = require('rimraf');
 const tar = require('tar');
 const util = require('util');
 const zip = require('adm-zip');
+const cp = require('child_process');
+const os = require('os');
+// const pname = require('../package').name;
+const {libName, depsLibPath} = require('./constants.js');
 
 const copy = util.promisify(fs.copyFile);
 const exists = util.promisify(fs.exists);
@@ -36,19 +40,20 @@ const CPU_LINUX = 'libtensorflow_r1_10_linux_cpu.tar.gz';
 const GPU_LINUX = 'libtensorflow_r1_10_linux_gpu.tar.gz';
 const CPU_WINDOWS = 'libtensorflow_r1_10_windows_cpu.zip';
 
-const platform = process.argv[2];
-let action = process.argv[3];
+const platform = os.platform();
+let libType = process.argv[2] === undefined ?  'cpu' : process.argv[2];
+let action = process.argv[3] === undefined ? 'symlink' : process.argv[3];
 let targetDir = process.argv[4];
 
 let targetUri = BASE_URI;
-let libName = 'libtensorflow.so';
-if (platform === 'linux-cpu') {
-  targetUri += CPU_LINUX;
-} else if (platform === 'linux-gpu') {
-  targetUri += GPU_LINUX;
+// let libName = 'libtensorflow.so';
+if (platform === 'linux' && libType === 'cpu') {
+    targetUri += CPU_LINUX;
+} else if (platform === 'linux' && libType === 'gpu') {
+    targetUri += GPU_LINUX;
 } else if (platform === 'darwin') {
   targetUri += CPU_DARWIN;
-} else if (platform.endsWith('windows')) {
+} else if (platform === 'win32') {
   targetUri += CPU_WINDOWS;
   libName = 'tensorflow.dll';
 
@@ -69,7 +74,7 @@ if (platform === 'linux-cpu') {
 }
 
 const depsPath = path.join(__dirname, '..', 'deps');
-const depsLibPath = path.join(depsPath, 'lib', libName);
+// const depsLibPath = path.join(depsPath, 'lib', libName);
 const destLibPath =
     targetDir !== undefined ? path.join(targetDir, libName) : undefined;
 
@@ -77,7 +82,7 @@ const destLibPath =
  * Ensures a directory exists, creates as needed.
  */
 async function ensureDir(dirPath) {
-  console.log('ensureDir:::dirPath::: '+dirPath);
+  console.log("::ensureDir");
   if (!await exists(dirPath)) {
     await mkdir(dirPath);
   }
@@ -87,7 +92,7 @@ async function ensureDir(dirPath) {
  * Deletes the deps directory if it exists, and creates a fresh deps folder.
  */
 async function cleanDeps() {
-  console.log('cleanDeps:::depsPath::: '+depsPath);
+  console.log("::cleanDeps");
   if (await exists(depsPath)) {
     await rimrafPromise(depsPath);
   }
@@ -99,24 +104,25 @@ async function cleanDeps() {
  * symlink fails, a copy is made.
  */
 async function symlinkDepsLib() {
-  if (destLibPath === undefined) {
-    throw new Error('Destination path not supplied!');
-  }
-  try {
-    console.log('symlink::: '+depsLibPath +":::"+destLibPath);
-    await symlink(depsLibPath, destLibPath);
-  } catch (e) {
-    console.error(
-        `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
-    await copy(depsLibPath, destLibPath);
-  }
+  console.log("::symlinkDepsLib");
+  // if (destLibPath === undefined) {
+  //   throw new Error('Destination path not supplied!');
+  // }
+  // try {
+  //   await symlink(depsLibPath, destLibPath);
+  // } catch (e) {
+  //   console.error(
+  //       `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
+  //   await copy(depsLibPath, destLibPath);
+  // }
+  return;
 }
 
 /**
  * Moves the deps library path to the destination path.
  */
 async function moveDepsLib() {
-  console.log('moveDepsLib:::destLibPath::: '+destLibPath);
+  console.log("::moveDepsLib");
   if (destLibPath === undefined) {
     throw new Error('Destination path not supplied!');
   }
@@ -168,6 +174,7 @@ async function downloadLibtensorflow(callback) {
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
+  console.log("::run");
   // Validate the action passed to the script:
   // - 'download' - Just downloads libtensorflow
   // - 'symlink'  - Downloads libtensorflow as needed, symlinks to dest.
@@ -181,10 +188,12 @@ async function run() {
     if (await exists(depsLibPath)) {
       // Library has already been downloaded, simlink:
       await symlinkDepsLib();
+      console.log("::symlinkDepsLib down");
     } else {
       // Library has not been downloaded, download and symlink:
       await cleanDeps();
-      await downloadLibtensorflow(symlinkDepsLib);
+      // await downloadLibtensorflow(symlinkDepsLib);
+      await downloadLibtensorflow(build);
     }
   } else if (action === 'move') {
     // Move action is used when installing this module as a package, always
@@ -194,6 +203,15 @@ async function run() {
   } else {
     throw new Error('Invalid action: ' + action);
   }
+}
+
+async function build() {
+  console.log("::start node-gyp");
+  cp.exec('node-gyp rebuild', (err) => {
+    if (err) {
+      console.log('node-gyp rebuild failed with: ' + err);
+    }
+  });
 }
 
 run();
