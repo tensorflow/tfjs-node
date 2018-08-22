@@ -14,9 +14,9 @@
     "clean-deps": "rm -rf deps",
     "test----compile-npm": "node scripts/install.js symlink compile-npm-cpu",
     "coverage": "nyc ts-node src/run_tests.ts",
-    "enable-gpu": "node scripts/installv1.js gpu download && yarn",
+    "enable-gpu": "node scripts/install.js gpu download && yarn",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
-    "install": "node scripts/installv1.js",
+    "install": "node scripts/install.js",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
     "test----postinstall": "node-gyp rebuild",
@@ -36,7 +36,9 @@
     "ts-node": "~5.0.0",
     "tslint": "~5.9.1",
     "typescript": "~2.7.2",
-    "yalc": "~1.0.0-pre.21"
+    "yalc": "~1.0.0-pre.21",
+    "progress": "^2.0.0",
+    "progress-stream": "^2.0.0"
   },
   "dependencies": {
     "adm-zip": "^0.4.11",

@@ -23,6 +23,7 @@ const util = require('util');
 const zip = require('adm-zip');
 const cp = require('child_process');
 const os = require('os');
+const {libName, depsPath, depsLibPath} = require('./constants.js');
 
 const copy = util.promisify(fs.copyFile);
 const exists = util.promisify(fs.exists);
@@ -38,47 +39,44 @@ const CPU_LINUX = 'libtensorflow_r1_10_linux_cpu.tar.gz';
 const GPU_LINUX = 'libtensorflow_r1_10_linux_gpu.tar.gz';
 const CPU_WINDOWS = 'libtensorflow_r1_10_windows_cpu.zip';
 
-const platform = os.platform(); //process.argv[2];
-let action = process.argv[2];
-let purpose = process.argv[3];
+const platform = os.platform();
+let libType = process.argv[2] === undefined ?  'cpu' : process.argv[2];
+let action = process.argv[3] === undefined ? 'symlink' : process.argv[3];
 let targetDir = process.argv[4];
 
 let targetUri = BASE_URI;
-let libName = 'libtensorflow.so';
-if (platform === 'linux') {
-  if (purpose.endsWith('-gpu')) {
-    targetUri += GPU_LINUX;
+
+async function getTargetUri() {
+  if (platform === 'linux' && libType === 'cpu') {
+      targetUri += CPU_LINUX;
+  } else if (platform === 'linux' && libType === 'gpu') {
+    if (await verifyCUDA()) {
+      targetUri += GPU_LINUX;
+    } else {
+      targetUri += CPU_LINUX;
+    }
+  } else if (platform === 'darwin') {
+    targetUri += CPU_DARWIN;
+  } else if (platform === 'win32') {
+    targetUri += CPU_WINDOWS;
+    libName = 'tensorflow.dll';
+
+    // Some windows machines contain a trailing " char:
+    if (targetDir != undefined && targetDir.endsWith('"')) {
+      targetDir = targetDir.substr(0, targetDir.length - 1);
+    }
+
+    // Windows action can have a path passed in:
+    if (action.startsWith('..\\')) {
+      action = action.substr(3);
+    }
+
+    // Use windows path
+    path = path.win32;
   } else {
-    targetUri += CPU_LINUX;
+    throw new Error(`Unsupported platform: ${platform}`);
   }
-} else if (platform === 'darwin') {
-  targetUri += CPU_DARWIN;
-} else if (platform.endsWith('windows')) {
-  targetUri += CPU_WINDOWS;
-  libName = 'tensorflow.dll';
-
-  // Some windows machines contain a trailing " char:
-  if (targetDir != undefined && targetDir.endsWith('"')) {
-    targetDir = targetDir.substr(0, targetDir.length - 1);
-  }
-
-  // Windows action can have a path passed in:
-  if (action.startsWith('..\\')) {
-    action = action.substr(3);
-  }
-
-  // Use windows path
-  path = path.win32;
-} else {
-  throw new Error(`Unsupported platform: ${platform}`);
 }
-
-const depsPath = path.join(__dirname, '..', 'deps');
-const depsLibPath = path.join(depsPath, 'lib', libName);
-
-targetDir = targetDir === undefined ? path.join(__dirname,'../build/Release') : targetDir;
-
-const destLibPath = path.join(targetDir, libName);
 
 /**
  * Ensures a directory exists, creates as needed.
@@ -100,39 +98,10 @@ async function cleanDeps() {
 }
 
 /**
- * Symlinks the extracted libtensorflow library to the destination path. If the
- * symlink fails, a copy is made.
- */
-async function symlinkDepsLib() {
-  if (destLibPath === undefined) {
-    throw new Error('Destination path not supplied!');
-  }
-  // try {
-  //   await ensureDir(path.join(__dirname,'../build'));
-  //   await ensureDir(targetDir);
-  //   await symlink(depsLibPath, destLibPath);
-  // } catch (e) {
-  //   console.log(":::"+e);
-  //   console.error(
-  //       `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
-  //   await copy(depsLibPath, destLibPath);
-  // }
-}
-
-/**
- * Moves the deps library path to the destination path.
- */
-async function moveDepsLib() {
-  if (destLibPath === undefined) {
-    throw new Error('Destination path not supplied!');
-  }
-  await rename(depsLibPath, destLibPath);
-}
-
-/**
  * Downloads libtensorflow and notifies via a callback when unpacked.
  */
 async function downloadLibtensorflow(callback) {
+  await getTargetUri();
   // The deps folder and resources do not exist, download and callback as
   // needed:
   console.error('  * Downloading libtensorflow');
@@ -141,13 +110,19 @@ async function downloadLibtensorflow(callback) {
   await ensureDir(depsPath);
 
   const request = https.get(targetUri, response => {
+    var len = parseInt(response.headers['content-length'], 10);
+    var downloaded = 0;
+
     if (platform.endsWith('windows')) {
       // Windows stores builds in a zip file. Save to disk, extract, and delete
       // the downloaded archive.
       const tempFileName = path.join(__dirname, '_libtensorflow.zip');
       const outputFile = fs.createWriteStream(tempFileName);
       const request = https.get(targetUri, response => {
-        response.pipe(outputFile).on('close', async () => {
+        response.on('data', (chunk) => {
+          downloaded += chunk.length;
+          process.stdout.write("Downloading libtensorflow" + (100.0 * downloaded / len).toFixed(2) + "% " + downloaded + " bytes" + (downloaded===len?"\n":"\r"));
+        }).pipe(outputFile).on('close', async () => {
           const zipFile = new zip(tempFileName);
           zipFile.extractAllTo(depsPath, true /* overwrite */);
           await unlink(tempFileName);
@@ -159,8 +134,12 @@ async function downloadLibtensorflow(callback) {
         request.end();
       });
     } else {
+      // response
       // All other platforms use a tarball:
-      response.pipe(tar.x({C: depsPath, strict: true})).on('close', () => {
+      response.on('data', (chunk) => {
+        downloaded += chunk.length;
+        process.stdout.write("Downloading libtensorflow" + (100.0 * downloaded / len).toFixed(2) + "% " + downloaded + " bytes" + (downloaded===len?"\n":"\r"));
+      }).pipe(tar.x({C: depsPath, strict: true})).on('close', () => {
         if (callback !== undefined) {
           callback();
         }
@@ -181,38 +160,50 @@ async function run() {
   if (action === 'download') {
     // This action always re-downloads. Delete existing deps and start download.
     await cleanDeps();
-    await downloadLibtensorflow();
+    await downloadLibtensorflow(build);
   } else if (action === 'symlink') {
+    // Symlink will happen during `node-gyp rebuild`
+
     // First check if deps library exists:
     if (await exists(depsLibPath)) {
-      // Library has already been downloaded, simlink:
-      await symlinkDepsLib();
+      // Library has already been downloaded, then compile and simlink:
+      await build();
     } else {
-      // Library has not been downloaded, download and symlink:
+      // Library has not been downloaded, download, then compile and symlink:
       await cleanDeps();
-      await downloadLibtensorflow(symlinkDepsLib);
+      await downloadLibtensorflow(build);
     }
   } else if (action === 'move') {
     // Move action is used when installing this module as a package, always
     // clean, download, and move the lib.
     await cleanDeps();
-    await downloadLibtensorflow(await moveDepsLib);
+    await downloadLibtensorflow(build);
   } else {
     throw new Error('Invalid action: ' + action);
   }
 }
 
+async function build() {
+  cp.exec('node-gyp rebuild', (err) => {
+    if (err) {
+      throw new Error('node-gyp rebuild failed with: ' + err);
+    }
+  });
+}
+
+async function verifyCUDA() {
+  cp.exec('nvcc --version', (err, stdout) => {
+    if (err) {
+      return false;
+    }
+    if (stdout.includes('Cuda')) {
+      console.log('cuda version: '+stdout);
+      return true;
+    } else {
+      console.error('Fail to get CUDA version, compiling with CPU.');
+      return false;
+    }
+  });
+}
+
 run();
-
-
-
-// // Skip the node-gyp rebuild step when building NPM tfjs-node-gpu package.
-// if(!(process.argv[2] === 'compile-npm' && os.platform() === 'linux')) {
-//   console.log('node-gyp rebuild');
-//   cp.exec('node-gyp rebuild', (err) => {
-//     if (err) {
-//       console.log('node-gyp rebuild failed with: ' + err);
-//       return;
-//     }
-//   });
-// }

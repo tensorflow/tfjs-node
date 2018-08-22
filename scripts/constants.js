@@ -20,4 +20,4 @@ let libName = 'libtensorflow.so';
 const depsPath = path.join(__dirname, '..', 'deps');
 const depsLibPath = path.join(depsPath, 'lib', libName);
 
-module.exports = {libName, depsLibPath};
+module.exports = {libName, depsPath, depsLibPath};

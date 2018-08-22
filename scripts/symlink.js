@@ -18,13 +18,19 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 const symlink = util.promisify(fs.symlink);
-// const {depsLibPath, destLibPath} = require('./installv1.js');
 const {libName, depsLibPath} = require('./constants.js');
 
-console.log("::symlink.js");
-// symlink(process.argv[2], process.argv[3]);
-// let libName = 'libtensorflow.so';
-// const depsPath = path.join(__dirname, '..', 'deps');
-// const depsLibPath = path.join(depsPath, 'lib', libName);
 const destLibPath = path.join(process.argv[2], libName);
+
+if (destLibPath === undefined) {
+  throw new Error('Destination path not supplied!');
+}
+
 symlink(depsLibPath, destLibPath);
+
+/**
+ * Moves the deps library path to the destination path.
+ */
+async function moveDepsLib() {
+  await rename(depsLibPath, destLibPath);
+}
