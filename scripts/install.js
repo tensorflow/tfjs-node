@@ -56,6 +56,7 @@ async function getTargetUri() {
   } else if (platform === 'darwin') {
     targetUri += CPU_DARWIN;
   } else if (platform === 'win32') {
+    // TODO(kangyizhang): Update download process for windows GPU.
     targetUri += CPU_WINDOWS;
 
     // Some windows machines contain a trailing " char:
