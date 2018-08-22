@@ -179,7 +179,7 @@ async function run() {
     if (action === 'symlink' && await exists(depsLibPath)) {
       // Library has already been downloaded, then compile and simlink:
       await build();
-    } else if (action === 'download') {
+    } else {
       // Library has not been downloaded, download, then compile and symlink:
       await cleanDeps();
       await downloadLibtensorflow(build);
