@@ -134,11 +134,10 @@ async function downloadLibtensorflow(callback) {
         request.end();
       });
     } else {
-      // response
       // All other platforms use a tarball:
       response.on('data', (chunk) => {
         downloaded += chunk.length;
-        process.stdout.write("Downloading libtensorflow" + (100.0 * downloaded / len).toFixed(2) + "% " + downloaded + " bytes" + (downloaded===len?"\n":"\r"));
+        process.stdout.write("Downloading libtensorflow " + (100.0 * downloaded / len).toFixed(2) + "% " + downloaded + " bytes" + (downloaded===len?"\n":"\r"));
       }).pipe(tar.x({C: depsPath, strict: true})).on('close', () => {
         if (callback !== undefined) {
           callback();
