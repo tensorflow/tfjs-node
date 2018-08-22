@@ -30,6 +30,7 @@ const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
 const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
+const exec = util.promisify(cp.exec);
 
 const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
 const CPU_DARWIN = 'libtensorflow_r1_10_darwin.tar.gz';
@@ -39,7 +40,6 @@ const CPU_WINDOWS = 'libtensorflow_r1_10_windows_cpu.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ?  'cpu' : process.argv[2];
-let action = process.argv[3] === undefined ? 'symlink' : process.argv[3];
 let targetDir = process.argv[4];
 
 let targetUri = BASE_URI;
@@ -61,11 +61,6 @@ async function getTargetUri() {
     // Some windows machines contain a trailing " char:
     if (targetDir != undefined && targetDir.endsWith('"')) {
       targetDir = targetDir.substr(0, targetDir.length - 1);
-    }
-
-    // Windows action can have a path passed in:
-    if (action.startsWith('..\\')) {
-      action = action.substr(3);
     }
 
     // Use windows path
@@ -95,18 +90,14 @@ async function cleanDeps() {
 }
 
 async function verifyCUDA() {
-  cp.exec('nvcc --version', (err, stdout) => {
-    if (err) {
-      return false;
-    }
-    if (stdout.includes('Cuda')) {
-      console.log('cuda version: '+stdout);
-      return true;
-    } else {
-      console.error('Fail to get CUDA version, compiling with CPU.');
-      return false;
-    }
-  });
+  const { stdout, stderr } = await exec('nvcc --version');
+  if (!stderr && stdout.includes('Cuda')) {
+    console.log('cuda version: ' + stdout);
+    return true;
+  } else {
+    console.error('Fail to get CUDA version, binding with tensorflow CPU.');
+    return false;
+  }
 }
 
 /**
@@ -176,7 +167,7 @@ async function build() {
  */
 async function run() {
     // First check if deps library exists:
-    if (action === 'symlink' && await exists(depsLibPath)) {
+    if (await exists(depsLibPath)) {
       // Library has already been downloaded, then compile and simlink:
       await build();
     } else {
