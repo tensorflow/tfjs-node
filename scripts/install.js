@@ -94,6 +94,21 @@ async function cleanDeps() {
   await mkdir(depsPath);
 }
 
+async function verifyCUDA() {
+  cp.exec('nvcc --version', (err, stdout) => {
+    if (err) {
+      return false;
+    }
+    if (stdout.includes('Cuda')) {
+      console.log('cuda version: '+stdout);
+      return true;
+    } else {
+      console.error('Fail to get CUDA version, compiling with CPU.');
+      return false;
+    }
+  });
+}
+
 /**
  * Downloads libtensorflow and notifies via a callback when unpacked.
  */
@@ -156,30 +171,15 @@ async function build() {
   });
 }
 
-async function verifyCUDA() {
-  cp.exec('nvcc --version', (err, stdout) => {
-    if (err) {
-      return false;
-    }
-    if (stdout.includes('Cuda')) {
-      console.log('cuda version: '+stdout);
-      return true;
-    } else {
-      console.error('Fail to get CUDA version, compiling with CPU.');
-      return false;
-    }
-  });
-}
-
 /**
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
     // First check if deps library exists:
-    if (await exists(depsLibPath)) {
+    if (action === 'symlink' && await exists(depsLibPath)) {
       // Library has already been downloaded, then compile and simlink:
       await build();
-    } else {
+    } else if (action === 'download') {
       // Library has not been downloaded, download, then compile and symlink:
       await cleanDeps();
       await downloadLibtensorflow(build);
