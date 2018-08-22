@@ -17,16 +17,30 @@
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+
+const copy = util.promisify(fs.copyFile);
+const rename = util.promisify(fs.rename);
 const symlink = util.promisify(fs.symlink);
 const {libName, depsLibPath} = require('./constants.js');
 
 const destLibPath = path.join(process.argv[2], libName);
 
-if (destLibPath === undefined) {
-  throw new Error('Destination path not supplied!');
+/**
+ * Symlinks the extracted libtensorflow library to the destination path. If the
+ * symlink fails, a copy is made.
+ */
+async function symlinkDepsLib() {
+  if (destLibPath === undefined) {
+    throw new Error('Destination path not supplied!');
+  }
+  try {
+    await symlink(depsLibPath, destLibPath);
+  } catch (e) {
+    console.error(
+        `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
+    await copy(depsLibPath, destLibPath);
+  }
 }
-
-symlink(depsLibPath, destLibPath);
 
 /**
  * Moves the deps library path to the destination path.
@@ -34,3 +48,20 @@ symlink(depsLibPath, destLibPath);
 async function moveDepsLib() {
   await rename(depsLibPath, destLibPath);
 }
+
+/**
+ * Symlink or move libtensorflow for building the binding.
+ */
+async function run(action) {
+  if(action === 'symlink') {
+    // Symlink will happen during `node-gyp rebuild`
+    await symlinkDepsLib();
+  } else if (action === 'move') {
+    // Move action is used when installing this module as a package.
+    await moveDepsLib();
+  } else {
+    throw new Error('Invalid action: ' + action);
+  }
+}
+
+run("symlink");

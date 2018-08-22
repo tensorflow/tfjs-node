@@ -23,14 +23,12 @@ const util = require('util');
 const zip = require('adm-zip');
 const cp = require('child_process');
 const os = require('os');
-const {libName, depsPath, depsLibPath} = require('./constants.js');
+const ProgressBar = require('progress');
+const {depsPath, depsLibPath} = require('./constants.js');
 
-const copy = util.promisify(fs.copyFile);
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
-const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
-const symlink = util.promisify(fs.symlink);
 const unlink = util.promisify(fs.unlink);
 
 const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
@@ -59,7 +57,6 @@ async function getTargetUri() {
     targetUri += CPU_DARWIN;
   } else if (platform === 'win32') {
     targetUri += CPU_WINDOWS;
-    libName = 'tensorflow.dll';
 
     // Some windows machines contain a trailing " char:
     if (targetDir != undefined && targetDir.endsWith('"')) {
@@ -111,7 +108,12 @@ async function downloadLibtensorflow(callback) {
 
   const request = https.get(targetUri, response => {
     var len = parseInt(response.headers['content-length'], 10);
-    var downloaded = 0;
+    var bar = new ProgressBar('downloading [:bar] :rate/bps :percent :etas', {
+      complete: '=',
+      incomplete: ' ',
+      width: 30,
+      total: len
+    });
 
     if (platform.endsWith('windows')) {
       // Windows stores builds in a zip file. Save to disk, extract, and delete
@@ -120,8 +122,7 @@ async function downloadLibtensorflow(callback) {
       const outputFile = fs.createWriteStream(tempFileName);
       const request = https.get(targetUri, response => {
         response.on('data', (chunk) => {
-          downloaded += chunk.length;
-          process.stdout.write("Downloading libtensorflow" + (100.0 * downloaded / len).toFixed(2) + "% " + downloaded + " bytes" + (downloaded===len?"\n":"\r"));
+          bar.tick(chunk.length);
         }).pipe(outputFile).on('close', async () => {
           const zipFile = new zip(tempFileName);
           zipFile.extractAllTo(depsPath, true /* overwrite */);
@@ -136,8 +137,7 @@ async function downloadLibtensorflow(callback) {
     } else {
       // All other platforms use a tarball:
       response.on('data', (chunk) => {
-        downloaded += chunk.length;
-        process.stdout.write("Downloading libtensorflow " + (100.0 * downloaded / len).toFixed(2) + "% " + downloaded + " bytes" + (downloaded===len?"\n":"\r"));
+          bar.tick(chunk.length);
       }).pipe(tar.x({C: depsPath, strict: true})).on('close', () => {
         if (callback !== undefined) {
           callback();
@@ -146,40 +146,6 @@ async function downloadLibtensorflow(callback) {
     }
     request.end();
   });
-}
-
-/**
- * Ensures libtensorflow requirements are met for building the binding.
- */
-async function run() {
-  // Validate the action passed to the script:
-  // - 'download' - Just downloads libtensorflow
-  // - 'symlink'  - Downloads libtensorflow as needed, symlinks to dest.
-  // - 'move'     - Downloads libtensorflow as needed, copies to dest.
-  if (action === 'download') {
-    // This action always re-downloads. Delete existing deps and start download.
-    await cleanDeps();
-    await downloadLibtensorflow(build);
-  } else if (action === 'symlink') {
-    // Symlink will happen during `node-gyp rebuild`
-
-    // First check if deps library exists:
-    if (await exists(depsLibPath)) {
-      // Library has already been downloaded, then compile and simlink:
-      await build();
-    } else {
-      // Library has not been downloaded, download, then compile and symlink:
-      await cleanDeps();
-      await downloadLibtensorflow(build);
-    }
-  } else if (action === 'move') {
-    // Move action is used when installing this module as a package, always
-    // clean, download, and move the lib.
-    await cleanDeps();
-    await downloadLibtensorflow(build);
-  } else {
-    throw new Error('Invalid action: ' + action);
-  }
 }
 
 async function build() {
@@ -203,6 +169,24 @@ async function verifyCUDA() {
       return false;
     }
   });
+}
+
+/**
+ * Ensures libtensorflow requirements are met for building the binding.
+ */
+async function run() {
+    // First check if deps library exists:
+    if (await exists(depsLibPath)) {
+      // Library has already been downloaded, then compile and simlink:
+      await build();
+    } else {
+      // Library has not been downloaded, download, then compile and symlink:
+      await cleanDeps();
+      await downloadLibtensorflow(build);
+    }
+
+    // 'symlink' and 'move' logic has been moved to symlink.js, which is called
+    // during `node-gyp rebuild`.
 }
 
 run();
