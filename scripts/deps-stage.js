@@ -21,9 +21,17 @@ const util = require('util');
 const copy = util.promisify(fs.copyFile);
 const rename = util.promisify(fs.rename);
 const symlink = util.promisify(fs.symlink);
-const {libName, depsLibPath} = require('./constants.js');
+const {libName, depsLibPath} = require('./deps-constants.js');
 
-const destLibPath = path.join(process.argv[2], libName);
+const action = process.argv[2];
+let targetDir = process.argv[3];
+
+// Some windows machines contain a trailing " char:
+if (targetDir != undefined && targetDir.endsWith('"')) {
+  targetDir = targetDir.substr(0, targetDir.length - 1);
+}
+
+const destLibPath = path.join(targetDir, libName);
 
 /**
  * Symlinks the extracted libtensorflow library to the destination path. If the
@@ -64,4 +72,4 @@ async function run(action) {
   }
 }
 
-run("symlink");
+run(action);

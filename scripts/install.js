@@ -24,7 +24,7 @@ const zip = require('adm-zip');
 const cp = require('child_process');
 const os = require('os');
 const ProgressBar = require('progress');
-const {depsPath, depsLibPath} = require('./constants.js');
+const {depsPath, depsLibPath} = require('./deps-constants.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -40,7 +40,7 @@ const CPU_WINDOWS = 'libtensorflow_r1_10_windows_cpu.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ?  'cpu' : process.argv[2];
-let targetDir = process.argv[4];
+let forceDoanload = process.argv[3] === undefined ?  undefined : process.argv[3];
 
 let targetUri = BASE_URI;
 
@@ -58,11 +58,6 @@ async function getTargetUri() {
   } else if (platform === 'win32') {
     // TODO(kangyizhang): Update download process for windows GPU.
     targetUri += CPU_WINDOWS;
-
-    // Some windows machines contain a trailing " char:
-    if (targetDir != undefined && targetDir.endsWith('"')) {
-      targetDir = targetDir.substr(0, targetDir.length - 1);
-    }
 
     // Use windows path
     path = path.win32;
@@ -90,6 +85,9 @@ async function cleanDeps() {
   await mkdir(depsPath);
 }
 
+/**
+ * Verify if this machine has a valid CUDA GPU.
+ */
 async function verifyCUDA() {
   const { stdout, stderr } = await exec('nvcc --version');
   if (!stderr && stdout.includes('Cuda')) {
@@ -114,12 +112,11 @@ async function downloadLibtensorflow(callback) {
   await ensureDir(depsPath);
 
   const request = https.get(targetUri, response => {
-    var len = parseInt(response.headers['content-length'], 10);
-    var bar = new ProgressBar('downloading [:bar] :rate/bps :percent :etas', {
+    const bar = new ProgressBar('downloading [:bar] :rate/bps :percent :etas', {
       complete: '=',
       incomplete: ' ',
       width: 30,
-      total: len
+      total: parseInt(response.headers['content-length'], 10)
     });
 
     if (platform.endsWith('windows')) {
@@ -155,6 +152,9 @@ async function downloadLibtensorflow(callback) {
   });
 }
 
+/**
+ * Call node-gyp for Node.js Tensorflow binding after lib is downloaded.
+ */
 async function build() {
   cp.exec('node-gyp rebuild', (err) => {
     if (err) {
@@ -168,7 +168,7 @@ async function build() {
  */
 async function run() {
     // First check if deps library exists:
-    if (await exists(depsLibPath)) {
+    if (forceDoanload !== 'download' && await exists(depsLibPath)) {
       // Library has already been downloaded, then compile and simlink:
       await build();
     } else {
