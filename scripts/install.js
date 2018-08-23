@@ -119,7 +119,7 @@ async function downloadLibtensorflow(callback) {
       total: parseInt(response.headers['content-length'], 10)
     });
 
-    if (platform.endsWith('windows')) {
+    if (platform === 'win32') {
       // Windows stores builds in a zip file. Save to disk, extract, and delete
       // the downloaded archive.
       const tempFileName = path.join(__dirname, '_libtensorflow.zip');
