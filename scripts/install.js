@@ -56,11 +56,17 @@ async function getTargetUri() {
   } else if (platform === 'darwin') {
     targetUri += CPU_DARWIN;
   } else if (platform === 'win32') {
-    // TODO(kangyizhang): Update download process for windows GPU.
-    targetUri += CPU_WINDOWS;
-
     // Use windows path
     path = path.win32;
+    if (libType === 'cpu') {
+      targetUri += CPU_WINDOWS;
+    } else if (libType === 'gpu') {
+      if (await verifyCUDA()) {
+        targetUri += GPU_WINDOWS;
+      } else {
+        targetUri += CPU_WINDOWS;
+      }
+    }
   } else {
     throw new Error(`Unsupported platform: ${platform}`);
   }
