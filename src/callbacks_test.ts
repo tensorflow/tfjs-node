@@ -28,13 +28,18 @@ import {ProgbarLogger} from './callbacks';
   model.compile({loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['acc']});
   model.summary();
 
-  const xs = tfc.randomNormal([100, 8]);
-  const ys = tfc.randomNormal([100, 1]);
+  const numSamples = 4000;
+  const xs = tfc.randomNormal([numSamples, 8]);
+  const ys = tfc.randomNormal([numSamples, 1]);
   xs.print();
   ys.print();
-  const epochs = 10;
+  const epochs = 2;
   const batchSize = 8;
-  await model.fit(
-      xs, ys,
-      {epochs, batchSize, callbacks: new ProgbarLogger(batchSize, 100)});
+  const validationSplit = 0.15;
+  await model.fit(xs, ys, {
+    epochs,
+    batchSize,
+    validationSplit,
+    callbacks: new ProgbarLogger(batchSize, numSamples * (1 - validationSplit))
+  });
 })();

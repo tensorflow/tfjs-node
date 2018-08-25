@@ -25,8 +25,6 @@ import * as ProgressBar from 'progress';
 export class ProgbarLogger extends CustomCallback {
   private numTrainBatchesPerEpoch: number;
   private currentEpoch: number;
-  private lossOrMetricTags: string[];
-  private lossOrMetricNames: string[];
   private progressBar: ProgressBar;
 
   /**
@@ -40,59 +38,43 @@ export class ProgbarLogger extends CustomCallback {
     super({
       onTrainBegin: async (logs?: Logs) => {
         this.numTrainBatchesPerEpoch = Math.ceil(numTrainExamples / batchSize);
-        console.log(`this.numTrainBatchesPerEpoch = ${
-            this.numTrainBatchesPerEpoch}`);  // DEBUG
       },
       onEpochBegin: async (epoch: number, logs?: Logs) => {
-        // console.log('params:', this.params);
+        console.log(`Epoch ${epoch + 1} / ${this.params.epochs}`);
         this.currentEpoch = epoch;
       },
       onBatchEnd: async (batch: number, logs?: Logs) => {
-        // console.log(JSON.stringify());
-        // console.log(logs.batch);
         if (batch === 0) {
-          // console.log(
-          //     `Epoch ${this.currentEpoch + 1} / ${this.params['epochs']}`);
-          this.lossOrMetricTags = [];
-          this.lossOrMetricNames = [];
-          Object.keys(logs).forEach(key => {
-            if (key !== 'batch' && key !== 'size') {
-              this.lossOrMetricTags.push(`${key}Tag`);
-              this.lossOrMetricNames.push(`${key}`);
-            }
-          });
-          let progressBarSpec = 'eta=:eta :bar ';
-          for (let i = 0; i < this.lossOrMetricTags.length; ++i) {
-            progressBarSpec +=
-                `:${this.lossOrMetricTags[i]}=:${this.lossOrMetricNames[i]}`;
-            if (i < this.lossOrMetricTags.length - 1) {
-              progressBarSpec += ' ';
-            }
-          }
           this.progressBar = new ProgressBar(
-              progressBarSpec,
-              {total: this.numTrainBatchesPerEpoch, head: `>`});
+              'eta=:eta :bar :metricePlaceholderLongName',
+              {total: this.numTrainBatchesPerEpoch + 1, head: `>`});
         }
-        // if (batch === this.numTrainBatchesPerEpoch - 1) {
-        //   millisPerStep =
-        //       (tf.util.now() - epochBeginTime) / numTrainExamplesPerEpoch;
-        // }
-        const tickData: {[key: string]: string} = {};
-        this.lossOrMetricNames.forEach((name, i) => {
-          const tag = this.lossOrMetricTags[i];
-          tickData[tag] = name;
-          // console.log(`tag = ${tag}, name = ${name}`);    // DEBUG
-          // console.log(`logs = ${JSON.stringify(logs)}`);  // DEBUG
-          tickData[name] = logs[name].toFixed(2);
+        this.progressBar.tick({
+          metricePlaceholderLongName: this.formatLogsAsMetricsContent(logs)
         });
-        this.progressBar.tick(tickData);
         await nextFrame();
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
-        console.log(JSON.stringify(logs));
+        this.progressBar.tick({
+          metricePlaceholderLongName: this.formatLogsAsMetricsContent(logs)
+        });
+        await nextFrame();
       },
     });
+  }
 
-    
+  private formatLogsAsMetricsContent(logs: Logs): string {
+    let metricsContent: string = '';
+    const keys = Object.keys(logs).sort();
+    for (const key of keys) {
+      if (this.isFieldRelevant(key)) {
+        metricsContent += `${key}=${logs[key].toFixed(2)} `;
+      }
+    }
+    return metricsContent;
+  }
+
+  private isFieldRelevant(key: string) {
+    return key !== 'batch' && key !== 'size';
   }
 }
