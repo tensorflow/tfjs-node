@@ -17,8 +17,7 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers'
-
-import {ProgbarLogger} from './callbacks';
+import * as tfn from './index';
 
 (async function() {
   const model = tfl.sequential();
@@ -40,6 +39,6 @@ import {ProgbarLogger} from './callbacks';
     epochs,
     batchSize,
     validationSplit,
-    callbacks: new ProgbarLogger(batchSize, numSamples * (1 - validationSplit))
+    callbacks: tfn.progbarLogger(batchSize, numSamples * (1 - validationSplit))
   });
 })();

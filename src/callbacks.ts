@@ -28,10 +28,7 @@ export class ProgbarLogger extends CustomCallback {
   private progressBar: ProgressBar;
 
   /**
-   * Construtor of LoggingCallback
-   * @param totalEpochs
-   * @param batchSize
-   * @param numTrainExamples
+   * Construtor of LoggingCallback.
    */
   constructor(readonly batchSize: number, readonly numTrainExamples: number) {
     // TODO(cais): Replace batchSize and numTrainExamples with params fields.
@@ -77,4 +74,12 @@ export class ProgbarLogger extends CustomCallback {
   private isFieldRelevant(key: string) {
     return key !== 'batch' && key !== 'size';
   }
+}
+
+/**
+ * Factory method for progress-bar logger in Node.js.
+ */
+export function progbarLogger(batchSize: number, numTrainExamples: number) {
+  // TODO(cais): Remove arguments and use params.
+  return new ProgbarLogger(batchSize, numTrainExamples);
 }
