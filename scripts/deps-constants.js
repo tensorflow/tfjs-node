@@ -17,10 +17,7 @@
 const os = require('os');
 const path = require('path');
 
-let libName = 'libtensorflow.so';
-if (os.platform() === 'win32') {
-  libName = 'tensorflow.dll';
-}
+const libName = os.platform() === 'win32' ? 'tensorflow.dll' : 'libtensorflow.so';
 const depsPath = path.join(__dirname, '..', 'deps');
 const depsLibPath = path.join(depsPath, 'lib', libName);
 

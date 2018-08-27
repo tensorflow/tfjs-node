@@ -61,7 +61,7 @@ async function moveDepsLib() {
  * Symlink or move libtensorflow for building the binding.
  */
 async function run(action) {
-  if (action === 'symlink') {
+  if (action.endsWith('symlink')) {
     // Symlink will happen during `node-gyp rebuild`
     await symlinkDepsLib();
   } else if (action.endsWith('move')) {
