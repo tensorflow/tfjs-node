@@ -40,15 +40,13 @@ const CPU_WINDOWS = 'libtensorflow_r1_10_windows_cpu.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ?  'cpu' : process.argv[2];
-let forceDoanload = process.argv[3] === undefined ?  undefined : process.argv[3];
+let forceDownload = process.argv[3] === undefined ?  undefined : process.argv[3];
 
 let targetUri = BASE_URI;
 
 async function getTargetUri() {
-  if (platform === 'linux' && libType === 'cpu') {
-      targetUri += CPU_LINUX;
-  } else if (platform === 'linux' && libType === 'gpu') {
-    if (await verifyCUDA()) {
+  if (platform === 'linux') {
+    if (libType === 'gpu') {
       targetUri += GPU_LINUX;
     } else {
       targetUri += CPU_LINUX;
@@ -58,14 +56,10 @@ async function getTargetUri() {
   } else if (platform === 'win32') {
     // Use windows path
     path = path.win32;
-    if (libType === 'cpu') {
+    if (libType === 'gpu') {
+      targetUri += GPU_WINDOWS;
+    } else {
       targetUri += CPU_WINDOWS;
-    } else if (libType === 'gpu') {
-      if (await verifyCUDA()) {
-        targetUri += GPU_WINDOWS;
-      } else {
-        targetUri += CPU_WINDOWS;
-      }
     }
   } else {
     throw new Error(`Unsupported platform: ${platform}`);
@@ -89,20 +83,6 @@ async function cleanDeps() {
     await rimrafPromise(depsPath);
   }
   await mkdir(depsPath);
-}
-
-/**
- * Verify if this machine has a valid CUDA GPU.
- */
-async function verifyCUDA() {
-  const { stdout, stderr } = await exec('nvcc --version');
-  if (!stderr && stdout.includes('Cuda')) {
-    console.log('cuda version: ' + stdout);
-    return true;
-  } else {
-    console.error('Fail to get CUDA version, binding with tensorflow CPU.');
-    return false;
-  }
 }
 
 /**
@@ -147,7 +127,7 @@ async function downloadLibtensorflow(callback) {
     } else {
       // All other platforms use a tarball:
       response.on('data', (chunk) => {
-          bar.tick(chunk.length);
+        bar.tick(chunk.length);
       }).pipe(tar.x({C: depsPath, strict: true})).on('close', () => {
         if (callback !== undefined) {
           callback();
@@ -159,7 +139,7 @@ async function downloadLibtensorflow(callback) {
 }
 
 /**
- * Call node-gyp for Node.js Tensorflow binding after lib is downloaded.
+ * Calls node-gyp for Node.js Tensorflow binding after lib is downloaded.
  */
 async function build() {
   cp.exec('node-gyp rebuild', (err) => {
@@ -173,18 +153,15 @@ async function build() {
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
-    // First check if deps library exists:
-    if (forceDoanload !== 'download' && await exists(depsLibPath)) {
-      // Library has already been downloaded, then compile and simlink:
-      await build();
-    } else {
-      // Library has not been downloaded, download, then compile and symlink:
-      await cleanDeps();
-      await downloadLibtensorflow(build);
-    }
-
-    // 'symlink' and 'move' logic has been moved to symlink.js, which is called
-    // during `node-gyp rebuild`.
+  // First check if deps library exists:
+  if (forceDownload !== 'download' && await exists(depsLibPath)) {
+    // Library has already been downloaded, then compile and simlink:
+    await build();
+  } else {
+    // Library has not been downloaded, download, then compile and symlink:
+    await cleanDeps();
+    await downloadLibtensorflow(build);
+  }
 }
 
 run();
