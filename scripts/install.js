@@ -37,10 +37,11 @@ const CPU_DARWIN = 'libtensorflow_r1_10_darwin.tar.gz';
 const CPU_LINUX = 'libtensorflow_r1_10_linux_cpu.tar.gz';
 const GPU_LINUX = 'libtensorflow_r1_10_linux_gpu.tar.gz';
 const CPU_WINDOWS = 'libtensorflow_r1_10_windows_cpu.zip';
+const GPU_WINDOWS = 'libtensorflow_r1_10_windows_gpu.zip';
 
 const platform = os.platform();
-let libType = process.argv[2] === undefined ?  'cpu' : process.argv[2];
-let forceDownload = process.argv[3] === undefined ?  undefined : process.argv[3];
+let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
+let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
 let targetUri = BASE_URI;
 
@@ -111,28 +112,36 @@ async function downloadLibtensorflow(callback) {
       const tempFileName = path.join(__dirname, '_libtensorflow.zip');
       const outputFile = fs.createWriteStream(tempFileName);
       const request = https.get(targetUri, response => {
-        response.on('data', (chunk) => {
-          bar.tick(chunk.length);
-        }).pipe(outputFile).on('close', async () => {
-          const zipFile = new zip(tempFileName);
-          zipFile.extractAllTo(depsPath, true /* overwrite */);
-          await unlink(tempFileName);
+        response
+            .on('data',
+                (chunk) => {
+                  bar.tick(chunk.length);
+                })
+            .pipe(outputFile)
+            .on('close', async () => {
+              const zipFile = new zip(tempFileName);
+              zipFile.extractAllTo(depsPath, true /* overwrite */);
+              await unlink(tempFileName);
 
-          if (callback !== undefined) {
-            callback();
-          }
-        });
+              if (callback !== undefined) {
+                callback();
+              }
+            });
         request.end();
       });
     } else {
       // All other platforms use a tarball:
-      response.on('data', (chunk) => {
-        bar.tick(chunk.length);
-      }).pipe(tar.x({C: depsPath, strict: true})).on('close', () => {
-        if (callback !== undefined) {
-          callback();
-        }
-      });
+      response
+          .on('data',
+              (chunk) => {
+                bar.tick(chunk.length);
+              })
+          .pipe(tar.x({C: depsPath, strict: true}))
+          .on('close', () => {
+            if (callback !== undefined) {
+              callback();
+            }
+          });
     }
     request.end();
   });
