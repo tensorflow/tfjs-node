@@ -15,53 +15,60 @@
  * =============================================================================
  */
 
-import {nextFrame} from '@tensorflow/tfjs-core';
+import {nextFrame, util} from '@tensorflow/tfjs-core';
 import {CustomCallback, Logs} from '@tensorflow/tfjs-layers';
 import * as ProgressBar from 'progress';
+
+export const ProgressBarHelper: {} = {ProgressBar};
 
 /**
  * Terminal-based progress bar callback for tf.Model.fit().
  */
 export class ProgbarLogger extends CustomCallback {
   private numTrainBatchesPerEpoch: number;
-  private currentEpoch: number;
   private progressBar: ProgressBar;
 
   /**
    * Construtor of LoggingCallback.
    */
-  constructor(readonly batchSize: number, readonly numTrainExamples: number) {
-    // TODO(cais): Replace batchSize and numTrainExamples with params fields.
+  constructor() {
     super({
       onTrainBegin: async (logs?: Logs) => {
-        this.numTrainBatchesPerEpoch = Math.ceil(numTrainExamples / batchSize);
+        const samples = this.params.samples as number;
+        const batchSize = this.params.batchSize as number;
+        util.assert(
+            samples != null,
+            'ProgbarLogger cannot operate when samples is undefined or null.');
+        util.assert(
+            batchSize != null,
+            'ProgbarLogger cannot operate when batchSize is undefined or ' +
+                'null.');
+        this.numTrainBatchesPerEpoch = Math.ceil(samples / batchSize);
       },
       onEpochBegin: async (epoch: number, logs?: Logs) => {
         console.log(`Epoch ${epoch + 1} / ${this.params.epochs}`);
-        this.currentEpoch = epoch;
       },
       onBatchEnd: async (batch: number, logs?: Logs) => {
         if (batch === 0) {
-          this.progressBar = new ProgressBar(
-              'eta=:eta :bar :metricePlaceholderLongName',
+          this.progressBar = new ProgressBarHelper['ProgressBar'](
+              'eta=:eta :bar :lossesAndMetricsPlaceholder',
               {total: this.numTrainBatchesPerEpoch + 1, head: `>`});
         }
         this.progressBar.tick({
-          metricePlaceholderLongName: this.formatLogsAsMetricsContent(logs)
+          lossesAndMetricsPlaceholder: this.formatLogsAsMetricsContent(logs)
         });
         await nextFrame();
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
-        this.progressBar.tick({
-          metricePlaceholderLongName: this.formatLogsAsMetricsContent(logs)
-        });
+        this.progressBar.tick({lossesAndMetricsPlaceholder: ''});
+        console.log(this.formatLogsAsMetricsContent(logs));
         await nextFrame();
       },
     });
   }
 
   private formatLogsAsMetricsContent(logs: Logs): string {
-    let metricsContent: string = '';
+    let metricsContent = '';
     const keys = Object.keys(logs).sort();
     for (const key of keys) {
       if (this.isFieldRelevant(key)) {

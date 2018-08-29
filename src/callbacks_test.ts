@@ -17,28 +17,72 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers'
+// import * as ProgressBar from 'progress';
+
+import {ProgressBarHelper} from './callbacks';
 import * as tfn from './index';
 
-(async function() {
-  const model = tfl.sequential();
-  model.add(
-      tfl.layers.dense({units: 1000, inputShape: [8], activation: 'relu'}));
-  model.add(tfl.layers.dense({units: 1}));
-  model.compile({loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['acc']});
-  model.summary();
+// const TestHelper: {} = {
+//   ProgressBar: ProgressBar
+// };
 
-  const numSamples = 4000;
-  const xs = tfc.randomNormal([numSamples, 8]);
-  const ys = tfc.randomNormal([numSamples, 1]);
-  xs.print();
-  ys.print();
-  const epochs = 2;
-  const batchSize = 8;
-  const validationSplit = 0.15;
-  await model.fit(xs, ys, {
-    epochs,
-    batchSize,
-    validationSplit,
-    callbacks: tfn.progbarLogger(batchSize, numSamples * (1 - validationSplit))
+describe('progbarLogger', () => {
+  // TODO(cais): Rename test.
+  it('Model.fit with loss and metric', async () => {
+    // const messages: any[] = [];
+    // spyOn(console, 'log').and.callFake((message: any) => {
+    //   messages.push(message);
+    // });
+    spyOn(ProgressBarHelper, 'ProgressBar')
+        .and.callFake((specs: string, config: {}) => {
+          console.log('In fake constructor');
+        });
+
+    const model = tfl.sequential();
+    model.add(
+        tfl.layers.dense({units: 10, inputShape: [8], activation: 'relu'}));
+    model.add(tfl.layers.dense({units: 1}));
+    model.compile(
+        {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['acc']});
+
+    const numSamples = 40;
+    const epochs = 2;
+    const batchSize = 8;
+    const validationSplit = 0.15;
+    const xs = tfc.randomNormal([numSamples, 8]);
+    const ys = tfc.randomNormal([numSamples, 1]);
+    await model.fit(xs, ys, {
+      epochs,
+      batchSize,
+      validationSplit,
+      callbacks:
+          tfn.progbarLogger(batchSize, numSamples * (1 - validationSplit))
+    });
   });
-})();
+});
+
+// (async function() {
+//   const model = tfl.sequential();
+//   model.add(
+//       tfl.layers.dense({units: 1000, inputShape: [8], activation:
+//       'relu'}));
+//   model.add(tfl.layers.dense({units: 1}));
+//   model.compile({loss: 'meanSquaredError', optimizer: 'sgd', metrics:
+//   ['acc']}); model.summary();
+
+//   const numSamples = 4000;
+//   const xs = tfc.randomNormal([numSamples, 8]);
+//   const ys = tfc.randomNormal([numSamples, 1]);
+//   xs.print();
+//   ys.print();
+//   const epochs = 2;
+//   const batchSize = 8;
+//   const validationSplit = 0.15;
+//   await model.fit(xs, ys, {
+//     epochs,
+//     batchSize,
+//     validationSplit,
+//     callbacks: tfn.progbarLogger(batchSize, numSamples * (1 -
+//     validationSplit))
+//   });
+// })();
