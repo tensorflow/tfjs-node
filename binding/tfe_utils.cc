@@ -141,6 +141,7 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   napi_typedarray_type array_type;
   switch (TFE_TensorHandleDataType(tfe_tensor_handle)) {
     case TF_FLOAT:
+    case TF_COMPLEX64:
       array_type = napi_float32_array;
       break;
     case TF_INT32:

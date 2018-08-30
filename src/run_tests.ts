@@ -36,6 +36,7 @@ const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
   'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
   'separableConv2d',  // Requires space_to_batch() for dilation > 1.
+  'complex64', 'basicLSTMCell'
 ];
 
 // Windows has two failing tests:
@@ -64,7 +65,7 @@ const env = jasmine.getEnv();
 env.specFilter = spec => {
   // Return false (skip the test) if the test is in the ignore list.
   for (let i = 0; i < IGNORE_LIST.length; ++i) {
-    if (spec.getFullName().startsWith(IGNORE_LIST[i])) {
+    if (spec.getFullName().indexOf(IGNORE_LIST[i]) > -1) {
       return false;
     }
   }

@@ -21,7 +21,8 @@ import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
 
-import {createTypeOpAttr, getTFDType} from './ops/op_utils';
+// tslint:disable-next-line:max-line-length
+import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
@@ -34,6 +35,54 @@ type TensorInfo = {
 interface DataId {}
 
 export class NodeJSKernelBackend implements KernelBackend {
+  // TODO(kreeger): Store in proper spot!
+  complex<T extends Tensor<Rank>>(real: T, imag: T): T {
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', real),
+      {
+        name: 'Tout',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_COMPLEX64
+      },
+    ];
+    const inputs = [real, imag];
+    return this.executeSingleOutput('Complex', opAttrs, inputs) as T;
+  }
+
+  real<T extends Tensor<Rank>>(input: T): T {
+    throw new Error('Method not implemented.');
+  }
+
+  imag<T extends Tensor<Rank>>(input: T): T {
+    throw new Error('Method not implemented.');
+  }
+
+  depthToSpace(x: Tensor<Rank.R4>, blockSize: number, dataFormat: string):
+      Tensor<Rank.R4> {
+    throw new Error('Method not implemented.');
+  }
+
+  split<T extends Tensor<Rank>>(value: T, sizeSplits: number[], axis: number):
+      T[] {
+    const opAttrs = [
+      {
+        name: 'num_split',
+        type: this.binding.TF_ATTR_INT,
+        value: sizeSplits.length
+      },
+      createTensorsTypeOpAttr('T', value), {
+        name: 'Tlen',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
+    ];
+    const inputs = [value];
+    inputs.push(tensor1d(sizeSplits, 'int32') as T);
+    inputs.push(scalar(axis, 'int32') as T);
+    return this.executeMultipleOutputs(
+               'SplitV', opAttrs, inputs, sizeSplits.length) as T[];
+  }
+
   binding: TFJSBinding;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
@@ -62,6 +111,9 @@ export class NodeJSKernelBackend implements KernelBackend {
         break;
       case this.binding.TF_BOOL:
         dtype = 'bool';
+        break;
+      case this.binding.TF_COMPLEX64:
+        dtype = 'complex64';
         break;
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
@@ -237,15 +289,19 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('ReverseV2', opAttrs, [a, axisTensor]) as T;
   }
 
-  concat(a: Tensor2D, b: Tensor2D): Tensor2D {
+  concat(tensors: Tensor[], axis: number): Tensor {
     const opAttrs = [
-      {name: 'N', type: this.binding.TF_ATTR_INT, value: 2},
-      createTypeOpAttr('Tidx', 'int32'), createTypeOpAttr('T', a.dtype)
+      {name: 'N', type: this.binding.TF_ATTR_INT, value: tensors.length}, {
+        name: 'Tidx',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      },
+      createTensorsTypeOpAttr('T', tensors)
     ];
-    // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
-    const axisTensor = scalar(1, 'int32');
-    return this.executeSingleOutput('ConcatV2', opAttrs, [a, b, axisTensor]) as
-        Tensor2D;
+
+    const inputs = Array.from(tensors);
+    inputs.push(scalar(axis, 'int32'));
+    return this.executeSingleOutput('ConcatV2', opAttrs, inputs);
   }
 
   neg<T extends Tensor>(a: T): T {
