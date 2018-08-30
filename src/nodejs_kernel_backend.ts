@@ -50,16 +50,52 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   real<T extends Tensor<Rank>>(input: T): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', input), {
+        name: 'Tout',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      }
+    ];
+    const inputs = [input];
+    return this.executeSingleOutput('Real', opAttrs, inputs) as T;
   }
 
   imag<T extends Tensor<Rank>>(input: T): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      {
+        name: 'T',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_COMPLEX64
+      },
+      {
+        name: 'Tout',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      }
+    ];
+    const inputs = [input];
+    return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
   }
 
   depthToSpace(x: Tensor<Rank.R4>, blockSize: number, dataFormat: string):
       Tensor<Rank.R4> {
-    throw new Error('Method not implemented.');
+    // TODO(kreeger): Some more work needs to be done here to make this work...
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', x), {
+        name: 'block_size',
+        type: this.binding.TF_ATTR_INT,
+        value: blockSize < 2 ? 2 : blockSize
+      },
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      }
+    ];
+    const inputs = [x];
+    return this.executeSingleOutput('DepthToSpace', opAttrs, inputs) as
+        Tensor<Rank.R4>;
   }
 
   split<T extends Tensor<Rank>>(value: T, sizeSplits: number[], axis: number):
