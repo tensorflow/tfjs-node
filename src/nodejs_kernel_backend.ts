@@ -35,6 +35,12 @@ type TensorInfo = {
 interface DataId {}
 
 export class NodeJSKernelBackend implements KernelBackend {
+  cropAndResize(
+      image: Tensor<Rank.R4>, boxes: Tensor<Rank.R2>, boxIndex: Tensor<Rank.R1>,
+      cropSize: [number, number], method: 'bilinear'|'nearest',
+      extrapolationValue: number): Tensor<Rank.R4> {
+    throw new Error('Method not implemented.');
+  }
   // TODO(kreeger): Store in proper spot!
   complex<T extends Tensor<Rank>>(real: T, imag: T): T {
     const opAttrs = [
