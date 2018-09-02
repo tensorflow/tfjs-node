@@ -24,6 +24,8 @@ export const progressBarHelper: {ProgressBar: any, log: Function} = {
   ProgressBar,
   log: console.log
 };
+// A helper class created for testing with the jasmine `spyOn` method, which
+// operates only on member methods of objects.
 
 /**
  * Terminal-based progress bar callback for tf.Model.fit().
