@@ -16,33 +16,85 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import * as tfl from '@tensorflow/tfjs-layers'
+import * as tfl from '@tensorflow/tfjs-layers';
 
-import {ProgressBarHelper} from './callbacks';
+import {progressBarHelper} from './callbacks';
 import * as tfn from './index';
 
 describe('progbarLogger', () => {
   // Fake progbar class written for testing.
   class FakeProgbar {
-    readonly tickConfigs: Array<{}> = [];
+    readonly tickConfigs: Array<{placeholderForLossesAndMetrics: string}> = [];
 
     constructor(readonly specs: string, readonly config?: {}) {}
 
-    tick(tickConfig: {}) {
+    tick(tickConfig: {placeholderForLossesAndMetrics: string}) {
       this.tickConfigs.push(tickConfig);
     }
   }
 
-  it('Model.fit with loss, metric and validation', async () => {
-    let fakeProgbars: FakeProgbar[] = [];
-    spyOn(ProgressBarHelper, 'ProgressBar')
+  it('Model.fit with loss, no metric and no validation', async () => {
+    const fakeProgbars: FakeProgbar[] = [];
+    spyOn(progressBarHelper, 'ProgressBar')
         .and.callFake((specs: string, config: {}) => {
           const fakeProgbar = new FakeProgbar(specs, config);
           fakeProgbars.push(fakeProgbar);
           return fakeProgbar;
         });
     const consoleMessages: string[] = [];
-    spyOn(ProgressBarHelper, 'log').and.callFake((message: string) => {
+    spyOn(progressBarHelper, 'log').and.callFake((message: string) => {
+      consoleMessages.push(message);
+    });
+
+    const model = tfl.sequential();
+    model.add(
+        tfl.layers.dense({units: 10, inputShape: [8], activation: 'relu'}));
+    model.add(tfl.layers.dense({units: 1}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const numSamples = 14;
+    const epochs = 3;
+    const batchSize = 8;
+    const xs = tfc.randomNormal([numSamples, 8]);
+    const ys = tfc.randomNormal([numSamples, 1]);
+    await model.fit(
+        xs, ys, {epochs, batchSize, callbacks: [tfn.progbarLogger()]});
+
+    // A progbar object is created for each epoch.
+    expect(fakeProgbars.length).toEqual(3);
+    for (const fakeProgbar of fakeProgbars) {
+      const tickConfigs = fakeProgbar.tickConfigs;
+      // There are ceil(14 / 8) = 2 batchs per epoch. There should be 1 tick
+      // for epoch batch, plus a tick at the end of the epoch.
+      expect(tickConfigs.length).toEqual(3);
+      for (let i = 0; i < 2; ++i) {
+        expect(Object.keys(tickConfigs[i])).toEqual([
+          'placeholderForLossesAndMetrics'
+        ]);
+        expect(tickConfigs[i]['placeholderForLossesAndMetrics'])
+            .toMatch(/^loss=.*/);
+      }
+      expect(tickConfigs[2]).toEqual({placeholderForLossesAndMetrics: ''});
+    }
+    expect(consoleMessages.length).toEqual(6);
+    expect(consoleMessages[0]).toEqual('Epoch 1 / 3');
+    expect(consoleMessages[1]).toMatch(/^loss=.*/);
+    expect(consoleMessages[2]).toEqual('Epoch 2 / 3');
+    expect(consoleMessages[3]).toMatch(/^loss=.*/);
+    expect(consoleMessages[4]).toEqual('Epoch 3 / 3');
+    expect(consoleMessages[5]).toMatch(/^loss=.*/);
+  });
+
+  it('Model.fit with loss, metric and validation', async () => {
+    const fakeProgbars: FakeProgbar[] = [];
+    spyOn(progressBarHelper, 'ProgressBar')
+        .and.callFake((specs: string, config: {}) => {
+          const fakeProgbar = new FakeProgbar(specs, config);
+          fakeProgbars.push(fakeProgbar);
+          return fakeProgbar;
+        });
+    const consoleMessages: string[] = [];
+    spyOn(progressBarHelper, 'log').and.callFake((message: string) => {
       consoleMessages.push(message);
     });
 
@@ -59,13 +111,9 @@ describe('progbarLogger', () => {
     const validationSplit = 0.15;
     const xs = tfc.randomNormal([numSamples, 8]);
     const ys = tfc.randomNormal([numSamples, 1]);
-    await model.fit(xs, ys, {
-      epochs,
-      batchSize,
-      validationSplit,
-      callbacks:
-          tfn.progbarLogger(batchSize, numSamples * (1 - validationSplit))
-    });
+    await model.fit(
+        xs, ys,
+        {epochs, batchSize, validationSplit, callbacks: tfn.progbarLogger()});
 
     // A progbar object is created for each epoch.
     expect(fakeProgbars.length).toEqual(2);
@@ -79,15 +127,17 @@ describe('progbarLogger', () => {
           'placeholderForLossesAndMetrics'
         ]);
         expect(tickConfigs[i]['placeholderForLossesAndMetrics'])
-            .toMatch(/acc=.* loss=.*/);
+            .toMatch(/^acc=.* loss=.*/);
       }
       expect(tickConfigs[5]).toEqual({placeholderForLossesAndMetrics: ''});
     }
-
+    expect(consoleMessages.length).toEqual(4);
     expect(consoleMessages[0]).toEqual('Epoch 1 / 2');
-    expect(consoleMessages[1]).toMatch(/acc=.* loss=.* val_acc=.* val_loss=.*/);
+    expect(consoleMessages[1])
+        .toMatch(/^acc=.* loss=.* val_acc=.* val_loss=.*/);
     expect(consoleMessages[2]).toEqual('Epoch 2 / 2');
-    expect(consoleMessages[3]).toMatch(/acc=.* loss=.* val_acc=.* val_loss=.*/);
+    expect(consoleMessages[3])
+        .toMatch(/^acc=.* loss=.* val_acc=.* val_loss=.*/);
   });
 });
 

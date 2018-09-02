@@ -19,7 +19,7 @@ import {nextFrame, util} from '@tensorflow/tfjs-core';
 import {CustomCallback, Logs} from '@tensorflow/tfjs-layers';
 import * as ProgressBar from 'progress';
 
-export const ProgressBarHelper: {ProgressBar: any, log: Function} = {
+export const progressBarHelper: {ProgressBar: Function, log: Function} = {
   ProgressBar,
   log: console.log
 };
@@ -49,11 +49,11 @@ export class ProgbarLogger extends CustomCallback {
         this.numTrainBatchesPerEpoch = Math.ceil(samples / batchSize);
       },
       onEpochBegin: async (epoch: number, logs?: Logs) => {
-        ProgressBarHelper.log(`Epoch ${epoch + 1} / ${this.params.epochs}`);
+        progressBarHelper.log(`Epoch ${epoch + 1} / ${this.params.epochs}`);
       },
       onBatchEnd: async (batch: number, logs?: Logs) => {
         if (batch === 0) {
-          this.progressBar = new ProgressBarHelper.ProgressBar(
+          this.progressBar = new progressBarHelper.ProgressBar(
               'eta=:eta :bar :placeholderForLossesAndMetrics',
               {total: this.numTrainBatchesPerEpoch + 1, head: `>`});
         }
@@ -64,7 +64,7 @@ export class ProgbarLogger extends CustomCallback {
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
         this.progressBar.tick({placeholderForLossesAndMetrics: ''});
-        ProgressBarHelper.log(this.formatLogsAsMetricsContent(logs));
+        progressBarHelper.log(this.formatLogsAsMetricsContent(logs));
         await nextFrame();
       },
     });
@@ -87,9 +87,34 @@ export class ProgbarLogger extends CustomCallback {
 }
 
 /**
- * Factory method for progress-bar logger in Node.js.
+ * Creates progress-bar callback for tf.Model.fit() (Node.js only).
+ *
+ * The logger is analogous to ProgbarLogger in Keras. It renders a
+ * command-line-interface progress bar that updates during tf.Model.fit()
+ * calls. It also prints the latest loss and metrics values alongside the
+ * progress bar.
+ *
+ * Example:
+ * ```js
+ * const tf = require('@tensorflow/tfjs');
+ * const tfn = require('@tensorflow/tfjs-node');
+ *
+ * const model = tf.sequenti({layers: [
+ *   tf.layers.dense({units: 1, inputShape: [2]})
+ * ]});
+ * model.compile({loss: 'meanSquaredError'});
+ *
+ * const xs = tf.ones([100, 2]);
+ * const ys = tf.zeros([100, 1]);
+ *
+ * await model.fit(xs, ys,{
+ *   batchSize: 16,
+ *   epochs: 5,
+ *   callbacks: tfn.progbarLogger()
+ * });
+ * ```
  */
-export function progbarLogger(batchSize: number, numTrainExamples: number) {
+export function progbarLogger() {
   // TODO(cais): Remove arguments and use params.
-  return new ProgbarLogger(batchSize, numTrainExamples);
+  return new ProgbarLogger();
 }
