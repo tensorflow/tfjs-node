@@ -115,6 +115,5 @@ export class ProgbarLogger extends CustomCallback {
  * ```
  */
 export function progbarLogger() {
-  // TODO(cais): Remove arguments and use params.
   return new ProgbarLogger();
 }
