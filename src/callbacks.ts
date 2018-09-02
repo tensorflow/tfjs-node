@@ -19,7 +19,10 @@ import {nextFrame, util} from '@tensorflow/tfjs-core';
 import {CustomCallback, Logs} from '@tensorflow/tfjs-layers';
 import * as ProgressBar from 'progress';
 
-export const ProgressBarHelper: {} = {ProgressBar};
+export const ProgressBarHelper: {ProgressBar: any, log: Function} = {
+  ProgressBar,
+  log: console.log
+};
 
 /**
  * Terminal-based progress bar callback for tf.Model.fit().
@@ -46,22 +49,22 @@ export class ProgbarLogger extends CustomCallback {
         this.numTrainBatchesPerEpoch = Math.ceil(samples / batchSize);
       },
       onEpochBegin: async (epoch: number, logs?: Logs) => {
-        console.log(`Epoch ${epoch + 1} / ${this.params.epochs}`);
+        ProgressBarHelper.log(`Epoch ${epoch + 1} / ${this.params.epochs}`);
       },
       onBatchEnd: async (batch: number, logs?: Logs) => {
         if (batch === 0) {
-          this.progressBar = new ProgressBarHelper['ProgressBar'](
-              'eta=:eta :bar :lossesAndMetricsPlaceholder',
+          this.progressBar = new ProgressBarHelper.ProgressBar(
+              'eta=:eta :bar :placeholderForLossesAndMetrics',
               {total: this.numTrainBatchesPerEpoch + 1, head: `>`});
         }
         this.progressBar.tick({
-          lossesAndMetricsPlaceholder: this.formatLogsAsMetricsContent(logs)
+          placeholderForLossesAndMetrics: this.formatLogsAsMetricsContent(logs)
         });
         await nextFrame();
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
-        this.progressBar.tick({lossesAndMetricsPlaceholder: ''});
-        console.log(this.formatLogsAsMetricsContent(logs));
+        this.progressBar.tick({placeholderForLossesAndMetrics: ''});
+        ProgressBarHelper.log(this.formatLogsAsMetricsContent(logs));
         await nextFrame();
       },
     });

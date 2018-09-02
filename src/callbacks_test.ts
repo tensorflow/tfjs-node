@@ -17,26 +17,34 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers'
-// import * as ProgressBar from 'progress';
 
 import {ProgressBarHelper} from './callbacks';
 import * as tfn from './index';
 
-// const TestHelper: {} = {
-//   ProgressBar: ProgressBar
-// };
-
 describe('progbarLogger', () => {
-  // TODO(cais): Rename test.
-  it('Model.fit with loss and metric', async () => {
-    // const messages: any[] = [];
-    // spyOn(console, 'log').and.callFake((message: any) => {
-    //   messages.push(message);
-    // });
+  // Fake progbar class written for testing.
+  class FakeProgbar {
+    readonly tickConfigs: Array<{}> = [];
+
+    constructor(readonly specs: string, readonly config?: {}) {}
+
+    tick(tickConfig: {}) {
+      this.tickConfigs.push(tickConfig);
+    }
+  }
+
+  it('Model.fit with loss, metric and validation', async () => {
+    let fakeProgbars: FakeProgbar[] = [];
     spyOn(ProgressBarHelper, 'ProgressBar')
         .and.callFake((specs: string, config: {}) => {
-          console.log('In fake constructor');
+          const fakeProgbar = new FakeProgbar(specs, config);
+          fakeProgbars.push(fakeProgbar);
+          return fakeProgbar;
         });
+    const consoleMessages: string[] = [];
+    spyOn(ProgressBarHelper, 'log').and.callFake((message: string) => {
+      consoleMessages.push(message);
+    });
 
     const model = tfl.sequential();
     model.add(
@@ -58,6 +66,28 @@ describe('progbarLogger', () => {
       callbacks:
           tfn.progbarLogger(batchSize, numSamples * (1 - validationSplit))
     });
+
+    // A progbar object is created for each epoch.
+    expect(fakeProgbars.length).toEqual(2);
+    for (const fakeProgbar of fakeProgbars) {
+      const tickConfigs = fakeProgbar.tickConfigs;
+      // There are 5 batchs per epoch. There should be 1 tick for epoch batch,
+      // plus a tick at the end of the epoch.
+      expect(tickConfigs.length).toEqual(6);
+      for (let i = 0; i < 5; ++i) {
+        expect(Object.keys(tickConfigs[i])).toEqual([
+          'placeholderForLossesAndMetrics'
+        ]);
+        expect(tickConfigs[i]['placeholderForLossesAndMetrics'])
+            .toMatch(/acc=.* loss=.*/);
+      }
+      expect(tickConfigs[5]).toEqual({placeholderForLossesAndMetrics: ''});
+    }
+
+    expect(consoleMessages[0]).toEqual('Epoch 1 / 2');
+    expect(consoleMessages[1]).toMatch(/acc=.* loss=.* val_acc=.* val_loss=.*/);
+    expect(consoleMessages[2]).toEqual('Epoch 2 / 2');
+    expect(consoleMessages[3]).toMatch(/acc=.* loss=.* val_acc=.* val_loss=.*/);
   });
 });
 
