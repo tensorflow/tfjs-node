@@ -140,29 +140,3 @@ describe('progbarLogger', () => {
         .toMatch(/^acc=.* loss=.* val_acc=.* val_loss=.*/);
   });
 });
-
-// (async function() {
-//   const model = tfl.sequential();
-//   model.add(
-//       tfl.layers.dense({units: 1000, inputShape: [8], activation:
-//       'relu'}));
-//   model.add(tfl.layers.dense({units: 1}));
-//   model.compile({loss: 'meanSquaredError', optimizer: 'sgd', metrics:
-//   ['acc']}); model.summary();
-
-//   const numSamples = 4000;
-//   const xs = tfc.randomNormal([numSamples, 8]);
-//   const ys = tfc.randomNormal([numSamples, 1]);
-//   xs.print();
-//   ys.print();
-//   const epochs = 2;
-//   const batchSize = 8;
-//   const validationSplit = 0.15;
-//   await model.fit(xs, ys, {
-//     epochs,
-//     batchSize,
-//     validationSplit,
-//     callbacks: tfn.progbarLogger(batchSize, numSamples * (1 -
-//     validationSplit))
-//   });
-// })();
