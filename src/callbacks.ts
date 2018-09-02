@@ -33,6 +33,9 @@ export const progressBarHelper: {ProgressBar: any, log: Function} = {
 export class ProgbarLogger extends CustomCallback {
   private numTrainBatchesPerEpoch: number;
   private progressBar: ProgressBar;
+  private currentEpochBegin: number;
+  private epochDurationMillis: number;
+  private usPerStep: number;
 
   /**
    * Construtor of LoggingCallback.
@@ -53,6 +56,7 @@ export class ProgbarLogger extends CustomCallback {
       },
       onEpochBegin: async (epoch: number, logs?: Logs) => {
         progressBarHelper.log(`Epoch ${epoch + 1} / ${this.params.epochs}`);
+        this.currentEpochBegin = util.now();
       },
       onBatchEnd: async (batch: number, logs?: Logs) => {
         if (batch === 0) {
@@ -64,10 +68,19 @@ export class ProgbarLogger extends CustomCallback {
           placeholderForLossesAndMetrics: this.formatLogsAsMetricsContent(logs)
         });
         await nextFrame();
+        if (batch === this.numTrainBatchesPerEpoch - 1) {
+          this.epochDurationMillis = util.now() - this.currentEpochBegin;
+          this.usPerStep =
+              this.epochDurationMillis / (this.params.samples as number) * 1e3;
+        }
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
         this.progressBar.tick({placeholderForLossesAndMetrics: ''});
-        progressBarHelper.log(this.formatLogsAsMetricsContent(logs));
+        const lossesAndMetricsString = this.formatLogsAsMetricsContent(logs);
+        progressBarHelper.log(
+            `${this.epochDurationMillis.toFixed(0)}ms ` +
+            `${this.usPerStep.toFixed(0)}us/step - ` +
+            `${lossesAndMetricsString}`);
         await nextFrame();
       },
     });
@@ -94,8 +107,9 @@ export class ProgbarLogger extends CustomCallback {
  *
  * The logger is analogous to ProgbarLogger in Keras. It renders a
  * command-line-interface progress bar during each epoch of a tf.Model.fit()
- * call. It also prints the latest loss and metrics values alongside the
- * progress bar.
+ * call. It also prints the following alongside the progress bar:
+ *   - the latest loss and metrics values
+ *   - epoch duration and training speed in microseconds (us) per step.
  *
  * Example:
  * ```js
@@ -105,7 +119,7 @@ export class ProgbarLogger extends CustomCallback {
  * const model = tf.sequential({layers: [
  *   tf.layers.dense({units: 1, inputShape: [2]})
  * ]});
- * model.compile({loss: 'meanSquaredError'});
+ * model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
  *
  * const xs = tf.ones([100, 2]);
  * const ys = tf.zeros([100, 1]);

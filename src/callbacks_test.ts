@@ -78,11 +78,11 @@ describe('progbarLogger', () => {
     }
     expect(consoleMessages.length).toEqual(6);
     expect(consoleMessages[0]).toEqual('Epoch 1 / 3');
-    expect(consoleMessages[1]).toMatch(/^loss=.*/);
+    expect(consoleMessages[1]).toMatch(/.*ms .*us\/step - loss=.*/);
     expect(consoleMessages[2]).toEqual('Epoch 2 / 3');
-    expect(consoleMessages[3]).toMatch(/^loss=.*/);
+    expect(consoleMessages[3]).toMatch(/.*ms .*us\/step - loss=.*/);
     expect(consoleMessages[4]).toEqual('Epoch 3 / 3');
-    expect(consoleMessages[5]).toMatch(/^loss=.*/);
+    expect(consoleMessages[5]).toMatch(/.*ms .*us\/step - loss=.*/);
   });
 
   it('Model.fit with loss, metric and validation', async () => {
@@ -134,9 +134,29 @@ describe('progbarLogger', () => {
     expect(consoleMessages.length).toEqual(4);
     expect(consoleMessages[0]).toEqual('Epoch 1 / 2');
     expect(consoleMessages[1])
-        .toMatch(/^acc=.* loss=.* val_acc=.* val_loss=.*/);
+        .toMatch(/.*ms .*us\/step - acc=.* loss=.* val_acc=.* val_loss=.*/);
     expect(consoleMessages[2]).toEqual('Epoch 2 / 2');
     expect(consoleMessages[3])
-        .toMatch(/^acc=.* loss=.* val_acc=.* val_loss=.*/);
+        .toMatch(/.*ms .*us\/step - acc=.* loss=.* val_acc=.* val_loss=.*/);
   });
 });
+
+// To see the callback live, uncomment the following lines for and try the
+// code out with ts-node.
+// (async function() {
+//   const model = tfl.sequential({layers: [
+//     tfl.layers.dense({units: 100, inputShape: [20], activation: 'relu'}),
+//     tfl.layers.dense({units: 1})
+//   ]});
+//   model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+//   const xs = tfc.ones([500, 20]);
+//   const ys = tfc.zeros([500, 1]);
+
+//   await model.fit(xs, ys,{
+//     batchSize: 16,
+//     epochs: 5,
+//     validationSplit: 0.15,
+//     callbacks: tfn.progbarLogger()
+//   });
+// })();
