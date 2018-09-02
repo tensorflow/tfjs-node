@@ -90,8 +90,8 @@ export class ProgbarLogger extends CustomCallback {
  * Creates progress-bar callback for tf.Model.fit() (Node.js only).
  *
  * The logger is analogous to ProgbarLogger in Keras. It renders a
- * command-line-interface progress bar that updates during tf.Model.fit()
- * calls. It also prints the latest loss and metrics values alongside the
+ * command-line-interface progress bar during each epoch of a tf.Model.fit()
+ * call. It also prints the latest loss and metrics values alongside the
  * progress bar.
  *
  * Example:
@@ -99,7 +99,7 @@ export class ProgbarLogger extends CustomCallback {
  * const tf = require('@tensorflow/tfjs');
  * const tfn = require('@tensorflow/tfjs-node');
  *
- * const model = tf.sequenti({layers: [
+ * const model = tf.sequential({layers: [
  *   tf.layers.dense({units: 1, inputShape: [2]})
  * ]});
  * model.compile({loss: 'meanSquaredError'});
