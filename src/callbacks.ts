@@ -19,7 +19,8 @@ import {nextFrame, util} from '@tensorflow/tfjs-core';
 import {CustomCallback, Logs} from '@tensorflow/tfjs-layers';
 import * as ProgressBar from 'progress';
 
-export const progressBarHelper: {ProgressBar: Function, log: Function} = {
+// tslint:disable-next-line:no-any
+export const progressBarHelper: {ProgressBar: any, log: Function} = {
   ProgressBar,
   log: console.log
 };
