@@ -15,22 +15,8 @@
  * =============================================================================
  */
 
-#ifndef TF_NODEJS_TFE_AUTO_OP_H_
-#define TF_NODEJS_TFE_AUTO_OP_H_
+/**
+ * Public exports from the `io` module.
+ */
 
-#include "../deps/include/tensorflow/c/eager/c_api.h"
-
-namespace tfnodejs {
-
-// Automatically cleans up a TF_Op instance.
-class TFE_AutoOp {
- public:
-  TFE_AutoOp(TFE_Op* op) : op(op) {}
-  virtual ~TFE_AutoOp() { TFE_DeleteOp(op); }
-
-  TFE_Op* op;
-};
-
-}  // namespace tfnodejs
-
-#endif  // TF_NODEJS_TFE_AUTO_OP_H_
+export {fileSystem} from './file_system';

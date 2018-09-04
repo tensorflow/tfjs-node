@@ -14,23 +14,19 @@
  * limitations under the License.
  * =============================================================================
  */
+const fs = require('fs');
 
-#ifndef TF_NODEJS_TFE_AUTO_OP_H_
-#define TF_NODEJS_TFE_AUTO_OP_H_
+const files = process.argv.slice(2);
 
-#include "../deps/include/tensorflow/c/eager/c_api.h"
+// Load the TensorFlow.dll and create a .def file for the symbols that need to
+// be exported.
+const symbols = files.map((file) => fs.readFileSync(file))
+                    .join('\n')
+                    .split('\n')
+                    .map((line) => {
+                      var match = /^TF_CAPI_EXPORT.*?\s+(\w+)\s*\(/.exec(line);
+                      return match && match[1];
+                    })
+                    .filter((symbol) => symbol !== null);
 
-namespace tfnodejs {
-
-// Automatically cleans up a TF_Op instance.
-class TFE_AutoOp {
- public:
-  TFE_AutoOp(TFE_Op* op) : op(op) {}
-  virtual ~TFE_AutoOp() { TFE_DeleteOp(op); }
-
-  TFE_Op* op;
-};
-
-}  // namespace tfnodejs
-
-#endif  // TF_NODEJS_TFE_AUTO_OP_H_
+process.stdout.write('EXPORTS\n' + symbols.join('\n'));

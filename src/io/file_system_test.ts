@@ -22,6 +22,9 @@ import * as path from 'path';
 import * as rimraf from 'rimraf';
 import {promisify} from 'util';
 
+import * as tfn from '../index';
+import {NodeFileSystem, nodeFileSystemRouter} from './file_system';
+
 describe('File system IOHandler', () => {
   const mkdtemp = promisify(fs.mkdtemp);
   const readFile = promisify(fs.readFile);
@@ -163,134 +166,310 @@ describe('File system IOHandler', () => {
         .catch(err => done.fail(err.stack));
   });
 
-  it('load: two weight files', async done => {
-    const weightsManifest: tfc.io.WeightsManifestConfig = [
-      {
-        paths: ['weights.1.bin'],
-        weights: [{
-          name: 'dense/kernel',
-          shape: [3, 1],
-          dtype: 'float32',
-        }],
-      },
+  describe('load json model', () => {
+    it('load: two weight files', async done => {
+      const weightsManifest: tfc.io.WeightsManifestConfig = [
+        {
+          paths: ['weights.1.bin'],
+          weights: [{
+            name: 'dense/kernel',
+            shape: [3, 1],
+            dtype: 'float32',
+          }],
+        },
 
-      {
-        paths: ['weights.2.bin'],
-        weights: [{
-          name: 'dense/bias',
-          shape: [1],
-          dtype: 'float32',
-        }]
-      }
-    ];
-    const modelJSON = {
-      modelTopology: modelTopology1,
-      weightsManifest,
-    };
+        {
+          paths: ['weights.2.bin'],
+          weights: [{
+            name: 'dense/bias',
+            shape: [1],
+            dtype: 'float32',
+          }]
+        }
+      ];
+      const modelJSON = {
+        modelTopology: modelTopology1,
+        weightsManifest,
+      };
 
-    // Write model.json file.
-    const modelJSONPath = path.join(testDir, 'model.json');
-    await writeFile(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
+      // Write model.json file.
+      const modelJSONPath = path.join(testDir, 'model.json');
+      await writeFile(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
 
-    // Write the two binary weights files.
-    const weightsData1 =
-        Buffer.from(new Float32Array([-1.1, -3.3, -3.3]).buffer);
-    await writeFile(
-        path.join(testDir, 'weights.1.bin'), weightsData1, 'binary');
-    const weightsData2 = Buffer.from(new Float32Array([-7.7]).buffer);
-    await writeFile(
-        path.join(testDir, 'weights.2.bin'), weightsData2, 'binary');
+      // Write the two binary weights files.
+      const weightsData1 =
+          Buffer.from(new Float32Array([-1.1, -3.3, -3.3]).buffer);
+      await writeFile(
+          path.join(testDir, 'weights.1.bin'), weightsData1, 'binary');
+      const weightsData2 = Buffer.from(new Float32Array([-7.7]).buffer);
+      await writeFile(
+          path.join(testDir, 'weights.2.bin'), weightsData2, 'binary');
 
-    // Load the artifacts consisting of a model.json and two binary weight
-    // files.
-    const handler = tfc.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
-    handler.load()
-        .then(modelArtifacts => {
-          expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
-          expect(modelArtifacts.weightSpecs).toEqual([
-            {
-              name: 'dense/kernel',
-              shape: [3, 1],
-              dtype: 'float32',
-            },
-            {
-              name: 'dense/bias',
-              shape: [1],
-              dtype: 'float32',
-            }
-          ]);
-          expectArraysClose(
-              new Float32Array(modelArtifacts.weightData),
-              new Float32Array([-1.1, -3.3, -3.3, -7.7]));
-          done();
-        })
-        .catch(err => done.fail(err.stack));
+      // Load the artifacts consisting of a model.json and two binary weight
+      // files.
+      const handler = tfc.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
+      handler.load()
+          .then(modelArtifacts => {
+            expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+            expect(modelArtifacts.weightSpecs).toEqual([
+              {
+                name: 'dense/kernel',
+                shape: [3, 1],
+                dtype: 'float32',
+              },
+              {
+                name: 'dense/bias',
+                shape: [1],
+                dtype: 'float32',
+              }
+            ]);
+            expectArraysClose(
+                new Float32Array(modelArtifacts.weightData),
+                new Float32Array([-1.1, -3.3, -3.3, -7.7]));
+            done();
+          })
+          .catch(err => done.fail(err.stack));
+    });
+
+    it('loading from nonexistent model.json path fails', done => {
+      const handler =
+          tfc.io.getLoadHandlers(`file://${testDir}/foo/model.json`)[0];
+      handler.load()
+          .then(getModelArtifactsInfoForJSON => {
+            done.fail(
+                'Loading from nonexisting model.json path succeeded ' +
+                'unexpectedly.');
+          })
+          .catch(err => {
+            expect(err.message)
+                .toMatch(/model\.json.*does not exist.*loading failed/);
+            done();
+          });
+    });
+
+    it('loading from missing weights path fails', async done => {
+      const weightsManifest: tfc.io.WeightsManifestConfig = [
+        {
+          paths: ['weights.1.bin'],
+          weights: [{
+            name: 'dense/kernel',
+            shape: [3, 1],
+            dtype: 'float32',
+          }],
+        },
+
+        {
+          paths: ['weights.2.bin'],
+          weights: [{
+            name: 'dense/bias',
+            shape: [1],
+            dtype: 'float32',
+          }]
+        }
+      ];
+      const modelJSON = {
+        modelTopology: modelTopology1,
+        weightsManifest,
+      };
+
+      // Write model.json file.
+      const modelJSONPath = path.join(testDir, 'model.json');
+      await writeFile(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
+
+      // Write only first of the two binary weights files.
+      const weightsData1 =
+          Buffer.from(new Float32Array([-1.1, -3.3, -3.3]).buffer);
+      await writeFile(
+          path.join(testDir, 'weights.1.bin'), weightsData1, 'binary');
+
+      // Load the artifacts consisting of a model.json and two binary weight
+      // files.
+      const handler = tfc.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
+      handler.load()
+          .then(modelArtifacts => {
+            done.fail(
+                'Loading with missing weights file succeeded ' +
+                'unexpectedly.');
+          })
+          .catch(err => {
+            expect(err.message)
+                .toMatch(/Weight file .*weights\.2\.bin does not exist/);
+            done();
+          });
+    });
   });
 
-  it('loading from nonexistent model.json path fails', done => {
-    const handler =
-        tfc.io.getLoadHandlers(`file://${testDir}/foo/model.json`)[0];
-    handler.load()
-        .then(getModelArtifactsInfoForJSON => {
-          done.fail(
-              'Loading from nonexisting model.json path succeeded ' +
-              'unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message)
-              .toMatch(/model\.json.*does not exist.*loading failed/);
-          done();
-        });
+  describe('load binary model', () => {
+    it('load: two weight files', async done => {
+      const weightsManifest: tfc.io.WeightsManifestConfig = [
+        {
+          paths: ['weights.1.bin'],
+          weights: [{
+            name: 'dense/kernel',
+            shape: [3, 1],
+            dtype: 'float32',
+          }],
+        },
+
+        {
+          paths: ['weights.2.bin'],
+          weights: [{
+            name: 'dense/bias',
+            shape: [1],
+            dtype: 'float32',
+          }]
+        }
+      ];
+
+      // Write model.pb file.
+      const modelPath = path.join(testDir, 'model.pb');
+      const modelData = Buffer.from(new Uint8Array([1, 2, 3]).buffer);
+      await writeFile(modelPath, modelData, 'binary');
+
+      // Write manifest.json file
+      const modelManifestJSONPath = path.join(testDir, 'manifest.json');
+      await writeFile(
+          modelManifestJSONPath, JSON.stringify(weightsManifest), 'utf8');
+
+      // Write the two binary weights files.
+      const weightsData1 =
+          Buffer.from(new Float32Array([-1.1, -3.3, -3.3]).buffer);
+      await writeFile(
+          path.join(testDir, 'weights.1.bin'), weightsData1, 'binary');
+      const weightsData2 = Buffer.from(new Float32Array([-7.7]).buffer);
+      await writeFile(
+          path.join(testDir, 'weights.2.bin'), weightsData2, 'binary');
+
+      // Load the artifacts consisting of a model.pb, manifest.json and two
+      // binary weight files.
+      const handler =
+          new NodeFileSystem([`${modelPath}`, `${modelManifestJSONPath}`]);
+      handler.load()
+          .then(modelArtifacts => {
+            expectArraysClose(
+                new Uint8Array(modelArtifacts.modelTopology as ArrayBuffer),
+                new Uint8Array(modelData));
+            expect(modelArtifacts.weightSpecs).toEqual([
+              {
+                name: 'dense/kernel',
+                shape: [3, 1],
+                dtype: 'float32',
+              },
+              {
+                name: 'dense/bias',
+                shape: [1],
+                dtype: 'float32',
+              }
+            ]);
+            expectArraysClose(
+                new Float32Array(modelArtifacts.weightData),
+                new Float32Array([-1.1, -3.3, -3.3, -7.7]));
+            done();
+          })
+          .catch(err => done.fail(err.stack));
+    });
+
+    it('path length does not equal 2 fails', () => {
+      expect(() => new NodeFileSystem([`${testDir}/foo/model.pb`]))
+          .toThrowError(
+              /file paths must have a length of 2.*actual length is 1.*/);
+    });
+
+    it('loading from nonexistent model.json path fails', done => {
+      const handler = new NodeFileSystem(
+          [`${testDir}/foo/model.pb`, `${testDir}/foo/manifest.json`]);
+      handler.load()
+          .then(getModelArtifactsInfoForJSON => {
+            done.fail(
+                'Loading from nonexisting model.pb path succeeded ' +
+                'unexpectedly.');
+          })
+          .catch(err => {
+            expect(err.message)
+                .toMatch(/model\.pb.*does not exist.*loading failed/);
+            done();
+          });
+    });
+
+    it('loading from missing weights path fails', async done => {
+      const weightsManifest: tfc.io.WeightsManifestConfig = [
+        {
+          paths: ['weights.1.bin'],
+          weights: [{
+            name: 'dense/kernel',
+            shape: [3, 1],
+            dtype: 'float32',
+          }],
+        },
+
+        {
+          paths: ['weights.2.bin'],
+          weights: [{
+            name: 'dense/bias',
+            shape: [1],
+            dtype: 'float32',
+          }]
+        }
+      ];
+
+      const modelPath = path.join(testDir, 'model.pb');
+      const modelData = Buffer.from(new Uint8Array([1, 2, 3]).buffer);
+      await writeFile(modelPath, modelData, 'binary');
+
+      // Write manifest.json file
+      const modelManifestJSONPath = path.join(testDir, 'manifest.json');
+      await writeFile(
+          modelManifestJSONPath, JSON.stringify(weightsManifest), 'utf8');
+
+      // Write only first of the two binary weights files.
+      const weightsData1 =
+          Buffer.from(new Float32Array([-1.1, -3.3, -3.3]).buffer);
+      await writeFile(
+          path.join(testDir, 'weights.1.bin'), weightsData1, 'binary');
+
+      // Load the artifacts consisting of a model.json and two binary weight
+      // files.
+      const handler =
+          new NodeFileSystem([`${modelPath}`, `${modelManifestJSONPath}`]);
+      handler.load()
+          .then(modelArtifacts => {
+            done.fail(
+                'Loading with missing weights file succeeded ' +
+                'unexpectedly.');
+          })
+          .catch(err => {
+            expect(err.message)
+                .toMatch(/Weight file .*weights\.2\.bin does not exist/);
+            done();
+          });
+    });
   });
 
-  it('loading from missing weights path fails', async done => {
-    const weightsManifest: tfc.io.WeightsManifestConfig = [
-      {
-        paths: ['weights.1.bin'],
-        weights: [{
-          name: 'dense/kernel',
-          shape: [3, 1],
-          dtype: 'float32',
-        }],
-      },
+  it('Exported file-system handler class exists', () => {
+    const handler = tfn.io.fileSystem(testDir);
+    expect(typeof handler.save).toEqual('function');
+    expect(typeof handler.load).toEqual('function');
+  });
 
-      {
-        paths: ['weights.2.bin'],
-        weights: [{
-          name: 'dense/bias',
-          shape: [1],
-          dtype: 'float32',
-        }]
-      }
-    ];
-    const modelJSON = {
-      modelTopology: modelTopology1,
-      weightsManifest,
-    };
+  describe('nodeFileSystemRouter', () => {
+    it('should handle single path', () => {
+      expect(nodeFileSystemRouter('file://model.json')).toBeDefined();
+    });
 
-    // Write model.json file.
-    const modelJSONPath = path.join(testDir, 'model.json');
-    await writeFile(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
+    it('should handle multiple paths', () => {
+      expect(nodeFileSystemRouter([
+        'file://model.json', 'file://weights.json'
+      ])).toBeDefined();
+    });
 
-    // Write only first of the two binary weights files.
-    const weightsData1 =
-        Buffer.from(new Float32Array([-1.1, -3.3, -3.3]).buffer);
-    await writeFile(
-        path.join(testDir, 'weights.1.bin'), weightsData1, 'binary');
+    it('should return null for non file path', () => {
+      expect(nodeFileSystemRouter('http://model.json')).toBeNull();
+    });
 
-    // Load the artifacts consisting of a model.json and two binary weight
-    // files.
-    const handler = tfc.io.getLoadHandlers(`file://${modelJSONPath}`)[0];
-    handler.load()
-        .then(modelArtifacts => {
-          done.fail(
-              'Loading with missing weights file succeeded ' +
-              'unexpectedly.');
-        })
-        .catch(err => {
-          expect(err.message)
-              .toMatch(/Weight file .*weights\.2\.bin does not exist/);
-          done();
-        });
+    it('should return null for multiple paths with mismatched scheme', () => {
+      expect(nodeFileSystemRouter([
+        'file://model.json', 'http://weights.json'
+      ])).toBeNull();
+    });
   });
 });
