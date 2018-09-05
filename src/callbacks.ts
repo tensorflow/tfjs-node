@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {nextFrame, util} from '@tensorflow/tfjs-core';
-import {CustomCallback, Logs} from '@tensorflow/tfjs-layers';
+import {CustomCallback, Logs, nextFrame, util} from '@tensorflow/tfjs';
 import * as ProgressBar from 'progress';
 
 // tslint:disable-next-line:no-any

@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import * as tfl from '@tensorflow/tfjs-layers';
+import * as tf from '@tensorflow/tfjs';
 
 import {progressBarHelper} from './callbacks';
 import * as tfn from './index';
@@ -46,17 +45,17 @@ describe('progbarLogger', () => {
       consoleMessages.push(message);
     });
 
-    const model = tfl.sequential();
+    const model = tf.sequential();
     model.add(
-        tfl.layers.dense({units: 10, inputShape: [8], activation: 'relu'}));
-    model.add(tfl.layers.dense({units: 1}));
+        tf.layers.dense({units: 10, inputShape: [8], activation: 'relu'}));
+    model.add(tf.layers.dense({units: 1}));
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
     const numSamples = 14;
     const epochs = 3;
     const batchSize = 8;
-    const xs = tfc.randomNormal([numSamples, 8]);
-    const ys = tfc.randomNormal([numSamples, 1]);
+    const xs = tf.randomNormal([numSamples, 8]);
+    const ys = tf.randomNormal([numSamples, 1]);
     await model.fit(
         xs, ys, {epochs, batchSize, callbacks: [tfn.progbarLogger()]});
 
@@ -98,10 +97,10 @@ describe('progbarLogger', () => {
       consoleMessages.push(message);
     });
 
-    const model = tfl.sequential();
+    const model = tf.sequential();
     model.add(
-        tfl.layers.dense({units: 10, inputShape: [8], activation: 'relu'}));
-    model.add(tfl.layers.dense({units: 1}));
+        tf.layers.dense({units: 10, inputShape: [8], activation: 'relu'}));
+    model.add(tf.layers.dense({units: 1}));
     model.compile(
         {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['acc']});
 
@@ -109,8 +108,8 @@ describe('progbarLogger', () => {
     const epochs = 2;
     const batchSize = 8;
     const validationSplit = 0.15;
-    const xs = tfc.randomNormal([numSamples, 8]);
-    const ys = tfc.randomNormal([numSamples, 1]);
+    const xs = tf.randomNormal([numSamples, 8]);
+    const ys = tf.randomNormal([numSamples, 1]);
     await model.fit(
         xs, ys,
         {epochs, batchSize, validationSplit, callbacks: tfn.progbarLogger()});
@@ -140,23 +139,3 @@ describe('progbarLogger', () => {
         .toMatch(/.*ms .*us\/step - acc=.* loss=.* val_acc=.* val_loss=.*/);
   });
 });
-
-// To see the callback live, uncomment the following lines for and try the
-// code out with ts-node.
-// (async function() {
-//   const model = tfl.sequential({layers: [
-//     tfl.layers.dense({units: 100, inputShape: [20], activation: 'relu'}),
-//     tfl.layers.dense({units: 1})
-//   ]});
-//   model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
-
-//   const xs = tfc.ones([500, 20]);
-//   const ys = tfc.zeros([500, 1]);
-
-//   await model.fit(xs, ys,{
-//     batchSize: 16,
-//     epochs: 5,
-//     validationSplit: 0.15,
-//     callbacks: tfn.progbarLogger()
-//   });
-// })();
