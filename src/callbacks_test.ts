@@ -17,8 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 
-import {progressBarHelper} from './callbacks';
-import * as tfn from './index';
+import {progressBarHelper, ProgbarLogger} from './callbacks';
 
 describe('progbarLogger', () => {
   // Fake progbar class written for testing.
@@ -57,7 +56,7 @@ describe('progbarLogger', () => {
     const xs = tf.randomNormal([numSamples, 8]);
     const ys = tf.randomNormal([numSamples, 1]);
     await model.fit(
-        xs, ys, {epochs, batchSize, callbacks: [tfn.progbarLogger()]});
+        xs, ys, {epochs, batchSize, callbacks: [new ProgbarLogger()]});
 
     // A progbar object is created for each epoch.
     expect(fakeProgbars.length).toEqual(3);
@@ -112,7 +111,7 @@ describe('progbarLogger', () => {
     const ys = tf.randomNormal([numSamples, 1]);
     await model.fit(
         xs, ys,
-        {epochs, batchSize, validationSplit, callbacks: tfn.progbarLogger()});
+        {epochs, batchSize, validationSplit, callbacks: new ProgbarLogger()});
 
     // A progbar object is created for each epoch.
     expect(fakeProgbars.length).toEqual(2);

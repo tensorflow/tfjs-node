@@ -100,36 +100,3 @@ export class ProgbarLogger extends CustomCallback {
     return key !== 'batch' && key !== 'size';
   }
 }
-
-/**
- * Creates progress-bar callback for tf.Model.fit() (Node.js only).
- *
- * The logger is analogous to ProgbarLogger in Keras. It renders a
- * command-line-interface progress bar during each epoch of a tf.Model.fit()
- * call. It also prints the following alongside the progress bar:
- *   - the latest loss and metrics values
- *   - epoch duration and training speed in microseconds (us) per step.
- *
- * Example:
- * ```js
- * const tf = require('@tensorflow/tfjs');
- * const tfn = require('@tensorflow/tfjs-node');
- *
- * const model = tf.sequential({layers: [
- *   tf.layers.dense({units: 1, inputShape: [2]})
- * ]});
- * model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
- *
- * const xs = tf.ones([100, 2]);
- * const ys = tf.zeros([100, 1]);
- *
- * await model.fit(xs, ys,{
- *   batchSize: 16,
- *   epochs: 5,
- *   callbacks: tfn.progbarLogger()
- * });
- * ```
- */
-export function progbarLogger() {
-  return new ProgbarLogger();
-}

@@ -40,4 +40,3 @@ tfc.io.registerLoadRouter(nodeFileSystemRouter);
 
 export {version} from './version';
 export {io};
-export {progbarLogger} from './callbacks';
