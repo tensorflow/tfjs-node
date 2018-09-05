@@ -271,15 +271,15 @@ export class NodeJSKernelBackend implements KernelBackend {
     }
   }
 
-  matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
-      Tensor2D {
-    const opAttrs = [
-      {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
-      {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
-      createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
-    ];
-    return this.executeSingleOutput('MatMul', opAttrs, [a, b]) as Tensor2D;
-  }
+  // matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
+  //     Tensor2D {
+  //   const opAttrs = [
+  //     {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value:
+  //     transposeA}, {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL,
+  //     value: transposeB}, createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
+  //   ];
+  //   return this.executeSingleOutput('MatMul', opAttrs, [a, b]) as Tensor2D;
+  // }
 
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[],
@@ -310,6 +310,19 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput(
                'StridedSlice', opAttrs,
                [x, beginTensor, endTensor, stridesTensor]) as T;
+  }
+
+  batchMatMul(
+      a: Tensor<Rank.R3>, b: Tensor<Rank.R3>, transposeA: boolean,
+      transposeB: boolean): Tensor<Rank.R3> {
+    const opAttrs = [
+      createTypeOpAttr('T', a.dtype),  // TODO?
+      // createTypeOpAttr('T', upcastType(a, b)),
+      {name: 'adj_x', type: this.binding.TF_ATTR_BOOL, value: transposeA},
+      {name: 'adj_y', type: this.binding.TF_ATTR_BOOL, value: transposeB}
+    ];
+    return this.executeSingleOutput('BatchMatMul', opAttrs, [a, b]) as
+        Tensor<Rank.R3>;
   }
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
