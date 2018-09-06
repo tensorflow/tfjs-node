@@ -18,13 +18,13 @@
 import {CustomCallback, Logs, nextFrame, util} from '@tensorflow/tfjs';
 import * as ProgressBar from 'progress';
 
+// A helper class created for testing with the jasmine `spyOn` method, which
+// operates only on member methods of objects.
 // tslint:disable-next-line:no-any
 export const progressBarHelper: {ProgressBar: any, log: Function} = {
   ProgressBar,
   log: console.log
 };
-// A helper class created for testing with the jasmine `spyOn` method, which
-// operates only on member methods of objects.
 
 /**
  * Terminal-based progress bar callback for tf.Model.fit().
