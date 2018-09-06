@@ -216,8 +216,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       a: Tensor<Rank.R3>, b: Tensor<Rank.R3>, transposeA: boolean,
       transposeB: boolean): Tensor<Rank.R3> {
     const opAttrs = [
-      createTypeOpAttr('T', a.dtype),  // TODO?
-      // createTypeOpAttr('T', upcastType(a, b)),
+      createTypeOpAttr('T', a.dtype),
       {name: 'adj_x', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'adj_y', type: this.binding.TF_ATTR_BOOL, value: transposeB}
     ];

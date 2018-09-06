@@ -37,7 +37,7 @@ const IGNORE_LIST: string[] = [
   'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
   'separableConv2d',  // Requires space_to_batch() for dilation > 1.
   'complex64 memory',
-  // TODO(kreeger): file issue
+  // See https://github.com/tensorflow/tfjs-core/pull/1270
   'depthToSpace test-tensorflow {} throws when blocksize < 2',
   // tslint:disable-next-line:max-line-length
   'depthToSpace test-tensorflow {} throws when CPU backend used with data format NCHW',
