@@ -323,7 +323,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   argMin(x: Tensor, axis: number): Tensor {
-    const xInput = x.dtype == 'bool' ? x.toInt() : x;
+    const xInput = x.dtype === 'bool' ? x.toInt() : x;
     const axisScalar = scalar(axis, 'int32');
     const opAttrs = [
       createTypeOpAttr('T', xInput.dtype), createTypeOpAttr('Tidx', 'int32'),
@@ -333,7 +333,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   argMax(x: Tensor, axis: number): Tensor {
-    const xInput = x.dtype == 'bool' ? x.toInt() : x;
+    const xInput = x.dtype === 'bool' ? x.toInt() : x;
     const axisScalar = scalar(axis, 'int32');
     const opAttrs = [
       createTypeOpAttr('T', xInput.dtype), createTypeOpAttr('Tidx', 'int32'),
