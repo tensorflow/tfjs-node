@@ -324,21 +324,23 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   argMin(x: Tensor, axis: number): Tensor {
+    const xInput = x.dtype == 'bool' ? x.toInt() : x;
     const axisScalar = scalar(axis, 'int32');
     const opAttrs = [
-      createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tidx', 'int32'),
+      createTypeOpAttr('T', xInput.dtype), createTypeOpAttr('Tidx', 'int32'),
       createTypeOpAttr('output_type', 'int32')
     ];
-    return this.executeSingleOutput('ArgMin', opAttrs, [x, axisScalar]);
+    return this.executeSingleOutput('ArgMin', opAttrs, [xInput, axisScalar]);
   }
 
   argMax(x: Tensor, axis: number): Tensor {
+    const xInput = x.dtype == 'bool' ? x.toInt() : x;
     const axisScalar = scalar(axis, 'int32');
     const opAttrs = [
-      createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tidx', 'int32'),
+      createTypeOpAttr('T', xInput.dtype), createTypeOpAttr('Tidx', 'int32'),
       createTypeOpAttr('output_type', 'int32')
     ];
-    return this.executeSingleOutput('ArgMax', opAttrs, [x, axisScalar]);
+    return this.executeSingleOutput('ArgMax', opAttrs, [xInput, axisScalar]);
   }
 
   equal(a: Tensor, b: Tensor): Tensor {
