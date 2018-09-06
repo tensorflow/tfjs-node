@@ -1201,7 +1201,6 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   depthToSpace(x: Tensor<Rank.R4>, blockSize: number, dataFormat: string):
       Tensor<Rank.R4> {
-    // TODO(kreeger): Some more work needs to be done here to make this work...
     const opAttrs = [
       createTensorsTypeOpAttr('T', x), {
         name: 'block_size',
