@@ -35,96 +35,6 @@ type TensorInfo = {
 interface DataId {}
 
 export class NodeJSKernelBackend implements KernelBackend {
-  cropAndResize(
-      image: Tensor<Rank.R4>, boxes: Tensor<Rank.R2>, boxIndex: Tensor<Rank.R1>,
-      cropSize: [number, number], method: 'bilinear'|'nearest',
-      extrapolationValue: number): Tensor<Rank.R4> {
-    throw new Error('Method not implemented.');
-  }
-  // TODO(kreeger): Store in proper spot!
-  complex<T extends Tensor<Rank>>(real: T, imag: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', real),
-      {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_COMPLEX64
-      },
-    ];
-    const inputs = [real, imag];
-    return this.executeSingleOutput('Complex', opAttrs, inputs) as T;
-  }
-
-  real<T extends Tensor<Rank>>(input: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', input), {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      }
-    ];
-    const inputs = [input];
-    return this.executeSingleOutput('Real', opAttrs, inputs) as T;
-  }
-
-  imag<T extends Tensor<Rank>>(input: T): T {
-    const opAttrs = [
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_COMPLEX64
-      },
-      {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      }
-    ];
-    const inputs = [input];
-    return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
-  }
-
-  depthToSpace(x: Tensor<Rank.R4>, blockSize: number, dataFormat: string):
-      Tensor<Rank.R4> {
-    // TODO(kreeger): Some more work needs to be done here to make this work...
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x), {
-        name: 'block_size',
-        type: this.binding.TF_ATTR_INT,
-        value: blockSize < 2 ? 2 : blockSize
-      },
-      {
-        name: 'data_format',
-        type: this.binding.TF_ATTR_STRING,
-        value: dataFormat
-      }
-    ];
-    const inputs = [x];
-    return this.executeSingleOutput('DepthToSpace', opAttrs, inputs) as
-        Tensor<Rank.R4>;
-  }
-
-  split<T extends Tensor<Rank>>(value: T, sizeSplits: number[], axis: number):
-      T[] {
-    const opAttrs = [
-      {
-        name: 'num_split',
-        type: this.binding.TF_ATTR_INT,
-        value: sizeSplits.length
-      },
-      createTensorsTypeOpAttr('T', value), {
-        name: 'Tlen',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_INT32
-      }
-    ];
-    const inputs = [value];
-    inputs.push(tensor1d(sizeSplits, 'int32') as T);
-    inputs.push(scalar(axis, 'int32') as T);
-    return this.executeMultipleOutputs(
-               'SplitV', opAttrs, inputs, sizeSplits.length) as T[];
-  }
-
   binding: TFJSBinding;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
@@ -270,16 +180,6 @@ export class NodeJSKernelBackend implements KernelBackend {
           dataId, {shape, dtype: getTFDType(dtype), values: null, id: -1});
     }
   }
-
-  // matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
-  //     Tensor2D {
-  //   const opAttrs = [
-  //     {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value:
-  //     transposeA}, {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL,
-  //     value: transposeB}, createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
-  //   ];
-  //   return this.executeSingleOutput('MatMul', opAttrs, [a, b]) as Tensor2D;
-  // }
 
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[],
@@ -1235,6 +1135,107 @@ export class NodeJSKernelBackend implements KernelBackend {
       boxes, scores, maxOutputSizeTensor, iouThresholdTensor,
       scoreThresholdTensor
     ]) as Tensor1D;
+  }
+
+  complex<T extends Tensor<Rank>>(real: T, imag: T): T {
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', real),
+      {
+        name: 'Tout',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_COMPLEX64
+      },
+    ];
+    const inputs = [real, imag];
+    return this.executeSingleOutput('Complex', opAttrs, inputs) as T;
+  }
+
+  real<T extends Tensor<Rank>>(input: T): T {
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', input), {
+        name: 'Tout',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      }
+    ];
+    const inputs = [input];
+    return this.executeSingleOutput('Real', opAttrs, inputs) as T;
+  }
+
+  imag<T extends Tensor<Rank>>(input: T): T {
+    const opAttrs = [
+      {
+        name: 'T',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_COMPLEX64
+      },
+      {
+        name: 'Tout',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      }
+    ];
+    const inputs = [input];
+    return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
+  }
+
+  cropAndResize(
+      image: Tensor<Rank.R4>, boxes: Tensor<Rank.R2>, boxIndex: Tensor<Rank.R1>,
+      cropSize: [number, number], method: 'bilinear'|'nearest',
+      extrapolationValue: number): Tensor<Rank.R4> {
+    const opAttrs = [
+      createTypeOpAttr('T', image.dtype),
+      {name: 'method', type: this.binding.TF_ATTR_STRING, value: method}, {
+        name: 'extrapolation_value',
+        type: this.binding.TF_ATTR_FLOAT,
+        value: extrapolationValue
+      }
+    ];
+    const cropSizeTensor = tensor1d(cropSize, 'int32');
+    return this.executeSingleOutput(
+               'CropAndResize', opAttrs,
+               [image, boxes, boxIndex, cropSizeTensor]) as Tensor<Rank.R4>;
+  }
+
+  depthToSpace(x: Tensor<Rank.R4>, blockSize: number, dataFormat: string):
+      Tensor<Rank.R4> {
+    // TODO(kreeger): Some more work needs to be done here to make this work...
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', x), {
+        name: 'block_size',
+        type: this.binding.TF_ATTR_INT,
+        value: blockSize < 2 ? 2 : blockSize
+      },
+      {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      }
+    ];
+    const inputs = [x];
+    return this.executeSingleOutput('DepthToSpace', opAttrs, inputs) as
+        Tensor<Rank.R4>;
+  }
+
+  split<T extends Tensor<Rank>>(value: T, sizeSplits: number[], axis: number):
+      T[] {
+    const opAttrs = [
+      {
+        name: 'num_split',
+        type: this.binding.TF_ATTR_INT,
+        value: sizeSplits.length
+      },
+      createTensorsTypeOpAttr('T', value), {
+        name: 'Tlen',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
+    ];
+    const inputs = [value];
+    inputs.push(tensor1d(sizeSplits, 'int32') as T);
+    inputs.push(scalar(axis, 'int32') as T);
+    return this.executeMultipleOutputs(
+               'SplitV', opAttrs, inputs, sizeSplits.length) as T[];
   }
 
   fromPixels(
