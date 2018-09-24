@@ -44,7 +44,7 @@ $ xcode-select --install
 
 After that operation completes, re-run `yarn add` or `npm install` for the `@tensorflow/tfjs-node` package.
 
-We changed `@tensorflow/tfjs` from a peer dependency to a strict one. Please only include `@tensorflow/tfjs-node` in the package.json file, since it ships `@tensorflow/tfjs` as well in your package.json.
+We changed `@tensorflow/tfjs` from a peer dependency to a strict one. Please only include `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu` in the package.json file, since it ships `@tensorflow/tfjs` as well in your package.json.
 
 ## Using the binding
 
