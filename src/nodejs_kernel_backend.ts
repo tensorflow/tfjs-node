@@ -43,7 +43,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   setDataMover(dataMover: DataMover): void {
-    // this.data = new DataStorage(dataMover);
+    // TODO(kreeger, smilkov): Implement this.
   }
 
   // Creates a new Tensor and maps the dataId to the passed in ID.
