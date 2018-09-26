@@ -16,6 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import * as tfl from '@tensorflow/tfjs-layers';
 
 import {nodeFileSystemRouter} from './io/file_system';
 import * as io from './io/index';
@@ -35,8 +36,15 @@ if (tfc.ENV.findBackend('tensorflow') != null) {
 }
 
 // Register the model saving and loading handlers for the 'file://' URL scheme.
+console.log(
+    'Calling tfc.io.registerSaveRouter(nodeFileSystemRouter);');  // DEBUG
 tfc.io.registerSaveRouter(nodeFileSystemRouter);
+console.log(
+    'Calling tfc.io.registerLoadRouter(nodeFileSystemRouter);');  // DEBUG
 tfc.io.registerLoadRouter(nodeFileSystemRouter);
+
+import {ProgbarLogger} from './callbacks';
+tfl.registerCallbackConstructor(1, ProgbarLogger);
 
 export {version} from './version';
 export {io};
