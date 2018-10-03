@@ -37,7 +37,7 @@ const CPU_DARWIN = 'libtensorflow_r1_11_darwin.tar.gz';
 const CPU_LINUX = 'libtensorflow_r1_11_linux_cpu.tar.gz';
 const GPU_LINUX = 'libtensorflow_r1_11_linux_gpu.tar.gz';
 const CPU_WINDOWS = 'libtensorflow_r1_11_windows_cpu.zip';
-const GPU_WINDOWS = 'libtensorflow_r1_10_windows_gpu.zip';
+const GPU_WINDOWS = 'libtensorflow_r1_11_windows_gpu.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
