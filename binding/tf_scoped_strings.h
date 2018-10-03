@@ -41,13 +41,17 @@ class TF_ScopedStrings {
         napi_get_value_string_utf8(env, js_value, nullptr, 0, &str_length);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-    char buffer[str_length + 1];
+    char* buffer = (char*)(malloc(sizeof(char) * (str_length + 1)));
+    ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, buffer, nullptr);
+
     nstatus = napi_get_value_string_utf8(env, js_value, buffer, str_length + 1,
                                          &str_length);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
     string_refs_.push_back(
         std::unique_ptr<std::string>(new std::string(buffer, str_length)));
+
+    free(buffer);
     return string_refs_.back().get();
   }
 

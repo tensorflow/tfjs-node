@@ -285,12 +285,15 @@ inline napi_status GetStringParam(napi_env env, napi_value string_value,
       napi_get_value_string_utf8(env, string_value, nullptr, 0, &str_length);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nstatus);
 
-  char buffer[str_length + 1];
+  char* buffer = (char*)(malloc(sizeof(char) * (str_length + 1)));
+  ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, buffer, napi_generic_failure);
+
   nstatus = napi_get_value_string_utf8(env, string_value, buffer,
                                        str_length + 1, &str_length);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nstatus);
 
   string.assign(buffer, str_length);
+  free(buffer);
   return napi_ok;
 }
 
