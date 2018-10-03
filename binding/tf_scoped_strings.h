@@ -47,7 +47,7 @@ class TF_ScopedStrings {
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
     string_refs_.push_back(
-        std::unique_ptr<std::string>(new std::string(buffer, str_length + 1)));
+        std::unique_ptr<std::string>(new std::string(buffer, str_length)));
     return string_refs_.back().get();
   }
 

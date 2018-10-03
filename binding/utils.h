@@ -290,7 +290,7 @@ inline napi_status GetStringParam(napi_env env, napi_value string_value,
                                        str_length + 1, &str_length);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nstatus);
 
-  string.assign(buffer, str_length + 1);
+  string.assign(buffer, str_length);
   return napi_ok;
 }
 
