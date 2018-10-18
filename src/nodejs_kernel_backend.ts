@@ -327,7 +327,12 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   prod(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const axesTensor = tensor1d(axes);
+    const opAttrs = [
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
+      createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tidx', 'int32')
+    ];
+    return this.executeSingleOutput('Prod', opAttrs, [x, axesTensor]);
   }
 
   argMin(x: Tensor, axis: number): Tensor {
@@ -1159,10 +1164,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   fft(x: Tensor<Rank.R1>): Tensor<Rank.R1> {
-    // const opAttrs = [
-    //   {}
-    // ];
-    throw new Error('Method not implemented.');
+    const opAttrs = [createTypeOpAttr('Tcomplex', 'complex64')];
+    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R1>;
   }
 
   complex<T extends Tensor<Rank>>(real: T, imag: T): T {
