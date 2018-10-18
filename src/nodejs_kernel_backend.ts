@@ -947,7 +947,14 @@ export class NodeJSKernelBackend implements KernelBackend {
   scatterND<R extends Rank>(
       indices: Tensor<Rank>, updates: Tensor<Rank>,
       shape: ShapeMap[R]): Tensor<R> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      createTypeOpAttr('T', updates.dtype),
+      createTypeOpAttr('Tindices', 'int32')
+    ];
+    const shapeTensor = tensor1d(shape, 'int32');
+    return this.executeSingleOutput(
+               'ScatterNd', opAttrs, [indices, updates, shapeTensor]) as
+        Tensor<R>;
   }
 
   batchToSpaceND<T extends Tensor>(
