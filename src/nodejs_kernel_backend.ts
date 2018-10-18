@@ -327,7 +327,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   prod(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    const axesTensor = tensor1d(axes);
+    const axesTensor = tensor1d(axes, 'int32');
     const opAttrs = [
       {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
       createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tidx', 'int32')
