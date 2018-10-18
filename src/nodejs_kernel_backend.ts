@@ -937,7 +937,11 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   gatherND(x: Tensor<Rank>, indices: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      createTypeOpAttr('Tparams', x.dtype),
+      createTypeOpAttr('Tindices', 'int32')
+    ];
+    return this.executeSingleOutput('GatherNd', opAttrs, [x, indices]);
   }
 
   scatterND<R extends Rank>(
