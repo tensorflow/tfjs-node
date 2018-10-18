@@ -326,6 +326,10 @@ export class NodeJSKernelBackend implements KernelBackend {
         'Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
   }
 
+  prod(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
+    throw new Error('Method not implemented.');
+  }
+
   argMin(x: Tensor, axis: number): Tensor {
     const xInput = x.dtype === 'bool' ? x.toInt() : x;
     const axisScalar = scalar(axis, 'int32');
@@ -927,6 +931,16 @@ export class NodeJSKernelBackend implements KernelBackend {
                'GatherV2', opAttrs, [x, indices, axisTensor]) as T;
   }
 
+  gatherND(x: Tensor<Rank>, indices: Tensor<Rank>): Tensor<Rank> {
+    throw new Error('Method not implemented.');
+  }
+
+  scatterND<R extends Rank>(
+      indices: Tensor<Rank>, updates: Tensor<Rank>,
+      shape: ShapeMap[R]): Tensor<R> {
+    throw new Error('Method not implemented.');
+  }
+
   batchToSpaceND<T extends Tensor>(
       x: T, blockShape: number[], crops: number[][]): T {
     const blockShapeTensor = tensor1d(blockShape, 'int32');
@@ -1142,6 +1156,13 @@ export class NodeJSKernelBackend implements KernelBackend {
       boxes, scores, maxOutputSizeTensor, iouThresholdTensor,
       scoreThresholdTensor
     ]) as Tensor1D;
+  }
+
+  fft(x: Tensor<Rank.R1>): Tensor<Rank.R1> {
+    // const opAttrs = [
+    //   {}
+    // ];
+    throw new Error('Method not implemented.');
   }
 
   complex<T extends Tensor<Rank>>(real: T, imag: T): T {
