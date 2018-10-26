@@ -10,7 +10,7 @@
 set -e
 
 # If this is nightly, use tfjs-core at master.
-if [ true ] # "$TRAVIS_EVENT_TYPE" = cron
+if [ "$TRAVIS_EVENT_TYPE" = cron ]
 then
   echo '########### Testing against tfjs-core@master ###########'
   yarn run rimraf tfjs-core/
