@@ -21,6 +21,7 @@
 #include "tfe_auto_op.h"
 #include "utils.h"
 
+#include <cstring>
 #include <memory>
 #include <set>
 #include <string>
