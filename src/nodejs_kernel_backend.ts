@@ -1283,7 +1283,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       sparseIndices: Tensor<Rank>, sparseValues: Tensor<Rank>,
       outputShape: ShapeMap[R], defaultValue: Tensor<Rank.R0>): Tensor<R> {
     const opAttrs = [
-      {name: 'validate_indicies', type: this.binding.TF_ATTR_BOOL, value: true},
+      {name: 'validate_indices', type: this.binding.TF_ATTR_BOOL, value: true},
       createTypeOpAttr('T', sparseValues.dtype),
       createTypeOpAttr('Tindices', sparseIndices.dtype)
     ];
