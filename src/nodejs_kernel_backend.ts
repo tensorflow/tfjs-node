@@ -1181,10 +1181,13 @@ export class NodeJSKernelBackend implements KernelBackend {
   fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
     const opAttrs = [createTypeOpAttr('Tcomplex', 'complex64')];
     return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
+<<<<<<< HEAD
   }
 
   ifft(x: Tensor2D): Tensor2D {
     throw new Error('Not implemented');
+=======
+>>>>>>> 217c9c0be4e7ff0d0cdf59a9cbb1acb00146c4cd
   }
 
   complex<T extends Tensor<Rank>>(real: T, imag: T): T {
@@ -1295,15 +1298,9 @@ export class NodeJSKernelBackend implements KernelBackend {
       createTypeOpAttr('T', sparseValues.dtype),
       createTypeOpAttr('Tindices', sparseIndices.dtype)
     ];
-    const shapeTensor = tensor1d(outputShape, 'int32');
-
-    console.log('sparseIndices.dtype: ', sparseIndices.dtype);
-    console.log('shapeTensor.dtype: ', shapeTensor.dtype);
-    console.log('sparseValues.type: ', sparseValues.dtype);
-    console.log('defaultValue.dtype: ', defaultValue.dtype);
-
+    const outputShapeTensor = tensor1d(outputShape, 'int32');
     return this.executeSingleOutput('SparseToDense', opAttrs, [
-      sparseIndices, shapeTensor, sparseValues, defaultValue
+      sparseIndices, outputShapeTensor, sparseValues, defaultValue
     ]) as Tensor<R>;
   }
 
