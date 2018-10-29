@@ -1290,7 +1290,21 @@ export class NodeJSKernelBackend implements KernelBackend {
   sparseToDense<R extends Rank>(
       sparseIndices: Tensor<Rank>, sparseValues: Tensor<Rank>,
       outputShape: ShapeMap[R], defaultValue: Tensor<Rank.R0>): Tensor<R> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      {name: 'validate_indices', type: this.binding.TF_ATTR_BOOL, value: true},
+      createTypeOpAttr('T', sparseValues.dtype),
+      createTypeOpAttr('Tindices', sparseIndices.dtype)
+    ];
+    const shapeTensor = tensor1d(outputShape, 'int32');
+
+    console.log('sparseIndices.dtype: ', sparseIndices.dtype);
+    console.log('shapeTensor.dtype: ', shapeTensor.dtype);
+    console.log('sparseValues.type: ', sparseValues.dtype);
+    console.log('defaultValue.dtype: ', defaultValue.dtype);
+
+    return this.executeSingleOutput('SparseToDense', opAttrs, [
+      sparseIndices, shapeTensor, sparseValues, defaultValue
+    ]) as Tensor<R>;
   }
 
   fromPixels(
