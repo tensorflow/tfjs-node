@@ -529,6 +529,10 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleInput('Abs', x) as T;
   }
 
+  complexAbs<T extends Tensor>(x: T): T {
+    return this.executeSingleInput('ComplexAbs', x) as T;
+  }
+
   sigmoid<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Sigmoid', x) as T;
   }
@@ -1174,9 +1178,13 @@ export class NodeJSKernelBackend implements KernelBackend {
     ]) as Tensor1D;
   }
 
-  fft(x: Tensor<Rank.R1>): Tensor<Rank.R1> {
+  fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
     const opAttrs = [createTypeOpAttr('Tcomplex', 'complex64')];
-    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R1>;
+    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
+  }
+
+  ifft(x: Tensor2D): Tensor2D {
+    throw new Error('Not implemented');
   }
 
   complex<T extends Tensor<Rank>>(real: T, imag: T): T {
@@ -1277,6 +1285,12 @@ export class NodeJSKernelBackend implements KernelBackend {
     inputs.push(scalar(axis, 'int32') as T);
     return this.executeMultipleOutputs(
                'SplitV', opAttrs, inputs, sizeSplits.length) as T[];
+  }
+
+  sparseToDense<R extends Rank>(
+      sparseIndices: Tensor<Rank>, sparseValues: Tensor<Rank>,
+      outputShape: ShapeMap[R], defaultValue: Tensor<Rank.R0>): Tensor<R> {
+    throw new Error('Method not implemented.');
   }
 
   fromPixels(
