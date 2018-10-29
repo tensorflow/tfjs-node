@@ -530,7 +530,9 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   complexAbs<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('ComplexAbs', x) as T;
+    const opAttrs =
+        [createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tout', 'float32')];
+    return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
   }
 
   sigmoid<T extends Tensor>(x: T): T {
@@ -1179,15 +1181,13 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
-    const opAttrs = [createTypeOpAttr('Tcomplex', 'complex64')];
+    const opAttrs = [createTypeOpAttr('Tcomplex', x.dtype)];
     return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
-<<<<<<< HEAD
   }
 
   ifft(x: Tensor2D): Tensor2D {
-    throw new Error('Not implemented');
-=======
->>>>>>> 217c9c0be4e7ff0d0cdf59a9cbb1acb00146c4cd
+    const opAttrs = [createTypeOpAttr('Tcomplex', x.dtype)];
+    return this.executeSingleOutput('IFFT', opAttrs, [x]) as Tensor2D;
   }
 
   complex<T extends Tensor<Rank>>(real: T, imag: T): T {
