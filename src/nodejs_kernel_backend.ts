@@ -529,6 +529,12 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleInput('Abs', x) as T;
   }
 
+  complexAbs<T extends Tensor>(x: T): T {
+    const opAttrs =
+        [createTypeOpAttr('T', x.dtype), createTypeOpAttr('Tout', 'float32')];
+    return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
+  }
+
   sigmoid<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Sigmoid', x) as T;
   }
@@ -1175,8 +1181,13 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
-    const opAttrs = [createTypeOpAttr('Tcomplex', 'complex64')];
+    const opAttrs = [createTypeOpAttr('Tcomplex', x.dtype)];
     return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
+  }
+
+  ifft(x: Tensor2D): Tensor2D {
+    const opAttrs = [createTypeOpAttr('Tcomplex', x.dtype)];
+    return this.executeSingleOutput('IFFT', opAttrs, [x]) as Tensor2D;
   }
 
   complex<T extends Tensor<Rank>>(real: T, imag: T): T {
@@ -1283,7 +1294,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       sparseIndices: Tensor<Rank>, sparseValues: Tensor<Rank>,
       outputShape: ShapeMap[R], defaultValue: Tensor<Rank.R0>): Tensor<R> {
     const opAttrs = [
-      {name: 'validate_indicies', type: this.binding.TF_ATTR_BOOL, value: true},
+      {name: 'validate_indices', type: this.binding.TF_ATTR_BOOL, value: true},
       createTypeOpAttr('T', sparseValues.dtype),
       createTypeOpAttr('Tindices', sparseIndices.dtype)
     ];
