@@ -111,7 +111,7 @@ export class ProgbarLogger extends CustomCallback {
  */
 export function getDisplayDecimalPlaces(x: number): number {
   const BASE_NUM_DIGITS = 2;
-  if (!Number.isFinite(x) || x === 0 || x > 1) {
+  if (!Number.isFinite(x) || x === 0 || x > 1 || x < -1) {
     return BASE_NUM_DIGITS;
   } else {
     return BASE_NUM_DIGITS - Math.floor(Math.log10(Math.abs(x)));
