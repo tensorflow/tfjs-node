@@ -184,6 +184,7 @@ describe('getDisplayDecimalPlaces', () => {
     expect(getDisplayDecimalPlaces(1)).toEqual(2);
     expect(getDisplayDecimalPlaces(1e-2)).toEqual(4);
     expect(getDisplayDecimalPlaces(1e-3)).toEqual(5);
+    expect(getDisplayDecimalPlaces(4e-3)).toEqual(5);
     expect(getDisplayDecimalPlaces(1e-6)).toEqual(8);
   });
 
@@ -193,6 +194,7 @@ describe('getDisplayDecimalPlaces', () => {
     expect(getDisplayDecimalPlaces(-1)).toEqual(2);
     expect(getDisplayDecimalPlaces(-1e-2)).toEqual(4);
     expect(getDisplayDecimalPlaces(-1e-3)).toEqual(5);
+    expect(getDisplayDecimalPlaces(-4e-3)).toEqual(5);
     expect(getDisplayDecimalPlaces(-1e-6)).toEqual(8);
   });
 });
