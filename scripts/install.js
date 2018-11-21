@@ -15,6 +15,8 @@
  * =============================================================================
  */
 const https = require('https');
+const HttpsProxyAgent = require('https-proxy-agent');
+const url = require('url');
 const fs = require('fs');
 let path = require('path');
 const rimraf = require('rimraf');
@@ -98,7 +100,18 @@ async function downloadLibtensorflow(callback) {
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
 
-  const request = https.get(targetUri, response => {
+  // If HTTPS_PROXY, https_proxy, HTTP_PROXY, or http_proxy is set
+  const proxy = process.env['HTTPS_PROXY'] || process.env['https_proxy'] || process.env['HTTP_PROXY'] || process.env['http_proxy'] || '';
+  const options = {
+    ...url.parse(targetUri),
+    agent: https.globalAgent
+  };
+
+  if (proxy !== '') {
+    options.agent = new HttpsProxyAgent(proxy);
+  }
+
+  const request = https.get(options, response => {
     const bar = new ProgressBar('[:bar] :rate/bps :percent :etas', {
       complete: '=',
       incomplete: ' ',
