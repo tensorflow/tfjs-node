@@ -113,6 +113,8 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
     ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
   } else {
+    // String tensors are passed down as a regular array. Ensure that the values
+    // stored here are string-only and convert to TF_Tensor.
     uint32_t array_length;
     nstatus = napi_get_array_length(env, array_value, &array_length);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
@@ -123,10 +125,15 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
       ENSURE_VALUE_IS_STRING_RETVAL(env, cur_value, nullptr);
-    }
 
-    // String tensors are passed down as a regular array. Ensure that the values
-    // stored here are string-only.
+      std::string str_value;
+      nstatus = GetStringParam(env, cur_value, str_value);
+      ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+      //
+      // TODO(kreeger): Left off right here.
+      //
+    }
   }
 
   // TODO - clean this up.
