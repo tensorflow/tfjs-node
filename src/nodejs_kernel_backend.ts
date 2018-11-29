@@ -87,6 +87,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       if (info.values != null) {
         // Values were delayed to write into the TensorHandle. Do that before Op
         // execution and clear stored values.
+        console.log('info', info);
         info.id =
             this.binding.createTensor(info.shape, info.dtype, info.values);
         info.values = null;

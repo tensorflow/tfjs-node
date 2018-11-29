@@ -182,6 +182,9 @@ inline bool EnsureValueIsTypedArray(napi_env env, napi_value value,
   bool is_array;
   ENSURE_NAPI_OK_RETVAL(env, napi_is_typedarray(env, value, &is_array), false);
   if (!is_array) {
+    napi_valuetype type;
+    napi_typeof(env, value, &type);
+    fprintf(stderr, "----> type: %d\n", type);
     NapiThrowError(env, "Argument is not a typed-array!", file, lineNumber);
   }
   return is_array;
