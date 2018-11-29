@@ -34,12 +34,12 @@ type TensorInfo = {
 
 interface DataId {}
 
-export class NodeJSKernelBackend extends KernelBackend {
+export class NodeJSKernelBackend implements KernelBackend {
   binding: TFJSBinding;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding) {
-    super();
+    // super();
     this.binding = binding;
   }
 
