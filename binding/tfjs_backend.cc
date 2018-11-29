@@ -22,6 +22,7 @@
 #include "utils.h"
 
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
@@ -112,6 +113,18 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
     ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
   } else {
+    uint32_t array_length;
+    nstatus = napi_get_array_length(env, array_value, &array_length);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+    for (uint32_t i = 0; i < array_length; i++) {
+      napi_value cur_value;
+      nstatus = napi_get_element(env, array_value, i, &cur_value);
+      ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+      ENSURE_VALUE_IS_STRING_RETVAL(env, cur_value, nullptr);
+    }
+
     // String tensors are passed down as a regular array. Ensure that the values
     // stored here are string-only.
   }
