@@ -44,7 +44,7 @@ export function getTFDType(dataType: tfc.DataType): number {
     case 'complex64':
       return binding.TF_COMPLEX64;
     default:
-      throw new Error('Unknown dtype `${dtype}`');
+      throw new Error(`Unknown dtype '${dataType}'`);
   }
 }
 

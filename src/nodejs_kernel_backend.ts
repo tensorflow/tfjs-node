@@ -1306,23 +1306,18 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   fromPixels(
-      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
+      pixels: ImageData|HTMLImageElement|HTMLCanvasElement,
       numChannels: number): Tensor3D {
-    if (pixels == null) {
-      throw new Error('pixels passed to tf.fromPixels() can not be null');
-    }
     // tslint:disable-next-line:no-any
-    if ((pixels as any).getContext == null) {
-      throw new Error(
-          'When running in node, pixels must be an HTMLCanvasElement ' +
-          'like the one returned by the `canvas` npm package');
+    const input = pixels as any;
+    let vals: Uint8ClampedArray;
+    if (input.getContext != null) {
+      vals = input.getContext('2d')
+                 .getImageData(0, 0, pixels.width, pixels.height)
+                 .data;
+    } else if ((input.data != null && pixels.width != null)) {
+      vals = input.data;
     }
-    const vals: Uint8ClampedArray =
-        // tslint:disable-next-line:no-any
-        (pixels as any)
-            .getContext('2d')
-            .getImageData(0, 0, pixels.width, pixels.height)
-            .data;
     let values: Int32Array;
     if (numChannels === 4) {
       values = new Int32Array(vals);
