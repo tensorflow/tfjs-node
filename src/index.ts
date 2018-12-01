@@ -20,6 +20,7 @@ import * as tfl from '@tensorflow/tfjs-layers';
 
 import {nodeFileSystemRouter} from './io/file_system';
 import * as io from './io/index';
+import {ndoeHTTPRequestRouter} from './io/node_http';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 // tslint:disable-next-line:no-require-imports
@@ -36,8 +37,10 @@ if (tfc.ENV.findBackend('tensorflow') != null) {
 }
 
 // Register the model saving and loading handlers for the 'file://' URL scheme.
-tfc.io.registerSaveRouter(nodeFileSystemRouter);
 tfc.io.registerLoadRouter(nodeFileSystemRouter);
+tfc.io.registerSaveRouter(nodeFileSystemRouter);
+tfc.io.registerLoadRouter(ndoeHTTPRequestRouter);
+// TODO(cais): Make HTTP-based save work from Node.js.
 
 import {ProgbarLogger} from './callbacks';
 // Register the ProgbarLogger for Model.fit() at verbosity level 1.
