@@ -22,17 +22,11 @@ const fetch = require('node-fetch');  // tslint:disable:no-require-imports
 // For testing: Enables jasmine `spyOn()` with `fetch`.
 export const fetchWrapper = {fetch};
 
-export class NodeHTTPRequest extends io.BrowserHTTPRequest {
-  // Override the base getFetchFunc() method in order to use node-fetch.
-  protected getFetchFunc(): Function {
-    return fetchWrapper.fetch;
-  }
-}
-
 export function nodeHTTPRequest(
     path: string|string[], requestInit?: RequestInit,
     weightPathPrefix?: string): io.IOHandler {
-  return new NodeHTTPRequest(path, requestInit, weightPathPrefix);
+  return io.browserHTTPRequest(
+      path, requestInit, weightPathPrefix, fetchWrapper.fetch);
 }
 
 export const ndoeHTTPRequestRouter = (url: string|string[]) => {
