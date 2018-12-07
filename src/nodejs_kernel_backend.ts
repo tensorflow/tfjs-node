@@ -1345,7 +1345,7 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   memory() {
     // Due to automatic garbage collection, the numbers are unreliable.
-    // TODO: Since there is finalization in C, count the true
+    // TODO(kreeger): Since there is finalization in C, count the true
     // number of undisposed tensors.
     return {unreliable: true};
   }
