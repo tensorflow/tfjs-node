@@ -111,7 +111,6 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
     TF_AutoStatus tf_status;
     tfe_tensor_handle = TFE_NewTensorHandle(tensor.tensor, tf_status.status);
     ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
-
   } else {
     // String tensors are passed down as a regular array. Ensure that the values
     // stored here are string-only and convert to TF_Tensor.
@@ -119,6 +118,10 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
     nstatus = napi_get_array_length(env, array_value, &array_length);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+    size_t offsets_size = array_length * sizeof(uint64_t);
+    size_t byte_size = offsets_size;
+
+    std::vector<std::string> str_values;
     for (uint32_t i = 0; i < array_length; i++) {
       napi_value cur_value;
       nstatus = napi_get_element(env, array_value, i, &cur_value);
@@ -130,13 +133,34 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       nstatus = GetStringParam(env, cur_value, str_value);
       ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-      //
-      // TODO(kreeger): Left off right here.
-      //
+      byte_size += TF_StringEncodedSize(str_value.size());
+      str_values.push_back(str_value);
     }
+
+    TF_AutoTensor tensor(
+        TF_AllocateTensor(TF_STRING, shape, shape_length, byte_size));
+
+    // Populate the tensor buffer with strings and record each string offset.
+    void *str_tensor_data = TF_TensorData(tensor.tensor);
+
+    TF_AutoStatus tf_status;
+    uint64_t *offsets = (uint64_t *)str_tensor_data;
+    char *str_data_start = (char *)str_tensor_data + offsets_size;
+    char *cur_str_data = str_data_start;
+    for (uint32_t i = 0; i < array_length; i++) {
+      std::string str = str_values[i];
+      size_t encoded_size = TF_StringEncode(
+          str.data(), str.size(), cur_str_data, byte_size, tf_status.status);
+      ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+
+      offsets[i] = cur_str_data - str_data_start;
+      cur_str_data += encoded_size;
+    }
+
+    tfe_tensor_handle = TFE_NewTensorHandle(tensor.tensor, tf_status.status);
+    ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
   }
 
-  // TODO - clean this up.
   return tfe_tensor_handle;
 }
 
