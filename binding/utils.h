@@ -302,7 +302,7 @@ inline napi_status GetStringParam(napi_env env, napi_value string_value,
   return napi_ok;
 }
 
-inline void GetTensorDimSize(TF_Tensor *tensor, size_t *out_dim_length) {
+inline void GetTensorDimSize(TF_Tensor* tensor, size_t* out_dim_length) {
   uint32_t num_dims = TF_NumDims(tensor);
   if (num_dims == 0) {
     *out_dim_length = 1;

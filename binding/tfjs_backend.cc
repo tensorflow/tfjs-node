@@ -235,8 +235,7 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
   }
 
   void *tensor_data = TF_TensorData(tensor.tensor);
-  // TODO - kreeger fix this:
-  /* ENSURE_VALUE_IS_NOT_NULL(tensor_data); */
+  ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
 
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
   const char *limit = static_cast<const char *>(tensor_data) + byte_length;
@@ -257,7 +256,13 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
   napi_status nstatus;
   nstatus = napi_create_array_with_length(env, dim_length, result);
 
-  // TODO - validate size of string here!
+  const size_t expected_tensor_size =
+      (limit - static_cast<const char *>(tensor_data));
+  if (expected_tensor_size - byte_length) {
+    NAPI_THROW_ERROR(env, "Invalid/corrupt TF_STRING tensor.");
+    return;
+  }
+
   for (uint64_t i = 0; i < dim_length; i++) {
     const char *start = data + offsets[i];
     const char *str_ptr = nullptr;
