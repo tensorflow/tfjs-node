@@ -72,6 +72,9 @@ export class NodeJSKernelBackend implements KernelBackend {
       case this.binding.TF_COMPLEX64:
         dtype = 'complex64';
         break;
+      case this.binding.TF_STRING:
+        dtype = 'string';
+        break;
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
@@ -87,7 +90,6 @@ export class NodeJSKernelBackend implements KernelBackend {
       if (info.values != null) {
         // Values were delayed to write into the TensorHandle. Do that before Op
         // execution and clear stored values.
-        console.log('info', info);
         info.id =
             this.binding.createTensor(info.shape, info.dtype, info.values);
         info.values = null;

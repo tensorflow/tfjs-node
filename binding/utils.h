@@ -182,9 +182,6 @@ inline bool EnsureValueIsTypedArray(napi_env env, napi_value value,
   bool is_array;
   ENSURE_NAPI_OK_RETVAL(env, napi_is_typedarray(env, value, &is_array), false);
   if (!is_array) {
-    napi_valuetype type;
-    napi_typeof(env, value, &type);
-    fprintf(stderr, "----> type: %d\n", type);
     NapiThrowError(env, "Argument is not a typed-array!", file, lineNumber);
   }
   return is_array;
@@ -303,6 +300,21 @@ inline napi_status GetStringParam(napi_env env, napi_value string_value,
   string.assign(buffer, str_length);
   free(buffer);
   return napi_ok;
+}
+
+inline void GetTensorDimSize(TF_Tensor *tensor, size_t *out_dim_length) {
+  uint32_t num_dims = TF_NumDims(tensor);
+  if (num_dims == 0) {
+    *out_dim_length = 1;
+  } else {
+    for (uint32_t i = 0; i < num_dims; i++) {
+      if (i == 0) {
+        *out_dim_length = TF_Dim(tensor, i);
+      } else {
+        *out_dim_length *= TF_Dim(tensor, i);
+      }
+    }
+  }
 }
 
 }  // namespace tfnodejs
