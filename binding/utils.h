@@ -302,19 +302,13 @@ inline napi_status GetStringParam(napi_env env, napi_value string_value,
   return napi_ok;
 }
 
-inline void GetTensorDimSize(TF_Tensor* tensor, size_t* out_dim_length) {
-  uint32_t num_dims = TF_NumDims(tensor);
-  if (num_dims == 0) {
-    *out_dim_length = 1;
-  } else {
-    for (uint32_t i = 0; i < num_dims; i++) {
-      if (i == 0) {
-        *out_dim_length = TF_Dim(tensor, i);
-      } else {
-        *out_dim_length *= TF_Dim(tensor, i);
-      }
-    }
+// Returns the number of elements in a Tensor.
+inline size_t GetTensorNumElements(TF_Tensor* tensor) {
+  size_t ret = 1;
+  for (int i = 0; i < TF_NumDims(tensor); ++i) {
+    ret *= TF_Dim(tensor, i);
   }
+  return ret;
 }
 
 }  // namespace tfnodejs
