@@ -22,6 +22,14 @@ const fetch = require('node-fetch');  // tslint:disable:no-require-imports
 // For testing: Enables jasmine `spyOn()` with `fetch`.
 export const fetchWrapper = {fetch};
 
+/**
+ * Factory function for HTTP IO Handler in Node.js.
+ *
+ * @param path URL path or an array of them.
+ * @param requestInit Request init for the HTTP IOHandler. May include fields
+ *   such as "credentials" and "cache". (Optional)
+ * @param weightPathPrefix A path prefix for weight loading . (Optional).
+ */
 export function nodeHTTPRequest(
     path: string|string[], requestInit?: RequestInit,
     weightPathPrefix?: string): io.IOHandler {
@@ -29,7 +37,7 @@ export function nodeHTTPRequest(
       path, requestInit, weightPathPrefix, fetchWrapper.fetch);
 }
 
-export const ndoeHTTPRequestRouter = (url: string|string[]) => {
+export const nodeHTTPRequestRouter = (url: string|string[]) => {
   let isHTTP = true;
   if (Array.isArray(url)) {
     isHTTP = url.every(urlItem => io.isHTTPScheme(urlItem));
