@@ -331,32 +331,36 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
   }
 
   // Determine the type of the array
+  napi_typedarray_type typed_array_type;
+  bool is_string = false;
   TF_DataType tensor_data_type = TFE_TensorHandleDataType(tfe_tensor_handle);
   switch (tensor_data_type) {
     case TF_COMPLEX64:
     case TF_FLOAT:
-      CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle,
-                                           tensor_data_type, napi_float32_array,
-                                           result);
-      return;
+      typed_array_type = napi_float32_array;
+      break;
     case TF_INT32:
-      CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle,
-                                           tensor_data_type, napi_int32_array,
-                                           result);
-      return;
+      typed_array_type = napi_int32_array;
+      break;
     case TF_BOOL:
-      CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle,
-                                           tensor_data_type, napi_uint8_array,
-                                           result);
-      return;
+      typed_array_type = napi_uint8_array;
+      break;
     case TF_STRING:
-      CopyTFE_TensorHandleDataToStringArray(env, tfe_context, tfe_tensor_handle,
-                                            result);
-      return;
+      is_string = true;
+      break;
     default:
       REPORT_UNKNOWN_TF_DATA_TYPE(env,
                                   TFE_TensorHandleDataType(tfe_tensor_handle));
       return;
+  }
+
+  if (is_string) {
+    CopyTFE_TensorHandleDataToStringArray(env, tfe_context, tfe_tensor_handle,
+                                          result);
+  } else {
+    CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle,
+                                         tensor_data_type, typed_array_type,
+                                         result);
   }
 }
 
