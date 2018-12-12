@@ -21,6 +21,7 @@
 #include "tfe_auto_op.h"
 #include "utils.h"
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 #include <set>
@@ -113,52 +114,72 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
     napi_env env, int64_t *shape, uint32_t shape_length, TF_DataType dtype,
     napi_value array_value) {
   napi_status nstatus;
-  // String tensors are passed down as a regular array. Ensure that the values
-  // stored here are string-only and convert to TF_Tensor.
   uint32_t array_length;
   nstatus = napi_get_array_length(env, array_value, &array_length);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   size_t offsets_size = array_length * sizeof(uint64_t);
-  size_t byte_size = offsets_size;
-
-  std::vector<std::string> str_values;
-  for (uint32_t i = 0; i < array_length; i++) {
+  size_t data_size = offsets_size;
+  size_t max_string_length = 0;
+  for (uint32_t i = 0; i < array_length; ++i) {
     napi_value cur_value;
     nstatus = napi_get_element(env, array_value, i, &cur_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-
     ENSURE_VALUE_IS_STRING_RETVAL(env, cur_value, nullptr);
 
-    std::string str_value;
-    nstatus = GetStringParam(env, cur_value, str_value);
+    size_t str_length;
+    nstatus =
+        napi_get_value_string_utf8(env, cur_value, nullptr, 0, &str_length);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-    byte_size += TF_StringEncodedSize(str_value.size());
-    str_values.push_back(str_value);
+    data_size += TF_StringEncodedSize(str_length);
+    max_string_length = std::max(max_string_length, str_length);
   }
 
-  TF_AutoTensor tensor(
-      TF_AllocateTensor(TF_STRING, shape, shape_length, byte_size));
-
-  // String tensors are stored in single buffer with specific offsets based on
-  // each elements size. Determine the size for the total buffer first. Next
-  // allocate the TF_Tensor and properly assign values in the long buffer.
-  void *str_tensor_data = TF_TensorData(tensor.tensor);
-
   TF_AutoStatus tf_status;
-  uint64_t *offsets = (uint64_t *)str_tensor_data;
-  char *str_data_start = (char *)str_tensor_data + offsets_size;
+  TF_AutoTensor tensor(
+      TF_AllocateTensor(TF_STRING, shape, shape_length, data_size));
+
+  void *tensor_data = TF_TensorData(tensor.tensor);
+  uint64_t *offsets = (uint64_t *)tensor_data;
+
+  // Allocate some heap space to work with loading strings to encode with
+  // TensorFlow:
+  max_string_length++;
+  char *buffer = (char *)malloc(sizeof(char *) * max_string_length);
+
+  // Loop past offsets to ensure values fit.
+  char *str_data_start = (char *)tensor_data + offsets_size;
   char *cur_str_data = str_data_start;
-  for (uint32_t i = 0; i < array_length; i++) {
-    std::string str = str_values[i];
-    size_t encoded_size = TF_StringEncode(str.data(), str.size(), cur_str_data,
-                                          byte_size, tf_status.status);
-    ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+  for (uint32_t i = 0; i < array_length; ++i) {
+    napi_value cur_value;
+    nstatus = napi_get_element(env, array_value, i, &cur_value);
+    if (nstatus != napi_ok) {
+      free(buffer);
+      ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    }
+
+    // Read the current string into the char buffer:
+    size_t str_length;
+    nstatus = napi_get_value_string_utf8(env, cur_value, buffer,
+                                         max_string_length, &str_length);
+    if (nstatus != napi_ok) {
+      free(buffer);
+      ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    }
+
+    // Append the encoded string into the tensor data chunk:
+    size_t encoded_size = TF_StringEncode(buffer, str_length, cur_str_data,
+                                          data_size, tf_status.status);
+    if (TF_GetCode(tf_status.status) != TF_OK) {
+      free(buffer);
+      ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+    }
 
     offsets[i] = cur_str_data - str_data_start;
     cur_str_data += encoded_size;
   }
+  free(buffer);
 
   TFE_TensorHandle *tfe_tensor_handle =
       TFE_NewTensorHandle(tensor.tensor, tf_status.status);
