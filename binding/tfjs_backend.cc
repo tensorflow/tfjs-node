@@ -192,10 +192,8 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromJSValues(napi_env env,
                                                      uint32_t shape_length,
                                                      TF_DataType dtype,
                                                      napi_value array_value) {
-  napi_status nstatus;
-
   bool is_typed_array;
-  nstatus = napi_is_typedarray(env, array_value, &is_typed_array);
+  napi_status nstatus = napi_is_typedarray(env, array_value, &is_typed_array);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
   if (is_typed_array) {
     return CreateTFE_TensorHandleFromTypedArray(env, shape, shape_length, dtype,

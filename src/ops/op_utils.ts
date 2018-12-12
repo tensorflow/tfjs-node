@@ -46,7 +46,8 @@ export function getTFDType(dataType: tfc.DataType): number {
     case 'string':
       return binding.TF_STRING;
     default:
-      throw new Error('Unknown dtype : ' + dataType);
+      const errorMessage = `Unknown dtype: ${dataType}`;
+      throw new Error(errorMessage);
   }
 }
 
