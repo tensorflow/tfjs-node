@@ -37,11 +37,13 @@ interface DataId {}
 
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
+  isGPUPackage: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
-  constructor(binding: TFJSBinding) {
+  constructor(binding: TFJSBinding, packageName: string) {
     super();
     this.binding = binding;
+    this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
   }
 
   setDataMover(dataMover: DataMover): void {
@@ -796,8 +798,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     const dataFormat =
         convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
 
-    if (convInfo.dilationDepth > 1) {
-      throw new Error('Dilation depth must be 1');
+    if (!this.isGPUPackage && convInfo.dilationDepth > 1) {
+      throw new Error('CPU Dilation depth must be 1');
     }
     const dilations = [
       1, convInfo.dilationDepth, convInfo.dilationHeight,
@@ -825,8 +827,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     const padding = convInfo.padInfo.type;
     const dataFormat =
         convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
-    if (convInfo.dilationDepth > 1) {
-      throw new Error('Dilation depth must be 1');
+    if (!this.isGPUPackage && convInfo.dilationDepth > 1) {
+      throw new Error('CPU Dilation depth must be 1');
     }
     const dilations = [
       1, convInfo.dilationDepth, convInfo.dilationHeight,
@@ -859,8 +861,8 @@ export class NodeJSKernelBackend extends KernelBackend {
     const dataFormat =
         convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
 
-    if (convInfo.dilationDepth > 1) {
-      throw new Error('Dilation depth must be 1');
+    if (!this.isGPUPackage && convInfo.dilationDepth > 1) {
+      throw new Error('CPU Dilation depth must be 1');
     }
     const dilations = [
       1, convInfo.dilationDepth, convInfo.dilationHeight,
