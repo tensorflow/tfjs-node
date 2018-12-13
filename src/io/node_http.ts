@@ -17,7 +17,8 @@
 
 import {io} from '@tensorflow/tfjs-core';
 
-const fetch = require('node-fetch');  // tslint:disable:no-require-imports
+// tslint:disable-next-line:no-require-imports
+const fetch = require('node-fetch');
 
 // For testing: Enables jasmine `spyOn()` with `fetch`.
 export const fetchWrapper = {fetch};

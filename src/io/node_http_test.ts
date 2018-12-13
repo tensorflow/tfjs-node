@@ -21,7 +21,8 @@ import * as tfl from '@tensorflow/tfjs-layers';
 import * as tfn from '../index';
 import {fetchWrapper} from './node_http';
 
-const fetch = require('node-fetch');  // tslint:disable:no-require-imports
+// tslint:disable-next-line:no-require-imports
+const fetch = require('node-fetch');
 
 // Test data;
 const modelTopology1: {} = {
