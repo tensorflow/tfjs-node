@@ -42,7 +42,15 @@
 
 namespace tfnodejs {
 
-#define NAPI_THROW_ERROR(env, message) \
+static const char* CreateFormattedString(char* buffer, size_t buffer_size,
+                                         const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  std::snprintf(buffer, buffer_size, format, args);
+  va_end(args);
+}
+
+#define NAPI_THROW_ERROR(env, message, ...) \
   NapiThrowError(env, message, __FILE__, __LINE__);
 
 inline void NapiThrowError(napi_env env, const char* message, const char* file,
