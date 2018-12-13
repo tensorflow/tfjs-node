@@ -79,9 +79,10 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
 
   // Double check that width matches TF data type size:
   if (width != TF_DataTypeSize(dtype)) {
-    NAPI_THROW_ERROR(
-        env, "Byte size of elements differs between JS VM (%zu) and TF (%zu",
-        width, TF_DataTypeSize(dtype));
+    NAPI_THROW_ERROR(env,
+                     "Byte size of elements differs between JavaScript VM "
+                     "(%zu) and TensorFlow (%zu)",
+                     width, TF_DataTypeSize(dtype));
     return nullptr;
   }
 
@@ -95,7 +96,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   if (num_elements != array_length) {
     NAPI_THROW_ERROR(env,
                      "Shape does not match typed-array in bindData() "
-                     "(num_elements=%zu, array_length=%zu",
+                     "(num_elements=%zu, array_length=%zu)",
                      num_elements, array_length);
     return nullptr;
   }
@@ -298,7 +299,7 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
 
   const size_t expected_tensor_size =
       (limit - static_cast<const char *>(tensor_data));
-  if (expected_tensor_size - byte_length) {
+  if (expected_tensor_size != byte_length) {
     NAPI_THROW_ERROR(env,
                      "Invalid/corrupt TF_STRING tensor. Expected size: %zu, "
                      "byte_length: %zu",
