@@ -176,6 +176,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   EXPORT_INT_PROPERTY(TF_ATTR_SHAPE);
 #undef EXPORT_INT_PROPERTY
 
+  ENSURE_VALUE_IS_LESS_THAN_RETVAL(env, 10, 5, exports);
+
   return exports;
 }
 
