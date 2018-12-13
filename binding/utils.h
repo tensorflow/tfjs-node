@@ -22,7 +22,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <cstdlib>
-#include <sstream>
 #include <vector>
 #include "../deps/include/tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
@@ -51,7 +50,7 @@ inline void NapiThrowError(napi_env env, const char* file,
   char buffer[500];
   va_list args;
   va_start(args, message);
-  std::snprintf(buffer, 500, message, args);
+  std::vsnprintf(buffer, 500, message, args);
   va_end(args);
   DEBUG_LOG(buffer, file, line_number);
   napi_throw_error(env, nullptr, buffer);
@@ -67,15 +66,9 @@ inline bool EnsureNapiOK(napi_env env, napi_status status, const char* file,
   if (status != napi_ok) {
     const napi_extended_error_info* error_info = 0;
     napi_get_last_error_info(env, &error_info);
-
-    std::ostringstream oss;
-    oss << "Invalid napi_status: ";
-    if (error_info->error_message) {
-      oss << error_info->error_message;
-    } else {
-      oss << status;
-    }
-    NapiThrowError(env, file, line_number, oss.str().c_str());
+    NapiThrowError(
+        env, file, line_number, "Invalid napi_status: %s\n",
+        error_info->error_message ? error_info->error_message : "unknown");
   }
   return status == napi_ok;
 }
@@ -89,10 +82,8 @@ inline bool EnsureTFOK(napi_env env, TF_AutoStatus& status, const char* file,
                        const size_t line_number) {
   TF_Code tf_code = TF_GetCode(status.status);
   if (tf_code != TF_OK) {
-    std::ostringstream oss;
-    oss << "Invalid TF_Status: " << TF_GetCode(status.status) << std::endl;
-    oss << "Message: " << TF_Message(status.status);
-    NapiThrowError(env, file, line_number, oss.str().c_str());
+    NapiThrowError(env, file, line_number, "Invalid TF_Status: %u\nMessage: %s",
+                   TF_GetCode(status.status), TF_Message(status.status));
   }
   return tf_code == TF_OK;
 }
@@ -217,9 +208,7 @@ inline bool EnsureValueIsLessThan(napi_env env, uint32_t value, uint32_t max,
 inline void ReportUnknownTFDataType(napi_env env, TF_DataType type,
                                     const char* file,
                                     const size_t line_number) {
-  std::ostringstream oss;
-  oss << "Unhandled TF_DataType: " << type;
-  NapiThrowError(env, file, line_number, oss.str().c_str());
+  NapiThrowError(env, file, line_number, "Unhandled TF_DataType: %u\n", type);
 }
 
 #define REPORT_UNKNOWN_TF_ATTR_TYPE(env, type) \
@@ -228,9 +217,7 @@ inline void ReportUnknownTFDataType(napi_env env, TF_DataType type,
 inline void ReportUnknownTFAttrType(napi_env env, TF_AttrType type,
                                     const char* file,
                                     const size_t line_number) {
-  std::ostringstream oss;
-  oss << "Unhandled TF_AttrType: " << type;
-  NapiThrowError(env, file, line_number, oss.str().c_str());
+  NapiThrowError(env, file, line_number, "Unhandled TF_AttrType: %u\n", type);
 }
 
 #define REPORT_UNKNOWN_TYPED_ARRAY_TYPE(env, type) \
@@ -239,9 +226,8 @@ inline void ReportUnknownTFAttrType(napi_env env, TF_AttrType type,
 inline void ReportUnknownTypedArrayType(napi_env env, napi_typedarray_type type,
                                         const char* file,
                                         const size_t line_number) {
-  std::ostringstream oss;
-  oss << "Unhandled napi typed_array_type: " << type;
-  NapiThrowError(env, file, line_number, oss.str().c_str());
+  NapiThrowError(env, file, line_number, "Unhandled napi typed_array_type: %u",
+                 type);
 }
 
 // Returns a vector with the shape values of an array.
