@@ -17,7 +17,8 @@
 
 // tslint:disable-next-line:max-line-length
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
-import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
+import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
+import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
 
@@ -36,11 +37,13 @@ interface DataId {}
 
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
+  isGPUPackage: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
-  constructor(binding: TFJSBinding) {
+  constructor(binding: TFJSBinding, packageName: string) {
     super();
     this.binding = binding;
+    this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
   }
 
   setDataMover(dataMover: DataMover): void {
@@ -71,6 +74,9 @@ export class NodeJSKernelBackend extends KernelBackend {
         break;
       case this.binding.TF_COMPLEX64:
         dtype = 'complex64';
+        break;
+      case this.binding.TF_STRING:
+        dtype = 'string';
         break;
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
@@ -783,6 +789,101 @@ export class NodeJSKernelBackend extends KernelBackend {
                'DepthwiseConv2dNative', opAttrs, [input, filter]) as Tensor4D;
   }
 
+  conv3d(x: Tensor<Rank.R5>, filter: Tensor<Rank.R5>, convInfo: Conv3DInfo):
+      Tensor<Rank.R5> {
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
+    const padding = convInfo.padInfo.type;
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
+
+    if (!this.isGPUPackage && convInfo.dilationDepth > 1) {
+      throw new Error('CPU Dilation depth must be 1');
+    }
+    const dilations = [
+      1, convInfo.dilationDepth, convInfo.dilationHeight,
+      convInfo.dilationWidth, 1
+    ];
+    const opAttrs = [
+      createTypeOpAttr('T', x.dtype),
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
+    ];
+    return this.executeSingleOutput('Conv3D', opAttrs, [x, filter]) as Tensor5D;
+  }
+
+  conv3dDerInput(
+      dy: Tensor<Rank.R5>, filter: Tensor<Rank.R5>,
+      convInfo: Conv3DInfo): Tensor<Rank.R5> {
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
+    const padding = convInfo.padInfo.type;
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
+    if (!this.isGPUPackage && convInfo.dilationDepth > 1) {
+      throw new Error('CPU Dilation depth must be 1');
+    }
+    const dilations = [
+      1, convInfo.dilationDepth, convInfo.dilationHeight,
+      convInfo.dilationWidth, 1
+    ];
+    const opAttrs = [
+      createTypeOpAttr('T', dy.dtype),
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations},
+      createTypeOpAttr('Tshape', 'int32')
+    ];
+    const inputSizes = tensor1d(convInfo.inShape, 'int32');
+    return this.executeSingleOutput(
+               'Conv3DBackpropInputV2', opAttrs, [inputSizes, filter, dy]) as
+        Tensor5D;
+  }
+
+  conv3dDerFilter(
+      x: Tensor<Rank.R5>, dY: Tensor<Rank.R5>,
+      convInfo: Conv3DInfo): Tensor<Rank.R5> {
+    const strides = [
+      1, convInfo.strideDepth, convInfo.strideHeight, convInfo.strideWidth, 1
+    ];
+    const padding = convInfo.padInfo.type;
+    const dataFormat =
+        convInfo.dataFormat === 'channelsLast' ? 'NDHWC' : 'NCDHW';
+
+    if (!this.isGPUPackage && convInfo.dilationDepth > 1) {
+      throw new Error('CPU Dilation depth must be 1');
+    }
+    const dilations = [
+      1, convInfo.dilationDepth, convInfo.dilationHeight,
+      convInfo.dilationWidth, 1
+    ];
+    const opAttrs = [
+      createTypeOpAttr('T', x.dtype),
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
+    ];
+    const filterSizes = tensor1d(convInfo.filterShape, 'int32');
+    return this.executeSingleOutput(
+               'Conv3DBackpropFilterV2', opAttrs, [x, filterSizes, dY]) as
+        Tensor5D;
+  }
+
   maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
@@ -1342,7 +1443,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   memory() {
     // Due to automatic garbage collection, the numbers are unreliable.
-    // TODO: Since there is finalization in C, count the true
+    // TODO(kreeger): Since there is finalization in C, count the true
     // number of undisposed tensors.
     return {unreliable: true};
   }
