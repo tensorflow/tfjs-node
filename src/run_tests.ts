@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// We import index.ts so that the Node backend gets registered.
 import './index';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
