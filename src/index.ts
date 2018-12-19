@@ -27,7 +27,7 @@ import * as nodeVersion from './version';
 import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
 
-// Export all union package symbols
+// Merge version and io namespaces.
 export const version = {
   ...tf.version,
   'tfjs-node': nodeVersion.version
@@ -36,6 +36,7 @@ export const io = {
   ...tf.io,
   ...nodeIo
 };
+// Export all union package symbols
 export * from '@tensorflow/tfjs';
 
 // tslint:disable-next-line:no-require-imports
