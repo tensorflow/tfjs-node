@@ -35,9 +35,9 @@ const unlink = util.promisify(fs.unlink);
 const exec = util.promisify(cp.exec);
 
 const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
-const CPU_DARWIN = 'libtensorflow_r1_11_darwin.tar.gz';
-const CPU_LINUX = 'libtensorflow_r1_11_linux_cpu.tar.gz';
-const GPU_LINUX = 'libtensorflow_r1_11_linux_gpu.tar.gz';
+const CPU_DARWIN = 'libtensorflow_r1_12_darwin.tar.gz';
+const CPU_LINUX = 'libtensorflow_r1_12_linux_cpu.tar.gz';
+const GPU_LINUX = 'libtensorflow_r1_12_linux_gpu.tar.gz';
 const CPU_WINDOWS = 'libtensorflow_r1_11_windows_cpu.zip';
 const GPU_WINDOWS = 'libtensorflow_r1_11_windows_gpu.zip';
 
