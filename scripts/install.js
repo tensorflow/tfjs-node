@@ -38,8 +38,8 @@ const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
 const CPU_DARWIN = 'libtensorflow_r1_12_darwin.tar.gz';
 const CPU_LINUX = 'libtensorflow_r1_12_linux_cpu.tar.gz';
 const GPU_LINUX = 'libtensorflow_r1_12_linux_gpu.tar.gz';
-const CPU_WINDOWS = 'libtensorflow_r1_11_windows_cpu.zip';
-const GPU_WINDOWS = 'libtensorflow_r1_11_windows_gpu.zip';
+const CPU_WINDOWS = 'libtensorflow_r1_12_windows_cpu.zip';
+const GPU_WINDOWS = 'libtensorflow_r1_12_windows_gpu.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
@@ -101,20 +101,14 @@ async function downloadLibtensorflow(callback) {
   await ensureDir(depsPath);
 
   // If HTTPS_PROXY, https_proxy, HTTP_PROXY, or http_proxy is set
-  const proxy = process.env['HTTPS_PROXY']
-    || process.env['https_proxy']
-    || process.env['HTTP_PROXY']
-    || process.env['http_proxy']
-    || '';
+  const proxy = process.env['HTTPS_PROXY'] || process.env['https_proxy'] ||
+      process.env['HTTP_PROXY'] || process.env['http_proxy'] || '';
 
-    // Using object destructuring to construct the options object for the
-    // http request.  the '...url.parse(targetUri)' part fills in the host,
-    // path, protocol, etc from the targetUri and then we set the agent to the
-    // default agent which is overridden a few lines down if there is a proxy
-    const options = {
-    ...url.parse(targetUri),
-    agent: https.globalAgent
-  };
+  // Using object destructuring to construct the options object for the
+  // http request.  the '...url.parse(targetUri)' part fills in the host,
+  // path, protocol, etc from the targetUri and then we set the agent to the
+  // default agent which is overridden a few lines down if there is a proxy
+  const options = {...url.parse(targetUri), agent: https.globalAgent};
 
   if (proxy !== '') {
     options.agent = new HttpsProxyAgent(proxy);
