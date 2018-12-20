@@ -1,8 +1,9 @@
 os:
   - linux
   - osx
+  - windows
 language: node_js
-node_js: "8"
+node_js: "10"
 script:
   - ./scripts/test-travis.sh
 cache: yarn
