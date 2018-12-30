@@ -57,7 +57,7 @@ async function getTargetUri() {
       if (os.arch() === 'arm') {
         const foundValidCpu = os.cpus().find(cpu => cpu.model.indexOf('v7l') > 0)
         if (foundValidCpu) {
-          targetUri += ARM_BASE_URI + CPU_ARMV7L;
+          targetUri = ARM_BASE_URI + CPU_ARMV7L;
         } else {
           throw new Error('Unsupported cpu arch: arm');
         }
