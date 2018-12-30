@@ -35,8 +35,10 @@ const unlink = util.promisify(fs.unlink);
 const exec = util.promisify(cp.exec);
 
 const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
+const ARM_BASE_URI = 'https://storage.googleapis.com/tf-arm-builds/';
 const CPU_DARWIN = 'libtensorflow_r1_11_darwin.tar.gz';
 const CPU_LINUX = 'libtensorflow_r1_11_linux_cpu.tar.gz';
+const CPU_ARMV7L = 'libtensorflow_r1_13_armv7l.tar.gz';
 const GPU_LINUX = 'libtensorflow_r1_11_linux_gpu.tar.gz';
 const CPU_WINDOWS = 'libtensorflow_r1_11_windows_cpu.zip';
 const GPU_WINDOWS = 'libtensorflow_r1_11_windows_gpu.zip';
@@ -52,7 +54,16 @@ async function getTargetUri() {
     if (libType === 'gpu') {
       targetUri += GPU_LINUX;
     } else {
-      targetUri += CPU_LINUX;
+      if (os.arch() === 'arm') {
+        const foundValidCpu = os.cpus().find(cpu => cpu.model.indexOf('v7l') > 0)
+        if (foundValidCpu) {
+          targetUri += ARM_BASE_URI + CPU_ARMV7L;
+        } else {
+          throw new Error('Unsupported cpu arch: arm');
+        }
+      } else {
+        targetUri += CPU_LINUX;
+      }
     }
   } else if (platform === 'darwin') {
     targetUri += CPU_DARWIN;
@@ -107,11 +118,11 @@ async function downloadLibtensorflow(callback) {
     || process.env['http_proxy']
     || '';
 
-    // Using object destructuring to construct the options object for the
-    // http request.  the '...url.parse(targetUri)' part fills in the host,
-    // path, protocol, etc from the targetUri and then we set the agent to the
-    // default agent which is overridden a few lines down if there is a proxy
-    const options = {
+  // Using object destructuring to construct the options object for the
+  // http request.  the '...url.parse(targetUri)' part fills in the host,
+  // path, protocol, etc from the targetUri and then we set the agent to the
+  // default agent which is overridden a few lines down if there is a proxy
+  const options = {
     ...url.parse(targetUri),
     agent: https.globalAgent
   };
@@ -134,33 +145,33 @@ async function downloadLibtensorflow(callback) {
       const tempFileName = path.join(__dirname, '_libtensorflow.zip');
       const outputFile = fs.createWriteStream(tempFileName);
       response
-          .on('data',
-              (chunk) => {
-                bar.tick(chunk.length);
-              })
-          .pipe(outputFile)
-          .on('close', async () => {
-            const zipFile = new zip(tempFileName);
-            zipFile.extractAllTo(depsPath, true /* overwrite */);
-            await unlink(tempFileName);
+        .on('data',
+          (chunk) => {
+            bar.tick(chunk.length);
+          })
+        .pipe(outputFile)
+        .on('close', async () => {
+          const zipFile = new zip(tempFileName);
+          zipFile.extractAllTo(depsPath, true /* overwrite */);
+          await unlink(tempFileName);
 
-            if (callback !== undefined) {
-              callback();
-            }
-          });
+          if (callback !== undefined) {
+            callback();
+          }
+        });
     } else {
       // All other platforms use a tarball:
       response
-          .on('data',
-              (chunk) => {
-                bar.tick(chunk.length);
-              })
-          .pipe(tar.x({C: depsPath, strict: true}))
-          .on('close', () => {
-            if (callback !== undefined) {
-              callback();
-            }
-          });
+        .on('data',
+          (chunk) => {
+            bar.tick(chunk.length);
+          })
+        .pipe(tar.x({C: depsPath, strict: true}))
+        .on('close', () => {
+          if (callback !== undefined) {
+            callback();
+          }
+        });
     }
     request.end();
   });
