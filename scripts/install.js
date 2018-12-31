@@ -53,20 +53,18 @@ async function getTargetUri() {
   if (platform === 'linux') {
     if (libType === 'gpu') {
       targetUri += GPU_LINUX;
-    } else {
-      if (os.arch() === 'arm') {
-        const cpus = os.cpus();
-        const cpuModel = (cpus.length > 0 && cpus[0].model) || 'Unknown';
-        const isArmv7l = /v7l/i.test(cpuModel);
-        if (isArmv7l) {
-          targetUri = ARM_BASE_URI + CPU_ARMV7L;
-        } else {
-          throw new Error(`Unsupported arm cpu: ${cpuModel}`);
-        }
+    } else if (os.arch() === 'arm') {
+      const cpus = os.cpus();
+      const cpuModel = (cpus.length > 0 && cpus[0].model) || 'Unknown';
+      const isArmv7l = /v7l/i.test(cpuModel);
+      if (isArmv7l) {
+        targetUri = ARM_BASE_URI + CPU_ARMV7L;
       } else {
-        targetUri += CPU_LINUX;
+        throw new Error(`Unsupported arm cpu: ${cpuModel}`);
       }
-    }
+    } else {
+      targetUri += CPU_LINUX;
+    }    
   } else if (platform === 'darwin') {
     targetUri += CPU_DARWIN;
   } else if (platform === 'win32') {
