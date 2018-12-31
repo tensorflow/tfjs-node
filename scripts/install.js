@@ -55,11 +55,13 @@ async function getTargetUri() {
       targetUri += GPU_LINUX;
     } else {
       if (os.arch() === 'arm') {
-        const foundValidCpu = os.cpus().find(cpu => cpu.model.indexOf('v7l') > 0)
-        if (foundValidCpu) {
+        const cpus = os.cpus();
+        const cpuModel = (cpus.length > 0 && cpus[0].model) || 'Unknown';
+        const isArmv7l = /v7l/i.test(cpuModel);
+        if (isArmv7l) {
           targetUri = ARM_BASE_URI + CPU_ARMV7L;
         } else {
-          throw new Error('Unsupported cpu arch: arm');
+          throw new Error(`Unsupported arm cpu: ${cpuModel}`);
         }
       } else {
         targetUri += CPU_LINUX;
