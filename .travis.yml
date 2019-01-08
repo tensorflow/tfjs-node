@@ -18,3 +18,5 @@ notifications:
     on_success: never
     on_failure: always
     on_pull_requests: false
+env:
+  - YARN_GPG=no
