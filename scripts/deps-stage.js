@@ -19,9 +19,11 @@ const path = require('path');
 const util = require('util');
 
 const copy = util.promisify(fs.copyFile);
+const os = require('os');
 const rename = util.promisify(fs.rename);
 const symlink = util.promisify(fs.symlink);
-const {libName, depsLibPath} = require('./deps-constants.js');
+// TODO - clean this up
+const {libName, depsPath, depsLibPath} = require('./deps-constants.js');
 
 const action = process.argv[2];
 let targetDir = process.argv[3];
@@ -43,6 +45,10 @@ async function symlinkDepsLib() {
   }
   try {
     await symlink(depsLibPath, destLibPath);
+    if (os.platform() === 'linux') {
+      const frameworkLibName = 'libtensorflow_framework.so';
+      await symlink(path.join(depsPath, 'lib', frameworkLibName), path.join(targetDir, frameworkLibName));
+    }
   } catch (e) {
     console.error(
         `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
