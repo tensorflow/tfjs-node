@@ -22,7 +22,7 @@ const copy = util.promisify(fs.copyFile);
 const os = require('os');
 const rename = util.promisify(fs.rename);
 const symlink = util.promisify(fs.symlink);
-const {libName, depsLibTensorFlowPath, depsLibTensorFlowFrameworkPath} =
+const {depsLibTensorFlowFrameworkPath, depsLibTensorFlowPath, frameworkLibName, libName} =
     require('./deps-constants.js');
 
 const action = process.argv[2];
