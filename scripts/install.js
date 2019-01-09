@@ -34,12 +34,13 @@ const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
 const exec = util.promisify(cp.exec);
 
-const BASE_URI = 'https://storage.googleapis.com/tf-builds/';
-const CPU_DARWIN = 'libtensorflow_r1_12_darwin.tar.gz';
-const CPU_LINUX = 'libtensorflow_r1_12_linux_cpu.tar.gz';
-const GPU_LINUX = 'libtensorflow_r1_12_linux_gpu.tar.gz';
-const CPU_WINDOWS = 'libtensorflow_r1_12_windows_cpu.zip';
-const GPU_WINDOWS = 'libtensorflow_r1_12_windows_gpu.zip';
+const BASE_URI =
+    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
+const CPU_DARWIN = 'cpu-darwin-x86_64-1.12.0.tar.gz';
+const CPU_LINUX = 'cpu-linux-x86_64-1.12.0.tar.gz';
+const GPU_LINUX = 'gpu-linux-x86_64-1.12.0.tar.gz';
+const CPU_WINDOWS = 'cpu-windows-x86_64-1.12.0.zip';
+const GPU_WINDOWS = 'gpu-windows-x86_64-1.12.0.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
