@@ -4,8 +4,8 @@ os:
   - windows
 language: node_js
 node_js:
-  "10"
-  "8"
+  - "10"
+  - "8"
 script:
   - ./scripts/test-travis.sh
 cache: yarn
