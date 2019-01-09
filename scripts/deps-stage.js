@@ -22,7 +22,7 @@ const copy = util.promisify(fs.copyFile);
 const os = require('os');
 const rename = util.promisify(fs.rename);
 const symlink = util.promisify(fs.symlink);
-const {libName, depsLibPath, depsLibTensorFlowPath, frameworkLibName} =
+const {libName, depsLibTensorFlowPath, depsLibTensorFlowFrameworkPath} =
     require('./deps-constants.js');
 
 const action = process.argv[2];
@@ -34,7 +34,6 @@ if (targetDir != undefined && targetDir.endsWith('"')) {
 }
 
 const destLibPath = path.join(targetDir, libName);
-
 
 /**
  * Symlinks the extracted libtensorflow library to the destination path. If the
@@ -49,7 +48,7 @@ async function symlinkDepsLib() {
     // Linux will require this library as well:
     if (os.platform() === 'linux') {
       await symlink(
-          path.join(depsLibPath, frameworkLibName),
+          depsLibTensorFlowFrameworkPath,
           path.join(targetDir, frameworkLibName));
     }
   } catch (e) {
@@ -59,7 +58,7 @@ async function symlinkDepsLib() {
     // Linux will require this library as well:
     if (os.platform() === 'linux') {
       await copy(
-          path.join(depsLibPath, frameworkLibName),
+          depsLibTensorFlowFrameworkPath,
           path.join(targetDir, frameworkLibName));
     }
   }
