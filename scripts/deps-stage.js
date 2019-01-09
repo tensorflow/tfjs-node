@@ -22,8 +22,8 @@ const copy = util.promisify(fs.copyFile);
 const os = require('os');
 const rename = util.promisify(fs.rename);
 const symlink = util.promisify(fs.symlink);
-// TODO - clean this up
-const {libName, depsPath, depsLibPath} = require('./deps-constants.js');
+const {libName, depsLibPath, depsLibTensorFlowPath, frameworkLibName} =
+    require('./deps-constants.js');
 
 const action = process.argv[2];
 let targetDir = process.argv[3];
@@ -35,6 +35,7 @@ if (targetDir != undefined && targetDir.endsWith('"')) {
 
 const destLibPath = path.join(targetDir, libName);
 
+
 /**
  * Symlinks the extracted libtensorflow library to the destination path. If the
  * symlink fails, a copy is made.
@@ -44,15 +45,23 @@ async function symlinkDepsLib() {
     throw new Error('Destination path not supplied!');
   }
   try {
-    await symlink(depsLibPath, destLibPath);
+    await symlink(depsLibTensorFlowPath, destLibPath);
+    // Linux will require this library as well:
     if (os.platform() === 'linux') {
-      const frameworkLibName = 'libtensorflow_framework.so';
-      await symlink(path.join(depsPath, 'lib', frameworkLibName), path.join(targetDir, frameworkLibName));
+      await symlink(
+          path.join(depsLibPath, frameworkLibName),
+          path.join(targetDir, frameworkLibName));
     }
   } catch (e) {
     console.error(
         `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
-    await copy(depsLibPath, destLibPath);
+    await copy(depsLibTensorFlowPath, destLibPath);
+    // Linux will require this library as well:
+    if (os.platform() === 'linux') {
+      await copy(
+          path.join(depsLibPath, frameworkLibName),
+          path.join(targetDir, frameworkLibName));
+    }
   }
 }
 
@@ -60,7 +69,7 @@ async function symlinkDepsLib() {
  * Moves the deps library path to the destination path.
  */
 async function moveDepsLib() {
-  await rename(depsLibPath, destLibPath);
+  await rename(depsLibTensorFlowPath, destLibPath);
 }
 
 /**

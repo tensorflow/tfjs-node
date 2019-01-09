@@ -26,7 +26,7 @@ const zip = require('adm-zip');
 const cp = require('child_process');
 const os = require('os');
 const ProgressBar = require('progress');
-const {depsPath, depsLibPath} = require('./deps-constants.js');
+const {depsPath, depsLibTensorFlowPath} = require('./deps-constants.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -102,20 +102,14 @@ async function downloadLibtensorflow(callback) {
   await ensureDir(depsPath);
 
   // If HTTPS_PROXY, https_proxy, HTTP_PROXY, or http_proxy is set
-  const proxy = process.env['HTTPS_PROXY']
-    || process.env['https_proxy']
-    || process.env['HTTP_PROXY']
-    || process.env['http_proxy']
-    || '';
+  const proxy = process.env['HTTPS_PROXY'] || process.env['https_proxy'] ||
+      process.env['HTTP_PROXY'] || process.env['http_proxy'] || '';
 
-    // Using object destructuring to construct the options object for the
-    // http request.  the '...url.parse(targetUri)' part fills in the host,
-    // path, protocol, etc from the targetUri and then we set the agent to the
-    // default agent which is overridden a few lines down if there is a proxy
-    const options = {
-    ...url.parse(targetUri),
-    agent: https.globalAgent
-  };
+  // Using object destructuring to construct the options object for the
+  // http request.  the '...url.parse(targetUri)' part fills in the host,
+  // path, protocol, etc from the targetUri and then we set the agent to the
+  // default agent which is overridden a few lines down if there is a proxy
+  const options = {...url.parse(targetUri), agent: https.globalAgent};
 
   if (proxy !== '') {
     options.agent = new HttpsProxyAgent(proxy);
@@ -184,7 +178,7 @@ async function build() {
  */
 async function run() {
   // First check if deps library exists:
-  if (forceDownload !== 'download' && await exists(depsLibPath)) {
+  if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
     // Library has already been downloaded, then compile and simlink:
     await build();
   } else {

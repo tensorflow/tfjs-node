@@ -17,8 +17,20 @@
 const os = require('os');
 const path = require('path');
 
-const libName = os.platform() === 'win32' ? 'tensorflow.dll' : 'libtensorflow.so';
+const libName =
+    os.platform() === 'win32' ? 'tensorflow.dll' : 'libtensorflow.so';
 const depsPath = path.join(__dirname, '..', 'deps');
-const depsLibPath = path.join(depsPath, 'lib', libName);
+const depsLibPath = path.join(depsPath, 'lib');
+const depsLibTensorFlowPath = path.join(depsLibPath, libName);
 
-module.exports = {libName, depsPath, depsLibPath};
+// Linux only library:
+const frameworkLibName =
+    os.platform() === 'linux' ? 'libtensorflow_framework.so' : '';
+
+module.exports = {
+  libName,
+  depsPath,
+  depsLibPath,
+  depsLibTensorFlowPath,
+  frameworkLibName
+};
