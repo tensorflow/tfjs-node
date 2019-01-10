@@ -224,9 +224,11 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   unstack(x: Tensor<Rank>, axis: number): Tensor[] {
-    // TODO(kreeger): Validate this?
+    if (x.shape.length > axis) {
+      throw new Error(
+          `Invalid axis supplied: ${axis} shape length: ${x.shape.length}`);
+    }
     const num = x.shape[axis];
-
     const opAttrs = [
       {name: 'num', type: this.binding.TF_ATTR_INT, value: num},
       createTypeOpAttr('T', x.dtype),
