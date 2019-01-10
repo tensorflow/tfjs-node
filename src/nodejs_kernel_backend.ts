@@ -35,13 +35,13 @@ type TensorInfo = {
 
 interface DataId {}
 
-export class NodeJSKernelBackend extends KernelBackend {
+export class NodeJSKernelBackend implements KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding, packageName: string) {
-    super();
+    // super();
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
   }
@@ -221,6 +221,18 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput(
                'StridedSlice', opAttrs,
                [x, beginTensor, endTensor, stridesTensor]) as T;
+  }
+
+  unstack(x: Tensor<Rank>, axis: number): Tensor[] {
+    // TODO(kreeger): Validate this?
+    const num = x.shape[axis];
+
+    const opAttrs = [
+      {name: 'num', type: this.binding.TF_ATTR_INT, value: num},
+      createTypeOpAttr('T', x.dtype),
+      {name: 'axis', type: this.binding.TF_ATTR_INT, value: axis}
+    ];
+    return this.executeMultipleOutputs('Unpack', opAttrs, [x], num);
   }
 
   batchMatMul(
@@ -508,6 +520,10 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   relu<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Relu', x) as T;
+  }
+
+  prelu<T extends Tensor<Rank>>(x: T, a: T): T {
+    throw new Error('Method not implemented.');
   }
 
   elu<T extends Tensor>(x: T): T {
