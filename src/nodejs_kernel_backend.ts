@@ -224,7 +224,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   unstack(x: Tensor<Rank>, axis: number): Tensor[] {
-    if (axis > x.shape.length) {
+    if (axis >= x.shape.length) {
       throw new Error(
           `Invalid axis supplied: ${axis} shape length: ${x.shape.length}`);
     }
