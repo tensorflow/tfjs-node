@@ -523,7 +523,9 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   prelu<T extends Tensor<Rank>>(x: T, a: T): T {
-    throw new Error('Method not implemented.');
+    const pos = this.relu(x);
+    const neg = a.mul(x.sub(this.abs(x))).mul(0.5);
+    return pos.add(neg);
   }
 
   elu<T extends Tensor>(x: T): T {
