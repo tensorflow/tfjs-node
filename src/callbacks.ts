@@ -44,14 +44,17 @@ export class ProgbarLogger extends CustomCallback {
       onTrainBegin: async (logs?: Logs) => {
         const samples = this.params.samples as number;
         const batchSize = this.params.batchSize as number;
+        const steps = this.params.steps as number;
         util.assert(
-            samples != null,
-            'ProgbarLogger cannot operate when samples is undefined or null.');
+            samples != null || steps != null,
+            'ProgbarLogger cannot operate when samples and steps are both ' +
+                'undefined or null.');
         util.assert(
-            batchSize != null,
-            'ProgbarLogger cannot operate when batchSize is undefined or ' +
-                'null.');
-        this.numTrainBatchesPerEpoch = Math.ceil(samples / batchSize);
+            batchSize != null || steps != null,
+            'ProgbarLogger cannot operate when batchSize and steps are both ' +
+                ' undefined or null.');
+        this.numTrainBatchesPerEpoch =
+            samples != null ? Math.ceil(samples / batchSize) : steps;
       },
       onEpochBegin: async (epoch: number, logs?: Logs) => {
         progressBarHelper.log(`Epoch ${epoch + 1} / ${this.params.epochs}`);
@@ -69,8 +72,9 @@ export class ProgbarLogger extends CustomCallback {
         await nextFrame();
         if (batch === this.numTrainBatchesPerEpoch - 1) {
           this.epochDurationMillis = util.now() - this.currentEpochBegin;
-          this.usPerStep =
-              this.epochDurationMillis / (this.params.samples as number) * 1e3;
+          this.usPerStep = this.params.samples != null ?
+              this.epochDurationMillis / (this.params.samples as number) * 1e3 :
+              this.epochDurationMillis / 1e3;
         }
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
