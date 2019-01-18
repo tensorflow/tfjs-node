@@ -35,6 +35,7 @@ export class ProgbarLogger extends CustomCallback {
   private currentEpochBegin: number;
   private epochDurationMillis: number;
   private usPerStep: number;
+  private epochBatches: number;
 
   /**
    * Construtor of LoggingCallback.
@@ -45,39 +46,55 @@ export class ProgbarLogger extends CustomCallback {
         const samples = this.params.samples as number;
         const batchSize = this.params.batchSize as number;
         const steps = this.params.steps as number;
-        util.assert(
-            samples != null || steps != null,
-            'ProgbarLogger cannot operate when samples and steps are both ' +
-                'undefined or null.');
-        util.assert(
-            batchSize != null || steps != null,
-            'ProgbarLogger cannot operate when batchSize and steps are both ' +
-                ' undefined or null.');
-        this.numTrainBatchesPerEpoch =
-            samples != null ? Math.ceil(samples / batchSize) : steps;
+        if (samples != null || steps != null) {
+          this.numTrainBatchesPerEpoch =
+              samples != null ? Math.ceil(samples / batchSize) : steps;
+        } else {
+          // Undetermined number of batches per epoch, e.g., due to
+          // fitDataset() without `batchesPerEpoch`.
+          // TODO(cais): Unit test coverage. DO NOT SUBMIT.
+          this.numTrainBatchesPerEpoch = 0;
+        }
       },
       onEpochBegin: async (epoch: number, logs?: Logs) => {
         progressBarHelper.log(`Epoch ${epoch + 1} / ${this.params.epochs}`);
         this.currentEpochBegin = util.now();
+        this.epochDurationMillis = null;
+        this.usPerStep = null;
+        this.epochBatches = 0;
       },
       onBatchEnd: async (batch: number, logs?: Logs) => {
+        this.epochBatches++;
         if (batch === 0) {
           this.progressBar = new progressBarHelper.ProgressBar(
               'eta=:eta :bar :placeholderForLossesAndMetrics',
               {total: this.numTrainBatchesPerEpoch + 1, head: `>`});
         }
-        this.progressBar.tick({
+        const tickTokens = {
           placeholderForLossesAndMetrics: this.formatLogsAsMetricsContent(logs)
-        });
+        };
+        if (this.numTrainBatchesPerEpoch === 0) {
+          // Undetermined number of batches per epoch.
+          this.progressBar.tick(0, tickTokens);
+        } else {
+          this.progressBar.tick(tickTokens);
+        }
         await nextFrame();
         if (batch === this.numTrainBatchesPerEpoch - 1) {
           this.epochDurationMillis = util.now() - this.currentEpochBegin;
           this.usPerStep = this.params.samples != null ?
               this.epochDurationMillis / (this.params.samples as number) * 1e3 :
-              this.epochDurationMillis / 1e3;
+              this.epochDurationMillis / this.epochBatches * 1e3;
         }
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
+        if (this.epochDurationMillis == null) {
+          // In cases where the number of batches per epoch is not determined,
+          // the calculation of the per-step duration is done at the end of the
+          // epoch. N.B., this includes the time spent on validation.
+          this.epochDurationMillis = util.now() - this.currentEpochBegin;
+          this.usPerStep = this.epochDurationMillis / this.epochBatches * 1e3;
+        }
         this.progressBar.tick({placeholderForLossesAndMetrics: ''});
         const lossesAndMetricsString = this.formatLogsAsMetricsContent(logs);
         progressBarHelper.log(
