@@ -198,6 +198,40 @@ describe('progbarLogger', () => {
     expect(consoleMessages[3]).toMatch(/.*ms .*us\/step - loss=.*/);
   });
 
+  fit('Model.fitDataset: batchesPerEpoch unavailable, verbose = 1', async () => {
+    const fakeProgbars: FakeProgbar[] = [];
+    spyOn(progressBarHelper, 'ProgressBar')
+        .and.callFake((specs: string, config: {}) => {
+          const fakeProgbar = new FakeProgbar(specs, config);
+          fakeProgbars.push(fakeProgbar);
+          return fakeProgbar;
+        });
+    const consoleMessages: string[] = [];
+    spyOn(progressBarHelper, 'log').and.callFake((message: string) => {
+      consoleMessages.push(message);
+    });
+
+    const epochs = 2;
+    const xDataset = tf.data.array([[1, 2], [3, 4], [5, 6], [7, 8]])
+                         .map(x => tf.tensor2d(x, [1, 2]));
+    const yDataset =
+        tf.data.array([[1], [2], [3], [4]]).map(y => tf.tensor2d(y, [1, 1]));
+    const dataset = tf.data.zip([xDataset, yDataset]).repeat(epochs);
+
+    const model = tf.sequential();
+    model.add(tf.layers.dense({units: 1, inputShape: [2]}));
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    // `batchesPerEpoch` is not specified. Instead, `fitDataset()` relies on the
+    // `done` field being `true` to terminate the epoch(s).
+    await model.fitDataset(dataset, {epochs, verbose: 1});
+
+    expect(consoleMessages.length).toEqual(4);
+    expect(consoleMessages[0]).toEqual('Epoch 1 / 2');
+    expect(consoleMessages[1]).toMatch(/.*ms .*us\/step - loss=.*/);
+    expect(consoleMessages[2]).toEqual('Epoch 2 / 2');
+    expect(consoleMessages[3]).toMatch(/.*ms .*us\/step - loss=.*/);
+  });
+
   it('Model.fitDataset: verbose = 0 leads to no logging', async () => {
     const fakeProgbars: FakeProgbar[] = [];
     spyOn(progressBarHelper, 'ProgressBar')

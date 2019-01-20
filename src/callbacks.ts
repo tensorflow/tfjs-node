@@ -51,7 +51,7 @@ export class ProgbarLogger extends CustomCallback {
               samples != null ? Math.ceil(samples / batchSize) : steps;
         } else {
           // Undetermined number of batches per epoch, e.g., due to
-          // fitDataset() without `batchesPerEpoch`.
+          // `fitDataset()` without `batchesPerEpoch`.
           // TODO(cais): Unit test coverage. DO NOT SUBMIT.
           this.numTrainBatchesPerEpoch = 0;
         }
