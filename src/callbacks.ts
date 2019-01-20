@@ -35,7 +35,7 @@ export class ProgbarLogger extends CustomCallback {
   private currentEpochBegin: number;
   private epochDurationMillis: number;
   private usPerStep: number;
-  private epochBatches: number;
+  private batchesInLatestEpoch: number;
 
   /**
    * Construtor of LoggingCallback.
@@ -52,7 +52,6 @@ export class ProgbarLogger extends CustomCallback {
         } else {
           // Undetermined number of batches per epoch, e.g., due to
           // `fitDataset()` without `batchesPerEpoch`.
-          // TODO(cais): Unit test coverage. DO NOT SUBMIT.
           this.numTrainBatchesPerEpoch = 0;
         }
       },
@@ -61,10 +60,10 @@ export class ProgbarLogger extends CustomCallback {
         this.currentEpochBegin = util.now();
         this.epochDurationMillis = null;
         this.usPerStep = null;
-        this.epochBatches = 0;
+        this.batchesInLatestEpoch = 0;
       },
       onBatchEnd: async (batch: number, logs?: Logs) => {
-        this.epochBatches++;
+        this.batchesInLatestEpoch++;
         if (batch === 0) {
           this.progressBar = new progressBarHelper.ProgressBar(
               'eta=:eta :bar :placeholderForLossesAndMetrics',
@@ -84,7 +83,7 @@ export class ProgbarLogger extends CustomCallback {
           this.epochDurationMillis = util.now() - this.currentEpochBegin;
           this.usPerStep = this.params.samples != null ?
               this.epochDurationMillis / (this.params.samples as number) * 1e3 :
-              this.epochDurationMillis / this.epochBatches * 1e3;
+              this.epochDurationMillis / this.batchesInLatestEpoch * 1e3;
         }
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
@@ -93,7 +92,7 @@ export class ProgbarLogger extends CustomCallback {
           // the calculation of the per-step duration is done at the end of the
           // epoch. N.B., this includes the time spent on validation.
           this.epochDurationMillis = util.now() - this.currentEpochBegin;
-          this.usPerStep = this.epochDurationMillis / this.epochBatches * 1e3;
+          this.usPerStep = this.epochDurationMillis / this.batchesInLatestEpoch * 1e3;
         }
         this.progressBar.tick({placeholderForLossesAndMetrics: ''});
         const lossesAndMetricsString = this.formatLogsAsMetricsContent(logs);
