@@ -198,7 +198,7 @@ describe('progbarLogger', () => {
     expect(consoleMessages[3]).toMatch(/.*ms .*us\/step - loss=.*/);
   });
 
-  fit('Model.fitDataset: batchesPerEpoch unavailable, verbose = 1', async () => {
+  it('Model.fitDataset: batchesPerEpoch unavailable, verbose = 1', async () => {
     const fakeProgbars: FakeProgbar[] = [];
     spyOn(progressBarHelper, 'ProgressBar')
         .and.callFake((specs: string, config: {}) => {
