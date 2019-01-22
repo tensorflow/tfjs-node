@@ -331,6 +331,62 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
   }
 }
 
+void CopyTFE_TensorHandleDataToResourceArray(
+    napi_env env, TFE_Context *tfe_context, TFE_TensorHandle *tfe_tensor_handle,
+    napi_value *result) {
+  TF_AutoStatus tf_status;
+
+  TF_AutoTensor tensor(
+      TFE_TensorHandleResolve(tfe_tensor_handle, tf_status.status));
+  ENSURE_TF_OK(env, tf_status);
+
+  std::cout << "CopyTFE_TensorHandleDataToResourceArray(): 0: "
+            << "dtype = " << TF_TensorType(tensor.tensor)
+            << std::endl;  // DEBUG
+  if (TF_TensorType(tensor.tensor) != TF_RESOURCE) {
+    NAPI_THROW_ERROR(env, "Tensor is not of type  TF_RESOURCE");
+    return;
+  }
+
+  void *tensor_data = TF_TensorData(tensor.tensor);
+  ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
+
+  size_t byte_length = TF_TensorByteSize(tensor.tensor);
+  std::cout << "CopyTFE_TensorHandleDataToResourceArray(): 10: "
+            << "byte_length = " << byte_length << std::endl;  // DEBUG
+  const char *limit = static_cast<const char *>(tensor_data) + byte_length;
+
+  size_t num_elements = GetTensorNumElements(tensor.tensor);
+  std::cout << "CopyTFE_TensorHandleDataToResourceArray(): 20: "
+            << "num_elements = " << num_elements << std::endl;  // DEBUG
+
+  // String values are stored in offsets.
+  const char *data = static_cast<const char *>(tensor_data);
+  // const size_t offsets_size = sizeof(char) * num_elements;
+
+  // Skip passed the offsets and find the first string:
+  // const char *data = static_cast<const char *>(tensor_data) + offsets_size;
+
+  TF_AutoStatus status;
+
+  // Create a JS string to stash strings into
+  napi_status nstatus;
+  nstatus = napi_create_array_with_length(env, byte_length, result);
+  std::cout << "CopyTFE_TensorHandleDataToResourceArray(): 30: "
+            << "created array with length = " << byte_length
+            << std::endl;  // DEBUG
+
+  char *str_ptr = (char *)malloc(sizeof(char *) * byte_length);
+  memcpy(str_ptr, data, byte_length);
+
+  napi_value str_value;
+  nstatus = napi_create_string_utf8(env, str_ptr, byte_length, &str_value);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  nstatus = napi_set_element(env, *result, 0, str_value);
+  ENSURE_NAPI_OK(env, nstatus);
+}
+
 // Handles converting the stored TF_Tensor data into the correct JS value.
 void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
                                       TFE_TensorHandle *tfe_tensor_handle,
@@ -348,6 +404,7 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
   // Determine the type of the array
   napi_typedarray_type typed_array_type;
   bool is_string = false;
+  bool is_resource = false;
   TF_DataType tensor_data_type = TFE_TensorHandleDataType(tfe_tensor_handle);
   switch (tensor_data_type) {
     case TF_COMPLEX64:
@@ -366,7 +423,8 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
     case TF_RESOURCE:
       std::cout << "CopyTFE_TensorHandleDataToJSData(): TF_RESORUCE type"
                 << std::endl;  // DEBUG
-      typed_array_type = napi_int32_array;
+      is_resource = true;
+      // typed_array_type = napi_int32_array;
       break;
     default:
       REPORT_UNKNOWN_TF_DATA_TYPE(env,
@@ -377,6 +435,9 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
   if (is_string) {
     CopyTFE_TensorHandleDataToStringArray(env, tfe_context, tfe_tensor_handle,
                                           result);
+  } else if (is_resource) {
+    CopyTFE_TensorHandleDataToResourceArray(env, tfe_context, tfe_tensor_handle,
+                                            result);
   } else {
     CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle,
                                          tensor_data_type, typed_array_type,

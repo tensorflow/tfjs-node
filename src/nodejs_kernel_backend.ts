@@ -62,8 +62,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     });
 
     let dtype: DataType;
-    console.log(`metadata.dtype = ${metadata.dtype}`);                  // DEBUG
-    console.log(`this.binding.TF_STRING = ${this.binding.TF_STRING}`);  // DEBUG
+    console.log(`metadata.dtype = ${metadata.dtype}`);  // DEBUG
     console.log(
         `this.binding.TF_RESOURCE = ${this.binding.TF_RESOURCE}`);  // DEBUG
     switch (metadata.dtype) {
@@ -85,7 +84,7 @@ export class NodeJSKernelBackend extends KernelBackend {
       case this.binding.TF_RESOURCE:
         // TODO(cais): This should probably be made into a resource-specific
         // type.
-        dtype = 'int32';
+        dtype = 'string';
         break;
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
@@ -1488,7 +1487,11 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const writerResource =
         this.executeSingleOutput('SummaryWriter', opAttrs, []);
-    console.log(`writerResource = ${writerResource}`);  // DEBUG
+    writerResource.print();                                         // DEBUG
+    console.log(`writerResource.dtype = ${writerResource.dtype}`);  // DEBUG
+    console.log(
+        `writerResource.shape = ` +
+        `${JSON.stringify(writerResource.shape)}`);  // DEBUG
     return scalar(1337);  // TODO(cais): Implement this.
   }
 
