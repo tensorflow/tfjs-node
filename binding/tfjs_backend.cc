@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
@@ -586,6 +587,10 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
     // API. https://github.com/tensorflow/tfjs/issues/320
     device_name =
         std::string(TF_DeviceListName(device_list, i, tf_status.status));
+
+    std::cerr << "device_name: " << device_name << " type: "
+              << TF_DeviceListType(device_list, i, tf_status.status)
+              << std::endl;
   }
   TF_DeleteDeviceList(device_list);
 }
