@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>  // DEBUG
 #include <memory>
 #include <set>
 #include <string>
@@ -229,6 +230,8 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
                                           TF_DataType tensor_data_type,
                                           napi_typedarray_type array_type,
                                           napi_value *result) {
+  std::cout << "CopyTFE_TensorHandleDataToTypedArray() 0:"
+            << std::endl;  // DEBUG
   TF_AutoStatus tf_status;
 
   TF_AutoTensor tensor(
@@ -237,6 +240,8 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
 
   // Determine the length of the array based on the shape of the tensor.
   size_t num_elements = GetTensorNumElements(tensor.tensor);
+  std::cout << "CopyTFE_TensorHandleDataToTypedArray() 10: num_elements = "
+            << num_elements << std::endl;  // DEBUG
 
   if (tensor_data_type == TF_COMPLEX64) {
     // Dimension length will be double for Complex 64.
@@ -244,6 +249,8 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   }
 
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
+  std::cout << "CopyTFE_TensorHandleDataToTypedArray() 20: byte_length = "
+            << byte_length << std::endl;  // DEBUG
 
   napi_value array_buffer_value;
   void *array_buffer_data;
@@ -328,6 +335,7 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
 void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
                                       TFE_TensorHandle *tfe_tensor_handle,
                                       napi_value *result) {
+  std::cout << "In CopyTFE_TensorHandleDataToJSData()" << std::endl;  // DEBUG
   if (tfe_context == nullptr) {
     NAPI_THROW_ERROR(env, "Invalid TFE_Context");
     return;
@@ -354,6 +362,11 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
       break;
     case TF_STRING:
       is_string = true;
+      break;
+    case TF_RESOURCE:
+      std::cout << "CopyTFE_TensorHandleDataToJSData(): TF_RESORUCE type"
+                << std::endl;  // DEBUG
+      typed_array_type = napi_int32_array;
       break;
     default:
       REPORT_UNKNOWN_TF_DATA_TYPE(env,

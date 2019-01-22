@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
@@ -62,6 +62,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     });
 
     let dtype: DataType;
+    console.log(`metadata.dtype = ${metadata.dtype}`);                  // DEBUG
+    console.log(`this.binding.TF_STRING = ${this.binding.TF_STRING}`);  // DEBUG
+    console.log(
+        `this.binding.TF_RESOURCE = ${this.binding.TF_RESOURCE}`);  // DEBUG
     switch (metadata.dtype) {
       case this.binding.TF_FLOAT:
         dtype = 'float32';
@@ -77,6 +81,11 @@ export class NodeJSKernelBackend extends KernelBackend {
         break;
       case this.binding.TF_STRING:
         dtype = 'string';
+        break;
+      case this.binding.TF_RESOURCE:
+        // TODO(cais): This should probably be made into a resource-specific
+        // type.
+        dtype = 'int32';
         break;
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
@@ -156,10 +165,12 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
+    console.log('In readSync()');  // DEBUG
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
     const info = this.tensorMap.get(dataId);
+    console.log(`readSync(): info = ${JSON.stringify(info)}`);  // DEBUG
     if (info.values != null) {
       return info.values;
     } else {
@@ -1459,6 +1470,32 @@ export class NodeJSKernelBackend extends KernelBackend {
     const outShape: [number, number, number] =
         [pixels.height, pixels.width, numChannels];
     return tensor3d(values, outShape, 'int32');
+  }
+
+  summaryWriter(): Scalar {
+    console.log('In node-backend summaryWriter()');
+    const opAttrs = [
+      {
+        name: 'shared_name',
+        type: this.binding.TF_ATTR_STRING,
+        value: `logdir:foo`  // TODO(cais): Use more specific name.
+      },
+      {
+        name: 'container',
+        type: this.binding.TF_ATTR_STRING,
+        value: `logdir:foo-container`  // TODO(cais): Use more specific name.
+      }
+    ];
+    const writerResource =
+        this.executeSingleOutput('SummaryWriter', opAttrs, []);
+    console.log(`writerResource = ${writerResource}`);  // DEBUG
+    return scalar(1337);  // TODO(cais): Implement this.
+  }
+
+  createSummaryFileWriter(
+      logdir: string, maxQueue?: number, flushMillis?: number,
+      filenameSuffix?: string): void {
+    // TODO(cais): Implement this.
   }
 
   memory() {
