@@ -92,7 +92,8 @@ export class ProgbarLogger extends CustomCallback {
           // the calculation of the per-step duration is done at the end of the
           // epoch. N.B., this includes the time spent on validation.
           this.epochDurationMillis = util.now() - this.currentEpochBegin;
-          this.usPerStep = this.epochDurationMillis / this.batchesInLatestEpoch * 1e3;
+          this.usPerStep =
+              this.epochDurationMillis / this.batchesInLatestEpoch * 1e3;
         }
         this.progressBar.tick({placeholderForLossesAndMetrics: ''});
         const lossesAndMetricsString = this.formatLogsAsMetricsContent(logs);
