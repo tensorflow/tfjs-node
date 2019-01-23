@@ -598,16 +598,12 @@ TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
       device_name =
           std::string(TF_DeviceListName(device_list, i, tf_status.status));
       ENSURE_TF_OK(env, tf_status);
-      this->device_type =
-          std::string(TF_DeviceListType(device_list, i, tf_status.status));
-      ENSURE_TF_OK(env, tf_status);
     }
   }
 
   // If no GPU devices found, fallback to host CPU:
   if (device_name.empty()) {
     device_name = cpu_device_name;
-    device_type = std::string("CPU");
   }
   TF_DeleteDeviceList(device_list);
 }

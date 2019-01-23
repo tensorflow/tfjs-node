@@ -70,7 +70,6 @@ class TFJSBackend {
   int32_t next_tensor_id_;
 
   std::string device_name;
-  std::string device_type;
 };
 
 }  // namespace tfnodejs
