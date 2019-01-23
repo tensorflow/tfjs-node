@@ -26,6 +26,10 @@ export function createSummaryWriter(
   const writerResource = backend.summaryWriter();
   console.log(writerResource);  // DEBUG
   // backend.createSummaryFileWriter2(writeRe)
-  console.log(writerResource.dataSync()[0]);  // DEBUG
-  // backend.createSummaryFileWriter()
+  const resourceHandle = writerResource.dataSync() as Uint8Array;
+  console.log(typeof resourceHandle);  // DEBUG
+  console.log(resourceHandle.length);  // DEBUG
+
+  backend.createSummaryFileWriter2(
+      writerResource, logdir, maxQueue, flushMillis, filenameSuffix);
 }

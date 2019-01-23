@@ -376,14 +376,28 @@ void CopyTFE_TensorHandleDataToResourceArray(
             << "created array with length = " << byte_length
             << std::endl;  // DEBUG
 
-  char *str_ptr = (char *)malloc(sizeof(char *) * byte_length);
-  memcpy(str_ptr, data, byte_length);
+  // char *str_ptr = (char *)malloc(sizeof(char *) * byte_length);
+  // memcpy(str_ptr, data, byte_length);
 
-  napi_value str_value;
-  nstatus = napi_create_string_utf8(env, str_ptr, byte_length, &str_value);
+  // napi_value str_value;
+  // nstatus = napi_create_string_utf8(env, str_ptr, byte_length, &str_value);
+  // ENSURE_NAPI_OK(env, nstatus);
+
+  // nstatus = napi_set_element(env, *result, 0, str_value);
+  // ENSURE_NAPI_OK(env, nstatus);
+
+  napi_value array_buffer_value;
+  void *array_buffer_data;
+  nstatus = napi_create_arraybuffer(env, byte_length, &array_buffer_data,
+                                    &array_buffer_value);
   ENSURE_NAPI_OK(env, nstatus);
 
-  nstatus = napi_set_element(env, *result, 0, str_value);
+  // TFE_TensorHandleResolve can use a shared data pointer, memcpy() the current
+  // value to the newly allocated NAPI buffer.
+  memcpy(array_buffer_data, tensor_data, byte_length);
+
+  nstatus = napi_create_typedarray(env, napi_uint8_array, byte_length,
+                                   array_buffer_value, 0, result);
   ENSURE_NAPI_OK(env, nstatus);
 }
 
@@ -423,6 +437,8 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
     case TF_RESOURCE:
       std::cout << "CopyTFE_TensorHandleDataToJSData(): TF_RESORUCE type"
                 << std::endl;  // DEBUG
+      // Represent a resource handle with an Uint8Array.
+      typed_array_type = napi_uint8_array;
       is_resource = true;
       // typed_array_type = napi_int32_array;
       break;
@@ -500,6 +516,9 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
   nstatus = GetStringParam(env, attr_name_value, attr_name_string);
   ENSURE_NAPI_OK(env, nstatus);
 
+  std::cout << "  attr_name_string = " << attr_name_string
+            << std::endl;  // DEBUG
+
   // OpAttr will be used beyond the scope of this function call. Stash ops in a
   // set for re-use instead of dynamically reallocating strings for operations.
   const char *attr_name =
@@ -532,6 +551,7 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_INT: {
+      std::cout << "  In TF_ATTR_FLOAT" << std::endl;  // DEBUG
       if (IsArray(env, nstatus, &js_value)) {
         uint32_t length;
         nstatus = napi_get_array_length(env, js_value, &length);
@@ -559,6 +579,7 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_FLOAT: {
+      std::cout << "  In TF_ATTR_FLOAT" << std::endl;  // DEBUG
       if (IsArray(env, nstatus, &js_value)) {
         uint32_t length;
         nstatus = napi_get_array_length(env, js_value, &length);
@@ -585,6 +606,7 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_BOOL: {
+      std::cout << "  In TF_ATTR_BOOL" << std::endl;  // DEBUG
       if (IsArray(env, nstatus, &js_value)) {
         uint32_t length;
         nstatus = napi_get_array_length(env, js_value, &length);
@@ -611,6 +633,7 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_TYPE: {
+      std::cout << "  In TF_ATTR_TYPE" << std::endl;  // DEBUG
       TF_DataType tf_data_type;
       nstatus = napi_get_value_int32(
           env, js_value, reinterpret_cast<int32_t *>(&tf_data_type));
@@ -621,6 +644,7 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_SHAPE: {
+      std::cout << "  In TF_ATTR_SHAPE" << std::endl;  // DEBUG
       std::vector<int64_t> shape_vector;
       ExtractArrayShape(env, js_value, &shape_vector);
 
@@ -632,6 +656,7 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     default:
+      std::cout << "  In default attr type" << std::endl;  // DEBUG
       REPORT_UNKNOWN_TF_ATTR_TYPE(env, tf_attr_type);
       break;
   }
@@ -763,6 +788,7 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
                                   napi_value op_attr_inputs,
                                   napi_value input_tensor_ids,
                                   napi_value num_output_values) {
+  std::cout << "TFJSBackend::ExecuteOp(): 0" << std::endl;  // DEBUG
   napi_status nstatus;
 
   std::string op_name;
@@ -778,6 +804,8 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   for (uint32_t i = 0; i < num_input_ids; i++) {
+    std::cout << "TFJSBackend::ExecuteOp(): input i = " << i
+              << std::endl;  // DEBUG
     napi_value cur_input_id;
     nstatus = napi_get_element(env, input_tensor_ids, i, &cur_input_id);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
@@ -801,11 +829,13 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   nstatus = napi_get_array_length(env, op_attr_inputs, &op_attrs_length);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+  std::cout << "TFJSBackend::ExecuteOp(): 50" << std::endl;  // DEBUG
   for (uint32_t i = 0; i < op_attrs_length; i++) {
     napi_value cur_op_attr;
     nstatus = napi_get_element(env, op_attr_inputs, i, &cur_op_attr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+    std::cout << "  i = " << i << std::endl;  // DEBUG
     AssignOpAttr(env, tfe_op.op, cur_op_attr);
 
     // Check to see if an exception exists, if so return a failure.

@@ -1471,7 +1471,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return tensor3d(values, outShape, 'int32');
   }
 
-  summaryWriter(): Scalar {
+  summaryWriter(): Tensor1D {
     console.log('In node-backend summaryWriter()');
     const opAttrs = [
       {
@@ -1492,31 +1492,41 @@ export class NodeJSKernelBackend extends KernelBackend {
     console.log(
         `writerResource.shape = ` +
         `${JSON.stringify(writerResource.shape)}`);  // DEBUG
-    return writerResource as Scalar;  // TODO(cais): Implement this.
+    return writerResource as Tensor1D;  // TODO(cais): Implement this.
   }
 
-  createSummaryFileWriter2(  // TODO(cais): Rename. DO NOT SUBMIT.
-      resourceHandle: string, logdir: string, maxQueue?: number,
-      flushMillis?: number, filenameSuffix?: string): void {
-    const opAttrs = [
-      {
-        name: 'writer',
-        type: this.binding.TF_ATTR_RESOURCE,
-        value: resourceHandle
-      },
-      {name: 'logdir', type: this.binding.TF_ATTR_STRING, value: logdir},
-      {name: 'max_queue', type: this.binding.TF_ATTR_INT, value: maxQueue}, {
-        name: 'flush_millis',
-        type: this.binding.TF_ATTR_INT,
-        value: flushMillis
-      },
-      {
-        name: 'filename_suffix',
-        type: this.binding.TF_ATTR_STRING,
-        value: filenameSuffix
-      }
+  createSummaryFileWriter2(    // TODO(cais): Rename. DO NOT SUBMIT.
+      resourceHandle: Tensor,  // TOOD(cais): Use more principled typing.
+      logdir: string, maxQueue?: number, flushMillis?: number,
+      filenameSuffix?: string): void {
+    // const inputArgs = [
+    //   {
+    //     name: 'writer',
+    //     type: this.binding.TF_ATTR_RESOURCE,
+    //     value: resourceHandle
+    //   },
+    //   {name: 'logdir', type: this.binding.TF_ATTR_STRING, value: logdir},
+    //   {name: 'max_queue', type: this.binding.TF_ATTR_INT, value: maxQueue}, {
+    //     name: 'flush_millis',
+    //     type: this.binding.TF_ATTR_INT,
+    //     value: flushMillis
+    //   },
+    //   {
+    //     name: 'filename_suffix',
+    //     type: this.binding.TF_ATTR_STRING,
+    //     value: filenameSuffix
+    //   }
+    // ];
+    console.log('createSummaryFileWriter2(): 0');  // DEBUG
+    const inputArgs = [
+      resourceHandle, scalar(logdir),
+      scalar(maxQueue == null ? 10 : maxQueue, 'int32'),
+      scalar(flushMillis == null ? 2 * 60 * 1000 : flushMillis, 'int32'),
+      scalar(filenameSuffix == null ? '.v2' : filenameSuffix)
     ];
-    this.executeMultipleOutputs('CreateSummaryFileWriter', opAttrs, [], 0);
+    console.log(  // DEBUG
+        `createSummaryFileWriter2(): inputArgs.length = ${inputArgs.length}`);
+    this.executeMultipleOutputs('CreateSummaryFileWriter', [], inputArgs, 0);
   }
 
   memory() {
