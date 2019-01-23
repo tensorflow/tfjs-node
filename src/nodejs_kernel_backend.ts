@@ -1492,13 +1492,31 @@ export class NodeJSKernelBackend extends KernelBackend {
     console.log(
         `writerResource.shape = ` +
         `${JSON.stringify(writerResource.shape)}`);  // DEBUG
-    return scalar(1337);  // TODO(cais): Implement this.
+    return writerResource as Scalar;  // TODO(cais): Implement this.
   }
 
-  createSummaryFileWriter(
-      logdir: string, maxQueue?: number, flushMillis?: number,
-      filenameSuffix?: string): void {
-    // TODO(cais): Implement this.
+  createSummaryFileWriter2(  // TODO(cais): Rename. DO NOT SUBMIT.
+      resourceHandle: string, logdir: string, maxQueue?: number,
+      flushMillis?: number, filenameSuffix?: string): void {
+    const opAttrs = [
+      {
+        name: 'writer',
+        type: this.binding.TF_ATTR_RESOURCE,
+        value: resourceHandle
+      },
+      {name: 'logdir', type: this.binding.TF_ATTR_STRING, value: logdir},
+      {name: 'max_queue', type: this.binding.TF_ATTR_INT, value: maxQueue}, {
+        name: 'flush_millis',
+        type: this.binding.TF_ATTR_INT,
+        value: flushMillis
+      },
+      {
+        name: 'filename_suffix',
+        type: this.binding.TF_ATTR_STRING,
+        value: filenameSuffix
+      }
+    ];
+    this.executeMultipleOutputs('CreateSummaryFileWriter', opAttrs, [], 0);
   }
 
   memory() {

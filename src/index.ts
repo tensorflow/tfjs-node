@@ -36,6 +36,9 @@ export const io = {
   ...tf.io,
   ...nodeIo
 };
+
+export * from './tensorboard';
+
 // Export all union package symbols
 export * from '@tensorflow/tfjs';
 

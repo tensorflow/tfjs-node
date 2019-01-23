@@ -2,7 +2,7 @@ import * as tf from './index';
 
 (async function main() {
   console.log(tf.version);
-  tf.createTensorBoardSummaryWriter('/tmp/tfjs_tb_logdir');
+  tf.createSummaryWriter('/tmp/tfjs_tb_logdir');
 
   // const x = tf.scalar(21.0);
   // const y = tf.neg(x);

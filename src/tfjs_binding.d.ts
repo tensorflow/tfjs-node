@@ -62,6 +62,7 @@ export interface TFJSBinding {
   TF_ATTR_BOOL: number;
   TF_ATTR_TYPE: number;
   TF_ATTR_SHAPE: number;
+  TF_ATTR_RESOURCE: number;
 
   TF_Version: string;
 }
