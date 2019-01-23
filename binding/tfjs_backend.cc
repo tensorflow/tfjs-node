@@ -649,8 +649,8 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
     return nullptr;
   }
 
-  // Copy non-int32 tensors to a device. Most GPU kernels expect to have int32
-  // tensors in host memory.
+  // Copy non-int32 and non-string tensors to a device. Most GPU kernels expect
+  // to have int32 tensors in host memory.
   if (dtype_int32 != TF_INT32 && dtype_int32 != TF_STRING) {
     // Note that this is a shallow copy and will share the underlying buffer
     // if copying to the same device.
