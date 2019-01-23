@@ -68,7 +68,9 @@ class TFJSBackend {
   TFE_Context* tfe_context_;
   std::map<int32_t, TFE_TensorHandle*> tfe_handle_map_;
   int32_t next_tensor_id_;
+
   std::string device_name;
+  std::string device_type;
 };
 
 }  // namespace tfnodejs
