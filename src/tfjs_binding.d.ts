@@ -50,6 +50,7 @@ export interface TFJSBinding {
   // TF Types
   TF_FLOAT: number;
   TF_INT32: number;
+  TF_INT64: number;
   TF_BOOL: number;
   TF_COMPLEX64: number;
   TF_STRING: number;

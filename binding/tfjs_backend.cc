@@ -73,6 +73,11 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       }
       width = sizeof(uint8_t);
       break;
+    case napi_float64_array:
+      std::cout << "CreateTFE_TensorHandleFromTypedArray(): napi_float64_array"
+                << std::endl;    // DEBUG
+      width = sizeof(uint64_t);  // Hack for TensorBoard. NOTE(cais):
+      break;
     default:
       REPORT_UNKNOWN_TYPED_ARRAY_TYPE(env, array_type);
       return nullptr;
@@ -428,6 +433,9 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
     case TF_INT32:
       typed_array_type = napi_int32_array;
       break;
+    case TF_INT64:  // Hack for TensorBoard.
+      typed_array_type = napi_float64_array;
+      break;
     case TF_BOOL:
       typed_array_type = napi_uint8_array;
       break;
@@ -720,6 +728,8 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
   int32_t dtype_int32;
   nstatus = napi_get_value_int32(env, dtype_value, &dtype_int32);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  std::cout << "TFJSBackend::CreateTensor(): "
+            << "dtype = " << dtype_int32 << std::endl;  // DEBUG
 
   TFE_TensorHandle *tfe_handle = CreateTFE_TensorHandleFromJSValues(
       env, shape_vector.data(), shape_vector.size(),
@@ -788,7 +798,6 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
                                   napi_value op_attr_inputs,
                                   napi_value input_tensor_ids,
                                   napi_value num_output_values) {
-  std::cout << "TFJSBackend::ExecuteOp(): 0" << std::endl;  // DEBUG
   napi_status nstatus;
 
   std::string op_name;
@@ -803,6 +812,8 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   nstatus = napi_get_array_length(env, input_tensor_ids, &num_input_ids);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+  std::cout << "TFJSBackend::ExecuteOp(): 0: num_input_ids = " << num_input_ids
+            << std::endl;  // DEBUG
   for (uint32_t i = 0; i < num_input_ids; i++) {
     std::cout << "TFJSBackend::ExecuteOp(): input i = " << i
               << std::endl;  // DEBUG
@@ -815,6 +826,8 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
     auto input_tensor_entry = tfe_handle_map_.find(cur_input_tensor_id);
+    std::cout << "TFJSBackend::ExecuteOp(): cur_input_tensor_id = "
+              << cur_input_tensor_id << std::endl;  // DEBUG
     if (input_tensor_entry == tfe_handle_map_.end()) {
       NAPI_THROW_ERROR(env, "Input Tensor ID not referenced (tensor_id: %d)",
                        cur_input_tensor_id);

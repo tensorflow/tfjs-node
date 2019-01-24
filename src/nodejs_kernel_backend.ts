@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, complex, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
@@ -112,6 +112,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   // Prepares Tensor instances for Op execution.
   private getInputTensorIds(tensors: Tensor[]): number[] {
+    console.log('In getInputTensorIds()');  // DEBUG
     const ids: number[] = [];
     for (let i = 0; i < tensors.length; i++) {
       const info = this.tensorMap.get(tensors[i].dataId);
@@ -119,6 +120,8 @@ export class NodeJSKernelBackend extends KernelBackend {
       if (info.values != null) {
         // Values were delayed to write into the TensorHandle. Do that before Op
         // execution and clear stored values.
+        console.group(
+            `getInputTensorIds(): info.dtype = ${info.dtype}`);  // DEBUG
         info.id =
             this.binding.createTensor(info.shape, info.dtype, info.values);
         info.values = null;
@@ -214,6 +217,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   register(dataId: object, shape: number[], dtype: DataType): void {
+    console.log(`In register(): dataId = ${JSON.stringify(dataId)}, dtype = ${
+        dtype}`);  // DEBUG
     if (!this.tensorMap.has(dataId)) {
       this.tensorMap.set(
           dataId, {shape, dtype: getTFDType(dtype), values: null, id: -1});
@@ -1535,7 +1540,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   writeScalarSummary(
       resourceHandle: Tensor, step: number, name: string,
       value: Scalar|number): void {
-    console.log('In writeScalarSummary(): 0');  // DEBUG
+    console.log('==== writeScalarSummary(): 0');  // DEBUG
     tidy(() => {
       util.assert(
           Number.isInteger(step),
@@ -1543,8 +1548,14 @@ export class NodeJSKernelBackend extends KernelBackend {
       // TODO(cais): step ought to be a int64-type tensor. But int64 doesn't
       // exist as a type in TensorFlow.js yet. This may cause problems for
       // large step values.
-      const inputArgs: Tensor[] =
-          [resourceHandle, scalar(step, 'int32'), scalar(name, 'string')];
+      console.log('==== writeScalarSummary(): 10');  // DEBUG
+      const inputArgs: Tensor[] = [
+        resourceHandle,
+        scalar(step, 'int64' as any),  // 'int64' as any is a hack.
+        // scalar(step, 'complex64'),  // 'int64' as any is a hack.
+        // complex(step, 0),  // Hack
+        scalar(name, 'string')
+      ];
 
       let typeAttr: number;
       if (typeof value === 'number') {
@@ -1565,7 +1576,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
       // DEBUG
       console.log(
-          'In writeScalarSummary(): 10. Executing WriteScalarSummary op');
+          '==== writeScalarSummary(): 20. Executing WriteScalarSummary op');
       this.executeMultipleOutputs('WriteScalarSummary', opAttrs, inputArgs, 0);
     });
   }
