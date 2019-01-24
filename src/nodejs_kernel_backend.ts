@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
@@ -49,6 +49,24 @@ export class NodeJSKernelBackend extends KernelBackend {
   setDataMover(dataMover: DataMover): void {
     // TODO(kreeger, smilkov): Implement this.
   }
+
+  private typeAttributeFromTensor(value: Tensor): number {
+    switch (value.dtype) {
+      case 'float32':
+        return this.binding.TF_FLOAT;
+      case 'int32':
+        return this.binding.TF_INT32;
+      case 'bool':
+        return this.binding.TF_BOOL;
+      case 'complex64':
+        return this.binding.TF_COMPLEX64;
+      case 'string':
+        return this.binding.TF_STRING;
+      default:
+        throw new Error(`Unsupported dtype ${value.dtype}`)
+    }
+  }
+
 
   // Creates a new Tensor and maps the dataId to the passed in ID.
   private createOutputTensor(metadata: TensorMetadata): Tensor {
@@ -1471,7 +1489,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     return tensor3d(values, outShape, 'int32');
   }
 
-  summaryWriter(): Tensor1D {
+  // ------------------------------------------------------------
+  // TensorBoard-related (tfjs-node-specific) backend kernels.
+
+  summaryWriter(): Tensor1D {  // TODO(cais): Fix typing.
     console.log('In node-backend summaryWriter()');
     const opAttrs = [
       {
@@ -1499,24 +1520,6 @@ export class NodeJSKernelBackend extends KernelBackend {
       resourceHandle: Tensor,  // TOOD(cais): Use more principled typing.
       logdir: string, maxQueue?: number, flushMillis?: number,
       filenameSuffix?: string): void {
-    // const inputArgs = [
-    //   {
-    //     name: 'writer',
-    //     type: this.binding.TF_ATTR_RESOURCE,
-    //     value: resourceHandle
-    //   },
-    //   {name: 'logdir', type: this.binding.TF_ATTR_STRING, value: logdir},
-    //   {name: 'max_queue', type: this.binding.TF_ATTR_INT, value: maxQueue}, {
-    //     name: 'flush_millis',
-    //     type: this.binding.TF_ATTR_INT,
-    //     value: flushMillis
-    //   },
-    //   {
-    //     name: 'filename_suffix',
-    //     type: this.binding.TF_ATTR_STRING,
-    //     value: filenameSuffix
-    //   }
-    // ];
     console.log('createSummaryFileWriter2(): 0');  // DEBUG
     const inputArgs = [
       resourceHandle, scalar(logdir),
@@ -1529,6 +1532,46 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.executeMultipleOutputs('CreateSummaryFileWriter', [], inputArgs, 0);
   }
 
+  writeScalarSummary(
+      resourceHandle: Tensor, step: number, name: string,
+      value: Scalar|number): void {
+    console.log('In writeScalarSummary(): 0');  // DEBUG
+    tidy(() => {
+      util.assert(
+          Number.isInteger(step),
+          `step is expected to be an integer, but is instead ${step}`);
+      // TODO(cais): step ought to be a int64-type tensor. But int64 doesn't
+      // exist as a type in TensorFlow.js yet. This may cause problems for
+      // large step values.
+      const inputArgs: Tensor[] =
+          [resourceHandle, scalar(step, 'int32'), scalar(name, 'string')];
+
+      let typeAttr: number;
+      if (typeof value === 'number') {
+        inputArgs.push(scalar(value));
+        typeAttr = this.binding.TF_FLOAT;
+      } else {
+        // `value` is a Scalar.
+        util.assert(
+            value.rank === 0,
+            `A non-scalar tensor (rank ${value.rank}) is passed to ` +
+                `writeScalarSummary()`);
+        inputArgs.push(value);
+        typeAttr = this.typeAttributeFromTensor(value);
+      }
+      const opAttrs: TFEOpAttr[] =
+          [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
+      console.log('opAttrs:', opAttrs);  // DEBUG
+
+      // DEBUG
+      console.log(
+          'In writeScalarSummary(): 10. Executing WriteScalarSummary op');
+      this.executeMultipleOutputs('WriteScalarSummary', opAttrs, inputArgs, 0);
+    });
+  }
+
+  // ~ TensorBoard-related (tfjs-node-specific) backend kernels.
+  // ------------------------------------------------------------
   memory() {
     // Due to automatic garbage collection, the numbers are unreliable.
     // TODO(kreeger): Since there is finalization in C, count the true

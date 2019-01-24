@@ -16,20 +16,41 @@
  * =============================================================================
  */
 
+import {Scalar, Tensor} from '@tensorflow/tfjs';
 import {nodeBackend} from './ops/op_utils';
 
-export function createSummaryWriter(
+export class SummaryWriter {
+  constructor(private readonly resourceHandle: Tensor) {}
+
+  scalar(step: number, name: string, value: Scalar, family?: string) {
+    // N.B.: Unlike the Python TensorFlow API, step is a required parameter,
+    // because the construct of global step does not exist in TensorFlow.js.
+    if (family != null) {
+      throw new Error('family support for scalar() is not implemented yet');
+    }
+    // TODO(cais): Deduplicate backend with createSummaryWriter.
+    const backend = nodeBackend();
+    backend.writeScalarSummary(this.resourceHandle, step, name, value);
+  }
+
+  // TODO(cais): Add close(), calling into the CloseSummaryWriter() op.
+}
+
+export async function createSummaryWriter(
     logdir: string, maxQueue?: number, flushMillis?: number,
-    filenameSuffix?: string) {
+    filenameSuffix?: string): Promise<SummaryWriter> {
+  // TODO(cais): Use more specific typing for ResourceHandle.
   console.log('In createSummaryWriter()');  // DEBUG
   const backend = nodeBackend();
   const writerResource = backend.summaryWriter();
   console.log(writerResource);  // DEBUG
   // backend.createSummaryFileWriter2(writeRe)
-  const resourceHandle = writerResource.dataSync() as Uint8Array;
+  const resourceHandle = (await writerResource.data()) as Uint8Array;
   console.log(typeof resourceHandle);  // DEBUG
   console.log(resourceHandle.length);  // DEBUG
 
   backend.createSummaryFileWriter2(
       writerResource, logdir, maxQueue, flushMillis, filenameSuffix);
+
+  return new SummaryWriter(writerResource);
 }
