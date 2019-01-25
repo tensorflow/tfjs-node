@@ -48,7 +48,6 @@ let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
 let targetUri = BASE_URI;
 
-console.log('os.arch: ' + os.arch());
 async function getTargetUri() {
   if (platform === 'linux') {
     if (os.arch() === 'arm') {
