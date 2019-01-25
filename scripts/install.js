@@ -50,6 +50,7 @@ let targetUri = BASE_URI;
 
 async function getTargetUri() {
   if (platform === 'linux') {
+    console.log('os.arch: ' + os.arch());
     if (libType === 'gpu') {
       targetUri += GPU_LINUX;
     } else {
