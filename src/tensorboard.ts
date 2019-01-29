@@ -17,20 +17,29 @@
  */
 
 import {Scalar, Tensor} from '@tensorflow/tfjs';
+import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 import {nodeBackend} from './ops/op_utils';
 
 export class SummaryWriter {
-  constructor(private readonly resourceHandle: Tensor) {}
+  backend: NodeJSKernelBackend;
 
-  scalar(step: number, name: string, value: Scalar, family?: string) {
+  constructor(private readonly resourceHandle: Tensor) {
+    // TODO(cais): Deduplicate backend with createSummaryWriter.
+    this.backend = nodeBackend();
+  }
+
+  scalar(step: number, name: string, value: Scalar|number, family?: string) {
     // N.B.: Unlike the Python TensorFlow API, step is a required parameter,
     // because the construct of global step does not exist in TensorFlow.js.
     if (family != null) {
       throw new Error('family support for scalar() is not implemented yet');
     }
-    // TODO(cais): Deduplicate backend with createSummaryWriter.
-    const backend = nodeBackend();
-    backend.writeScalarSummary(this.resourceHandle, step, name, value);
+
+    this.backend.writeScalarSummary(this.resourceHandle, step, name, value);
+  }
+
+  flush() {
+    this.backend.flushSummaryWriter(this.resourceHandle);
   }
 
   // TODO(cais): Add close(), calling into the CloseSummaryWriter() op.

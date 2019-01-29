@@ -60,7 +60,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       width = sizeof(float);
       break;
     case napi_int32_array:
-      if (dtype != TF_INT32) {
+      if (dtype != TF_INT32 && dtype != TF_INT64) {  // HACK(cais):
         NAPI_THROW_ERROR(env, "Tensor type does not match Int32Array");
         return nullptr;
       }
@@ -74,6 +74,10 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       width = sizeof(uint8_t);
       break;
     case napi_float64_array:
+      if (dtype != TF_INT64) {
+        NAPI_THROW_ERROR(env, "Tensor type does not match int64");
+        return nullptr;
+      }
       std::cout << "CreateTFE_TensorHandleFromTypedArray(): napi_float64_array"
                 << std::endl;    // DEBUG
       width = sizeof(uint64_t);  // Hack for TensorBoard. NOTE(cais):
@@ -84,12 +88,23 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   }
 
   // Double check that width matches TF data type size:
-  if (width != TF_DataTypeSize(dtype)) {
-    NAPI_THROW_ERROR(env,
-                     "Byte size of elements differs between JavaScript VM "
-                     "(%zu) and TensorFlow (%zu)",
-                     width, TF_DataTypeSize(dtype));
-    return nullptr;
+  if (dtype == TF_INT64) {
+    if (width * 2 != TF_DataTypeSize(dtype)) {
+      NAPI_THROW_ERROR(env,
+                       "Byte size of elements differs between JavaScript VM "
+                       "(%zu) and TensorFlow (%zu)",
+                       width, TF_DataTypeSize(dtype));
+      // TODO(cais): Better error message.
+      return nullptr;
+    }
+  } else {
+    if (width != TF_DataTypeSize(dtype)) {
+      NAPI_THROW_ERROR(env,
+                       "Byte size of elements differs between JavaScript VM "
+                       "(%zu) and TensorFlow (%zu)",
+                       width, TF_DataTypeSize(dtype));
+      return nullptr;
+    }
   }
 
   // Determine the size of the buffer based on the dimensions.
@@ -97,6 +112,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   for (size_t i = 0; i < shape_length; i++) {
     num_elements *= shape[i];
   }
+  std::cout << "num_elments = " << num_elements << std::endl;  // DEBUG
 
   // Ensure the shape matches the length of the passed in typed-array.
   if (num_elements != array_length) {
@@ -108,10 +124,14 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   }
 
   // Allocate and memcpy JS data to Tensor.
-  const size_t byte_size = num_elements * width;
+  const size_t byte_size =
+      dtype == TF_INT64 ? num_elements * width * 2 : num_elements * width;
   TF_AutoTensor tensor(
       TF_AllocateTensor(dtype, shape, shape_length, byte_size));
+  std::cout << "Calling memcpy(): byte_size = " << byte_size
+            << std::endl;  // DEBUG
   memcpy(TF_TensorData(tensor.tensor), array_data, byte_size);
+  std::cout << "Done calling memcpy()" << std::endl;  // DEBUG
 
   TF_AutoStatus tf_status;
   TFE_TensorHandle *tfe_tensor_handle =

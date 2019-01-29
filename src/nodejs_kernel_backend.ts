@@ -1581,6 +1581,11 @@ export class NodeJSKernelBackend extends KernelBackend {
     });
   }
 
+  flushSummaryWriter(resourceHandle: Tensor): void {
+    const inputArgs: Tensor[] = [resourceHandle];
+    this.executeMultipleOutputs('FlushSummaryWriter', [], inputArgs, 0);
+  }
+
   // ~ TensorBoard-related (tfjs-node-specific) backend kernels.
   // ------------------------------------------------------------
   memory() {
