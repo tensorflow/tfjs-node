@@ -557,7 +557,6 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_INT: {
-      std::cout << "  In TF_ATTR_FLOAT" << std::endl;  // DEBUG
       if (IsArray(env, nstatus, &js_value)) {
         uint32_t length;
         nstatus = napi_get_array_length(env, js_value, &length);
@@ -585,7 +584,6 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_FLOAT: {
-      std::cout << "  In TF_ATTR_FLOAT" << std::endl;  // DEBUG
       if (IsArray(env, nstatus, &js_value)) {
         uint32_t length;
         nstatus = napi_get_array_length(env, js_value, &length);
@@ -612,7 +610,6 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_BOOL: {
-      std::cout << "  In TF_ATTR_BOOL" << std::endl;  // DEBUG
       if (IsArray(env, nstatus, &js_value)) {
         uint32_t length;
         nstatus = napi_get_array_length(env, js_value, &length);
@@ -639,7 +636,6 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_TYPE: {
-      std::cout << "  In TF_ATTR_TYPE" << std::endl;  // DEBUG
       TF_DataType tf_data_type;
       nstatus = napi_get_value_int32(
           env, js_value, reinterpret_cast<int32_t *>(&tf_data_type));
@@ -650,7 +646,6 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_SHAPE: {
-      std::cout << "  In TF_ATTR_SHAPE" << std::endl;  // DEBUG
       std::vector<int64_t> shape_vector;
       ExtractArrayShape(env, js_value, &shape_vector);
 
@@ -662,7 +657,6 @@ void AssignOpAttr(napi_env env, TFE_Op *tfe_op, napi_value attr_value) {
     }
 
     default:
-      std::cout << "  In default attr type" << std::endl;  // DEBUG
       REPORT_UNKNOWN_TF_ATTR_TYPE(env, tf_attr_type);
       break;
   }

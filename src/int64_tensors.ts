@@ -35,7 +35,6 @@ export class Int64Scalar {
   private valueArray_: Int32Array;
 
   constructor(readonly value: number) {
-    console.log(`In Int64Scalar ctor: value = ${value}`);  // DEBUG
     if (value < -2147483648 || value > 2147483647) {
       throw new Error(
           `Value ${value} is out of bound of Int32Array, which is how int64 ` +
