@@ -365,11 +365,8 @@ void CopyTFE_TensorHandleDataToResourceArray(
       TFE_TensorHandleResolve(tfe_tensor_handle, tf_status.status));
   ENSURE_TF_OK(env, tf_status);
 
-  std::cout << "CopyTFE_TensorHandleDataToResourceArray(): 0: "
-            << "dtype = " << TF_TensorType(tensor.tensor)
-            << std::endl;  // DEBUG
   if (TF_TensorType(tensor.tensor) != TF_RESOURCE) {
-    NAPI_THROW_ERROR(env, "Tensor is not of type  TF_RESOURCE");
+    NAPI_THROW_ERROR(env, "Tensor is not of type TF_RESOURCE");
     return;
   }
 
@@ -377,39 +374,23 @@ void CopyTFE_TensorHandleDataToResourceArray(
   ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
 
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
-  std::cout << "CopyTFE_TensorHandleDataToResourceArray(): 10: "
-            << "byte_length = " << byte_length << std::endl;  // DEBUG
   const char *limit = static_cast<const char *>(tensor_data) + byte_length;
 
   size_t num_elements = GetTensorNumElements(tensor.tensor);
-  std::cout << "CopyTFE_TensorHandleDataToResourceArray(): 20: "
-            << "num_elements = " << num_elements << std::endl;  // DEBUG
+  if (num_elements != 1) {
+    NAPI_THROW_ERROR(env,
+                     "For DT_RESOURCE tensors, Node.js binding currently "
+                     "supports only exactly 1 element.");
+  }
 
-  // String values are stored in offsets.
+  // The resource handle is represented as a string of `char`s
   const char *data = static_cast<const char *>(tensor_data);
-  // const size_t offsets_size = sizeof(char) * num_elements;
-
-  // Skip passed the offsets and find the first string:
-  // const char *data = static_cast<const char *>(tensor_data) + offsets_size;
 
   TF_AutoStatus status;
 
-  // Create a JS string to stash strings into
+  // Create a JS string to stash the resouce handle into.
   napi_status nstatus;
   nstatus = napi_create_array_with_length(env, byte_length, result);
-  std::cout << "CopyTFE_TensorHandleDataToResourceArray(): 30: "
-            << "created array with length = " << byte_length
-            << std::endl;  // DEBUG
-
-  // char *str_ptr = (char *)malloc(sizeof(char *) * byte_length);
-  // memcpy(str_ptr, data, byte_length);
-
-  // napi_value str_value;
-  // nstatus = napi_create_string_utf8(env, str_ptr, byte_length, &str_value);
-  // ENSURE_NAPI_OK(env, nstatus);
-
-  // nstatus = napi_set_element(env, *result, 0, str_value);
-  // ENSURE_NAPI_OK(env, nstatus);
 
   napi_value array_buffer_value;
   void *array_buffer_data;
@@ -463,12 +444,9 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
       is_string = true;
       break;
     case TF_RESOURCE:
-      std::cout << "CopyTFE_TensorHandleDataToJSData(): TF_RESORUCE type"
-                << std::endl;  // DEBUG
-      // Represent a resource handle with an Uint8Array.
+      // We currently represent a resource handle as an `Uint8Array`.
       typed_array_type = napi_uint8_array;
       is_resource = true;
-      // typed_array_type = napi_int32_array;
       break;
     default:
       REPORT_UNKNOWN_TF_DATA_TYPE(env,
