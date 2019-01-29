@@ -22,6 +22,7 @@ import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
 
+import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
 import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
@@ -67,7 +68,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     }
   }
 
-
   // Creates a new Tensor and maps the dataId to the passed in ID.
   private createOutputTensor(metadata: TensorMetadata): Tensor {
     const newId = {};
@@ -111,23 +111,36 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   // Prepares Tensor instances for Op execution.
-  private getInputTensorIds(tensors: Tensor[]): number[] {
+  private getInputTensorIds(tensors: Array<Tensor|Int64Scalar>): number[] {
     console.log('In getInputTensorIds()');  // DEBUG
     const ids: number[] = [];
     for (let i = 0; i < tensors.length; i++) {
-      const info = this.tensorMap.get(tensors[i].dataId);
-      // TODO - what about ID in this case? Handle in write()??
-      if (info.values != null) {
-        // Values were delayed to write into the TensorHandle. Do that before Op
-        // execution and clear stored values.
-        console.group(
-            `getInputTensorIds(): info.dtype = ${info.dtype}`);  // DEBUG
-        info.id =
-            this.binding.createTensor(info.shape, info.dtype, info.values);
-        info.values = null;
-        this.tensorMap.set(tensors[i].dataId, info);
+      console.log(`  getInputTensorIds(): i = ${i}`);
+      if (tensors[i] instanceof Tensor) {
+        const info = this.tensorMap.get((tensors[i] as Tensor).dataId);
+        // TODO - what about ID in this case? Handle in write()??
+        if (info.values != null) {
+          // Values were delayed to write into the TensorHandle. Do that before
+          // Op execution and clear stored values.
+          console.group(
+              `getInputTensorIds(): info.dtype = ${info.dtype}`);  // DEBUG
+          info.id =
+              this.binding.createTensor(info.shape, info.dtype, info.values);
+          info.values = null;
+          this.tensorMap.set((tensors[i] as Tensor).dataId, info);
+        }
+        ids.push(info.id);
+      } else {
+        // Then `tensors[i]` is a Int64Scalar, which we currently represent
+        // using an `Int32Array`.
+        console.log(`  getInputTensorIds(): Creating int64 (${
+            this.binding.TF_INT64}) tensor`);  // DEBUG
+        const value = (tensors[i] as Int64Scalar).valueArray;
+        console.log(`  getInputTensorIds(): int64 value = ${value}`);  // DEBUG
+        const id = this.binding.createTensor([], this.binding.TF_INT64, value);
+        console.log(`  getInputTensorIds(): int64 tensor id = ${id}`);  // DEBUG
+        ids.push(id);
       }
-      ids.push(info.id);
     }
     return ids;
   }
@@ -1549,13 +1562,8 @@ export class NodeJSKernelBackend extends KernelBackend {
       // exist as a type in TensorFlow.js yet. This may cause problems for
       // large step values.
       console.log('==== writeScalarSummary(): 10');  // DEBUG
-      const inputArgs: Tensor[] = [
-        resourceHandle,
-        scalar(step, 'int64' as any),  // 'int64' as any is a hack.
-        // scalar(step, 'complex64'),  // 'int64' as any is a hack.
-        // complex(step, 0),  // Hack
-        scalar(name, 'string')
-      ];
+      const inputArgs: Array<Tensor|Int64Scalar> =
+          [resourceHandle, new Int64Scalar(step), scalar(name, 'string')];
 
       let typeAttr: number;
       if (typeof value === 'number') {
@@ -1577,7 +1585,10 @@ export class NodeJSKernelBackend extends KernelBackend {
       // DEBUG
       console.log(
           '==== writeScalarSummary(): 20. Executing WriteScalarSummary op');
-      this.executeMultipleOutputs('WriteScalarSummary', opAttrs, inputArgs, 0);
+      // this.executeMultipleOutputs(
+      //     'WriteScalarSummary', opAttrs, inputArgs, 0);
+      this.binding.executeOp(
+          'WriteScalarSummary', opAttrs, this.getInputTensorIds(inputArgs), 0);
     });
   }
 
