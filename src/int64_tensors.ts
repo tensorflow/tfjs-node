@@ -23,7 +23,7 @@ const INT32_MAX = 2147483648;
 /**
  * Node.js-specific tensor type: int64-type scalar.
  *
- * This class is created for a specifici purpose: to support
+ * This class is created for a specific purpose: to support
  * writing `step`s to TensorBoard via op-kernel bindings.
  * `step` is required to have an int64 dtype, but TensorFlow.js
  * (tfjs-core) doesn't have a built-in int64 dtype. This is
@@ -60,6 +60,7 @@ export class Int64Scalar {
     return [];
   }
 
+  /** Get the Int32Array that represents the int64 value. */
   get valueArray(): Int32Array {
     return this.valueArray_;
   }
