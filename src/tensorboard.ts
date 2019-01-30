@@ -70,6 +70,17 @@ const summaryFileWriterCache: {[logdir: string]: SummaryFileWriter} = {};
 /**
  * Create a summary file writer for TensorBoard.
  *
+ * Example:
+ * ```javascript
+ * const tf = require('@tensorflow/tfjs-node');
+ *
+ * const summaryWriter = tf.node.summaryFileWriter('/tmp/tfjs_tb_logdir');
+ *
+ * for (let step = 0; step < 100; ++step) {
+ *  summaryWriter.scalar('dummyValu', Math.sin(2 * Math.PI * i / 10), step);
+ * }
+ * ```
+ *
  * @param logdir Log directory in which the summary data will be written.
  * @param maxQueue Maximum queue length (default: `10`).
  * @param flushMillis Flush every __ milliseconds (default: `120e3`, i.e,
