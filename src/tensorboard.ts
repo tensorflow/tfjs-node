@@ -78,16 +78,15 @@ const summaryFileWriterCache: {[logdir: string]: SummaryFileWriter} = {};
  *   written in the `logdir` (default: `.v2`).
  * @returns An instance of `SummaryFileWriter`.
  */
-export async function summaryFileWriter(
+export function summaryFileWriter(
     logdir: string, maxQueue = 10, flushMillis = 120000,
-    filenameSuffix = '.v2'): Promise<SummaryFileWriter> {
+    filenameSuffix = '.v2'): SummaryFileWriter {
   util.assert(
       logdir != null && typeof logdir === 'string' && logdir.length > 0,
       `logdir is null, undefined, not a string, or an empty string`);
   if (!(logdir in summaryFileWriterCache)) {
     const backend = nodeBackend();
     const writerResource = backend.summaryWriter();
-    // const resourceHandle = (await writerResource.data()) as Uint8Array;
 
     backend.createSummaryFileWriter(
         writerResource, logdir, maxQueue, flushMillis, filenameSuffix);
