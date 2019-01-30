@@ -29,11 +29,12 @@ export class SummaryWriter {
     this.backend = nodeBackend();
   }
 
-  scalar(step: number, name: string, value: Scalar|number, family?: string) {
+  scalar(
+      name: string, value: Scalar|number, step: number, description?: string) {
     // N.B.: Unlike the Python TensorFlow API, step is a required parameter,
     // because the construct of global step does not exist in TensorFlow.js.
-    if (family != null) {
-      throw new Error('family support for scalar() is not implemented yet');
+    if (description != null) {
+      throw new Error('scalar() does not support description yet');
     }
 
     this.backend.writeScalarSummary(this.resourceHandle, step, name, value);
@@ -44,9 +45,9 @@ export class SummaryWriter {
   }
 }
 
-export async function createSummaryWriter(
+export async function summaryFileWriter(
     logdir: string, maxQueue?: number, flushMillis?: number,
-    filenameSuffix?: string): Promise<SummaryWriter> {
+    filenameSuffix = '.v2'): Promise<SummaryWriter> {
   const backend = nodeBackend();
   const writerResource = backend.summaryWriter();
   // const resourceHandle = (await writerResource.data()) as Uint8Array;
