@@ -24,8 +24,6 @@ export class SummaryFileWriter {
   backend: NodeJSKernelBackend;
 
   constructor(private readonly resourceHandle: Tensor) {
-    // TODO(cais): Deduplicate backend with createSummaryWriter.
-    // TODO(cais): Use writer cache.
     this.backend = nodeBackend();
   }
 
