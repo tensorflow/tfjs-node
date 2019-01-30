@@ -75,7 +75,7 @@ const summaryFileWriterCache: {[logdir: string]: SummaryFileWriter} = {};
  * const summaryWriter = tf.node.summaryFileWriter('/tmp/tfjs_tb_logdir');
  *
  * for (let step = 0; step < 100; ++step) {
- *  summaryWriter.scalar('dummyValu', Math.sin(2 * Math.PI * i / 10), step);
+ *  summaryWriter.scalar('dummyValue', Math.sin(2 * Math.PI * i / 10), step);
  * }
  * ```
  *
