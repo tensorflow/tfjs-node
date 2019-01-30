@@ -16,6 +16,9 @@
  */
 
 import {Shape} from '@tensorflow/tfjs';
+import {endianness} from 'os';
+
+const INT32_MAX = 2147483648;
 
 /**
  * Node.js-specific tensor type: int64-type scalar.
@@ -27,20 +30,30 @@ import {Shape} from '@tensorflow/tfjs';
  * related to a lack of `Int64Array` or `Uint64Array` typed
  * array in basic JavaScript.
  *
- * This class is introduced as a work around.
+ * This class is introduced as a workaround.
  */
 export class Int64Scalar {
   readonly dtype: string = 'int64';
   readonly rank: number = 1;
   private valueArray_: Int32Array;
 
+  private static endiannessOkay_: boolean;
+
   constructor(readonly value: number) {
-    if (value < -2147483648 || value > 2147483647) {
-      throw new Error(
-          `Value ${value} is out of bound of Int32Array, which is how int64 ` +
-          `values are represented in Node.js-TensorFlow binding currently.`);
+    if (Int64Scalar.endiannessOkay_ == null) {
+      if (endianness() !== 'LE') {
+        throw new Error(
+            `Int64Scalar does not support endianness of this machine: ` +
+            `${endianness()}`);
+      }
+      Int64Scalar.endiannessOkay_ = true;
     }
-    this.valueArray_ = new Int32Array([value]);
+
+    // We use two int32 elements to represent a int64 value. This assumes
+    // little endian, which is checked above.
+    const highPart = Math.floor(value / INT32_MAX);
+    const lowPart = value % INT32_MAX;
+    this.valueArray_ = new Int32Array([lowPart, highPart]);
   }
 
   get shape(): Shape {

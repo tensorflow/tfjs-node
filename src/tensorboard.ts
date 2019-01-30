@@ -48,15 +48,9 @@ export class SummaryWriter {
 export async function createSummaryWriter(
     logdir: string, maxQueue?: number, flushMillis?: number,
     filenameSuffix?: string): Promise<SummaryWriter> {
-  // TODO(cais): Use more specific typing for ResourceHandle.
-  console.log('In createSummaryWriter()');  // DEBUG
   const backend = nodeBackend();
   const writerResource = backend.summaryWriter();
-  console.log(writerResource);  // DEBUG
-  // backend.createSummaryFileWriter2(writeRe)
-  const resourceHandle = (await writerResource.data()) as Uint8Array;
-  console.log(typeof resourceHandle);  // DEBUG
-  console.log(resourceHandle.length);  // DEBUG
+  // const resourceHandle = (await writerResource.data()) as Uint8Array;
 
   backend.createSummaryFileWriter2(
       writerResource, logdir, maxQueue, flushMillis, filenameSuffix);

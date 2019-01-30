@@ -80,9 +80,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     });
 
     let dtype: DataType;
-    console.log(`metadata.dtype = ${metadata.dtype}`);  // DEBUG
-    console.log(
-        `this.binding.TF_RESOURCE = ${this.binding.TF_RESOURCE}`);  // DEBUG
     switch (metadata.dtype) {
       case this.binding.TF_FLOAT:
         dtype = 'float32';
@@ -112,18 +109,14 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   // Prepares Tensor instances for Op execution.
   private getInputTensorIds(tensors: Array<Tensor|Int64Scalar>): number[] {
-    console.log('In getInputTensorIds()');  // DEBUG
     const ids: number[] = [];
     for (let i = 0; i < tensors.length; i++) {
-      console.log(`  getInputTensorIds(): i = ${i}`);
       if (tensors[i] instanceof Tensor) {
         const info = this.tensorMap.get((tensors[i] as Tensor).dataId);
         // TODO - what about ID in this case? Handle in write()??
         if (info.values != null) {
           // Values were delayed to write into the TensorHandle. Do that before
           // Op execution and clear stored values.
-          console.group(
-              `getInputTensorIds(): info.dtype = ${info.dtype}`);  // DEBUG
           info.id =
               this.binding.createTensor(info.shape, info.dtype, info.values);
           info.values = null;
@@ -133,12 +126,8 @@ export class NodeJSKernelBackend extends KernelBackend {
       } else {
         // Then `tensors[i]` is a Int64Scalar, which we currently represent
         // using an `Int32Array`.
-        console.log(`  getInputTensorIds(): Creating int64 (${
-            this.binding.TF_INT64}) tensor`);  // DEBUG
         const value = (tensors[i] as Int64Scalar).valueArray;
-        console.log(`  getInputTensorIds(): int64 value = ${value}`);  // DEBUG
         const id = this.binding.createTensor([], this.binding.TF_INT64, value);
-        console.log(`  getInputTensorIds(): int64 tensor id = ${id}`);  // DEBUG
         ids.push(id);
       }
     }
@@ -198,12 +187,10 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
-    console.log('In readSync()');  // DEBUG
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
     const info = this.tensorMap.get(dataId);
-    console.log(`readSync(): info = ${JSON.stringify(info)}`);  // DEBUG
     if (info.values != null) {
       return info.values;
     } else {
@@ -230,8 +217,6 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   register(dataId: object, shape: number[], dtype: DataType): void {
-    console.log(`In register(): dataId = ${JSON.stringify(dataId)}, dtype = ${
-        dtype}`);  // DEBUG
     if (!this.tensorMap.has(dataId)) {
       this.tensorMap.set(
           dataId, {shape, dtype: getTFDType(dtype), values: null, id: -1});
@@ -1511,7 +1496,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   // TensorBoard-related (tfjs-node-specific) backend kernels.
 
   summaryWriter(): Tensor1D {  // TODO(cais): Fix typing.
-    console.log('In node-backend summaryWriter()');
+    // console.log('In node-backend summaryWriter()');
     const opAttrs = [
       {
         name: 'shared_name',
@@ -1526,11 +1511,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const writerResource =
         this.executeSingleOutput('SummaryWriter', opAttrs, []);
-    writerResource.print();                                         // DEBUG
-    console.log(`writerResource.dtype = ${writerResource.dtype}`);  // DEBUG
-    console.log(
-        `writerResource.shape = ` +
-        `${JSON.stringify(writerResource.shape)}`);  // DEBUG
     return writerResource as Tensor1D;  // TODO(cais): Implement this.
   }
 
@@ -1538,30 +1518,22 @@ export class NodeJSKernelBackend extends KernelBackend {
       resourceHandle: Tensor,  // TOOD(cais): Use more principled typing.
       logdir: string, maxQueue?: number, flushMillis?: number,
       filenameSuffix?: string): void {
-    console.log('createSummaryFileWriter2(): 0');  // DEBUG
     const inputArgs = [
       resourceHandle, scalar(logdir),
       scalar(maxQueue == null ? 10 : maxQueue, 'int32'),
       scalar(flushMillis == null ? 2 * 60 * 1000 : flushMillis, 'int32'),
       scalar(filenameSuffix == null ? '.v2' : filenameSuffix)
     ];
-    console.log(  // DEBUG
-        `createSummaryFileWriter2(): inputArgs.length = ${inputArgs.length}`);
     this.executeMultipleOutputs('CreateSummaryFileWriter', [], inputArgs, 0);
   }
 
   writeScalarSummary(
       resourceHandle: Tensor, step: number, name: string,
       value: Scalar|number): void {
-    console.log('==== writeScalarSummary(): 0');  // DEBUG
     tidy(() => {
       util.assert(
           Number.isInteger(step),
           `step is expected to be an integer, but is instead ${step}`);
-      // TODO(cais): step ought to be a int64-type tensor. But int64 doesn't
-      // exist as a type in TensorFlow.js yet. This may cause problems for
-      // large step values.
-      console.log('==== writeScalarSummary(): 10');  // DEBUG
       const inputArgs: Array<Tensor|Int64Scalar> =
           [resourceHandle, new Int64Scalar(step), scalar(name, 'string')];
 
@@ -1580,13 +1552,7 @@ export class NodeJSKernelBackend extends KernelBackend {
       }
       const opAttrs: TFEOpAttr[] =
           [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
-      console.log('opAttrs:', opAttrs);  // DEBUG
 
-      // DEBUG
-      console.log(
-          '==== writeScalarSummary(): 20. Executing WriteScalarSummary op');
-      // this.executeMultipleOutputs(
-      //     'WriteScalarSummary', opAttrs, inputArgs, 0);
       this.binding.executeOp(
           'WriteScalarSummary', opAttrs, this.getInputTensorIds(inputArgs), 0);
     });

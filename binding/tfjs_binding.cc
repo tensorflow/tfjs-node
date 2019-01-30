@@ -16,7 +16,6 @@
  */
 
 #include <node_api.h>
-#include <iostream>  // dEBUG
 #include "tfjs_backend.h"
 #include "utils.h"
 
@@ -108,7 +107,6 @@ static napi_value TensorDataSync(napi_env env, napi_callback_info info) {
 }
 
 static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
-  std::cout << "In ExecuteOp: 0" << std::endl;  // DEBUG
   napi_status nstatus;
 
   // Create tensor takes 3 params: op-name, op-attrs, input-tensor-ids,
@@ -124,15 +122,10 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
     return nullptr;
   }
 
-  std::cout << "In ExecuteOp: 10" << std::endl;  // DEBUG
   ENSURE_VALUE_IS_STRING_RETVAL(env, args[0], nullptr);
-  std::cout << "In ExecuteOp: 20" << std::endl;  // DEBUG
   ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[1], nullptr);
-  std::cout << "In ExecuteOp: 30" << std::endl;  // DEBUG
   ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[2], nullptr);
-  std::cout << "In ExecuteOp: 40" << std::endl;  // DEBUG
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[3], nullptr);
-  std::cout << "In ExecuteOp: 50" << std::endl;  // DEBUG
 
   return gBackend->ExecuteOp(env, args[0], args[1], args[2], args[3]);
 }
