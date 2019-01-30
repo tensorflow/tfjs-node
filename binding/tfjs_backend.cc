@@ -60,7 +60,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       break;
     case napi_int32_array:
       if (dtype != TF_INT32 && dtype != TF_INT64) {
-        // Currently, both int32- and int64- type Tensors are represented
+        // Currently, both int32- and int64-type Tensors are represented
         // as Int32Arrays in JavaScript. See int64_tensors.ts for details
         // about the latter.
         NAPI_THROW_ERROR(env, "Tensor type does not match Int32Array");
@@ -86,11 +86,11 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
     // logic for comparing the byte size of the typed-array representation and
     // the byte size of the tensor dtype needs to be special-cased for int64.
     if (width * 2 != TF_DataTypeSize(dtype)) {
-      NAPI_THROW_ERROR(env,
-                       "Byte size of elements differs between JavaScript VM "
-                       "(%zu) and TensorFlow (%zu)",
-                       width, TF_DataTypeSize(dtype));
-      // TODO(cais): Better error message.
+      NAPI_THROW_ERROR(
+          env,
+          "Byte size of elements differs between JavaScript VM "
+          "(%zu * 2 = %zu) and TensorFlow (%zu) for int64-type tensor",
+          width, width * 2, TF_DataTypeSize(dtype));
       return nullptr;
     }
   } else {
@@ -119,8 +119,8 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
       NAPI_THROW_ERROR(
           env,
           "Shape does not match two times typed-array in bindData() "
-          "(num_elements=%zu, array_length=%zu) for int64 data type",
-          num_elements, array_length);
+          "(num_elements * 2 = %zu, array_length=%zu) for int64 data type",
+          num_elements * 2, array_length);
       return nullptr;
     }
   } else {
@@ -149,7 +149,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
   return tfe_tensor_handle;
-}  // namespace tfnodejs
+}
 
 // Creates a TFE_TensorHandle from a JS array of string values.
 TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
@@ -384,7 +384,9 @@ void CopyTFE_TensorHandleDataToResourceArray(
   if (num_elements != 1) {
     NAPI_THROW_ERROR(env,
                      "For DT_RESOURCE tensors, Node.js binding currently "
-                     "supports only exactly 1 element.");
+                     "supports only exactly 1 element, but encountered "
+                     "DT_RESOURCE tensor with %zu elements.",
+                     num_elements);
   }
 
   // The resource handle is represented as a string of `char`s
