@@ -1496,18 +1496,9 @@ export class NodeJSKernelBackend extends KernelBackend {
   // TensorBoard-related (tfjs-node-specific) backend kernels.
 
   summaryWriter(): Tensor1D {
-    // console.log('In node-backend summaryWriter()');
     const opAttrs = [
-      {
-        name: 'shared_name',
-        type: this.binding.TF_ATTR_STRING,
-        value: `logdir:foo`  // TODO(cais): Use more specific name.
-      },
-      {
-        name: 'container',
-        type: this.binding.TF_ATTR_STRING,
-        value: `logdir:foo-container`  // TODO(cais): Use more specific name.
-      }
+      {name: 'shared_name', type: this.binding.TF_ATTR_STRING, value: ''},
+      {name: 'container', type: this.binding.TF_ATTR_STRING, value: ''}
     ];
     const writerResource =
         this.executeSingleOutput('SummaryWriter', opAttrs, []);
