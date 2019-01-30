@@ -25,6 +25,7 @@ export class SummaryWriter {
 
   constructor(private readonly resourceHandle: Tensor) {
     // TODO(cais): Deduplicate backend with createSummaryWriter.
+    // TODO(cais): Use writer cache.
     this.backend = nodeBackend();
   }
 
@@ -41,8 +42,6 @@ export class SummaryWriter {
   flush() {
     this.backend.flushSummaryWriter(this.resourceHandle);
   }
-
-  // TODO(cais): Add close(), calling into the CloseSummaryWriter() op.
 }
 
 export async function createSummaryWriter(
@@ -52,7 +51,7 @@ export async function createSummaryWriter(
   const writerResource = backend.summaryWriter();
   // const resourceHandle = (await writerResource.data()) as Uint8Array;
 
-  backend.createSummaryFileWriter2(
+  backend.createSummaryFileWriter(
       writerResource, logdir, maxQueue, flushMillis, filenameSuffix);
 
   return new SummaryWriter(writerResource);

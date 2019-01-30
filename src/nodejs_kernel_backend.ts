@@ -97,8 +97,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         dtype = 'string';
         break;
       case this.binding.TF_RESOURCE:
-        // TODO(cais): This should probably be made into a resource-specific
-        // type.
+        // NOTE(cais): We currently represent resource-type Tensors
+        // as string of ubytes.
         dtype = 'string';
         break;
       default:
@@ -1495,7 +1495,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   // ------------------------------------------------------------
   // TensorBoard-related (tfjs-node-specific) backend kernels.
 
-  summaryWriter(): Tensor1D {  // TODO(cais): Fix typing.
+  summaryWriter(): Tensor1D {
     // console.log('In node-backend summaryWriter()');
     const opAttrs = [
       {
@@ -1511,13 +1511,12 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const writerResource =
         this.executeSingleOutput('SummaryWriter', opAttrs, []);
-    return writerResource as Tensor1D;  // TODO(cais): Implement this.
+    return writerResource as Tensor1D;
   }
 
-  createSummaryFileWriter2(    // TODO(cais): Rename. DO NOT SUBMIT.
-      resourceHandle: Tensor,  // TOOD(cais): Use more principled typing.
-      logdir: string, maxQueue?: number, flushMillis?: number,
-      filenameSuffix?: string): void {
+  createSummaryFileWriter(
+      resourceHandle: Tensor, logdir: string, maxQueue?: number,
+      flushMillis?: number, filenameSuffix?: string): void {
     const inputArgs = [
       resourceHandle, scalar(logdir),
       scalar(maxQueue == null ? 10 : maxQueue, 'int32'),
