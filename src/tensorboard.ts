@@ -95,7 +95,7 @@ export function summaryFileWriter(
       `logdir is null, undefined, not a string, or an empty string`);
   if (!(logdir in summaryFileWriterCache)) {
     const backend = nodeBackend();
-    const writerResource = backend.summaryWriter();
+    const writerResource = backend.summaryWriter(logdir);
 
     backend.createSummaryFileWriter(
         writerResource, logdir, maxQueue, flushMillis, filenameSuffix);
