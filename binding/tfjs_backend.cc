@@ -377,9 +377,6 @@ void CopyTFE_TensorHandleDataToResourceArray(
   void *tensor_data = TF_TensorData(tensor.tensor);
   ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
 
-  size_t byte_length = TF_TensorByteSize(tensor.tensor);
-  const char *limit = static_cast<const char *>(tensor_data) + byte_length;
-
   size_t num_elements = GetTensorNumElements(tensor.tensor);
   if (num_elements != 1) {
     NAPI_THROW_ERROR(env,
@@ -389,17 +386,16 @@ void CopyTFE_TensorHandleDataToResourceArray(
                      num_elements);
   }
 
-  // The resource handle is represented as a string of `char`s
-  const char *data = static_cast<const char *>(tensor_data);
-
   TF_AutoStatus status;
 
   // Create a JS string to stash the resouce handle into.
   napi_status nstatus;
+  size_t byte_length = TF_TensorByteSize(tensor.tensor);
   nstatus = napi_create_array_with_length(env, byte_length, result);
+  ENSURE_NAPI_OK(env, nstatus);
 
   napi_value array_buffer_value;
-  void *array_buffer_data;
+  void *array_buffer_data = nullptr;
   nstatus = napi_create_arraybuffer(env, byte_length, &array_buffer_data,
                                     &array_buffer_value);
   ENSURE_NAPI_OK(env, nstatus);
@@ -408,6 +404,7 @@ void CopyTFE_TensorHandleDataToResourceArray(
   // current value to the newly allocated NAPI buffer.
   memcpy(array_buffer_data, tensor_data, byte_length);
 
+  // This method will only return uint8 arrays.
   nstatus = napi_create_typedarray(env, napi_uint8_array, byte_length,
                                    array_buffer_value, 0, result);
   ENSURE_NAPI_OK(env, nstatus);

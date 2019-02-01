@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Shape} from '@tensorflow/tfjs';
+import {Shape, util} from '@tensorflow/tfjs';
 import {endianness} from 'os';
 
 const INT32_MAX = 2147483648;
@@ -49,9 +49,18 @@ export class Int64Scalar {
       Int64Scalar.endiannessOkay_ = true;
     }
 
+    util.assert(
+        value > -INT32_MAX && value < INT32_MAX - 1,
+        `Got a value outside of the bound of values supported for int64 ` +
+            `dtype ([-${INT32_MAX}, ${INT32_MAX - 1}]): ${value}`);
+    util.assert(
+        Number.isInteger(value),
+        `Expected value to be an integer, but got ${value}`);
+
     // We use two int32 elements to represent a int64 value. This assumes
     // little endian, which is checked above.
     const highPart = Math.floor(value / INT32_MAX);
+    console.log(`highPart = ${highPart}`);  // DEBUG
     const lowPart = value % INT32_MAX;
     this.valueArray_ = new Int32Array([lowPart, highPart]);
   }
