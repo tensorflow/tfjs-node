@@ -253,6 +253,10 @@ export class NodeJSKernelBackend implements KernelBackend {
   fusedBatchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
       bias?: Tensor, activation?: Activation): Tensor3D {
+    //
+    // TODO(kreeger): Core TensorFlow does not have a fused op.
+    // For now, batchMatMul it and then call the activation functions as needed.
+    //
     return null;
   }
 
