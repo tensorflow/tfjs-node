@@ -18,6 +18,7 @@
 // tslint:disable-next-line:max-line-length
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
+import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
@@ -35,13 +36,13 @@ type TensorInfo = {
 
 interface DataId {}
 
-export class NodeJSKernelBackend extends KernelBackend {
+export class NodeJSKernelBackend implements KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding, packageName: string) {
-    super();
+    // super();
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
   }
@@ -247,6 +248,12 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     return this.executeSingleOutput('BatchMatMul', opAttrs, [a, b]) as
         Tensor<Rank.R3>;
+  }
+
+  fusedBatchMatMul(
+      a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
+      bias?: Tensor, activation?: Activation): Tensor3D {
+    return null;
   }
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
