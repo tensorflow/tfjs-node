@@ -21,7 +21,6 @@ import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
-import {activationOptions} from '@tensorflow/tfjs-layers/dist/keras_format/activation_config';
 import {isNullOrUndefined} from 'util';
 
 // tslint:disable-next-line:max-line-length
