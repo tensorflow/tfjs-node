@@ -21,6 +21,7 @@ import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
+import {activationOptions} from '@tensorflow/tfjs-layers/dist/keras_format/activation_config';
 import {isNullOrUndefined} from 'util';
 
 // tslint:disable-next-line:max-line-length
@@ -253,11 +254,23 @@ export class NodeJSKernelBackend implements KernelBackend {
   fusedBatchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
       bias?: Tensor, activation?: Activation): Tensor3D {
-    //
-    // TODO(kreeger): Core TensorFlow does not have a fused op.
-    // For now, batchMatMul it and then call the activation functions as needed.
-    //
-    return null;
+    // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
+    // achieve the same results:
+    let result = this.batchMatMul(a, b, transposeA, transposeB);
+    if (bias) {
+      result = this.add(result, bias) as Tensor3D;
+    }
+    if (activation) {
+      if (activation === 'linear') {
+        // No-op
+      } else if (activation === 'relu') {
+        result = this.relu(result);
+      } else {
+        throw new Error(`Activation: ${
+            activation} has not been implemented for the Node.js backend`);
+      }
+    }
+    return result;
   }
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
