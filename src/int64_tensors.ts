@@ -40,6 +40,14 @@ export class Int64Scalar {
   private static endiannessOkay_: boolean;
 
   constructor(readonly value: number) {
+    // The reason why we need to check endianness of the machine here is
+    // negative int64 values and the way in which we represent them
+    // using Int32Arrays in JavaScript. We represent each int64 value with
+    // two consecutive elements of an Int32Array. For positive values,
+    // the high part is simply zero; for negative values, the high part
+    // should be -1. The ordering of the low and high parts assumes
+    // little endian (i.e., least significant digits appear first).
+    // This assumption is checked by the lines below.
     if (Int64Scalar.endiannessOkay_ == null) {
       if (endianness() !== 'LE') {
         throw new Error(

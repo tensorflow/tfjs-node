@@ -123,12 +123,14 @@ export class NodeJSKernelBackend extends KernelBackend {
           this.tensorMap.set((tensors[i] as Tensor).dataId, info);
         }
         ids.push(info.id);
-      } else {
+      } else if (tensors[i] instanceof Int64Scalar) {
         // Then `tensors[i]` is a Int64Scalar, which we currently represent
         // using an `Int32Array`.
         const value = (tensors[i] as Int64Scalar).valueArray;
         const id = this.binding.createTensor([], this.binding.TF_INT64, value);
         ids.push(id);
+      } else {
+        throw new Error(`Invalid Tensor type: ${typeof tensors[i]}`);
       }
     }
     return ids;
