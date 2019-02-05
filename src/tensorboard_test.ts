@@ -18,13 +18,12 @@
 import {scalar} from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as tfn from './index';
 
 // tslint:disable-next-line:no-require-imports
 const shelljs = require('shelljs');
 // tslint:disable-next-line:no-require-imports
 const tmp = require('tmp');
-
-import {summaryFileWriter} from './tensorboard';
 
 describe('tensorboard', () => {
   let tmpLogDir: string;
@@ -40,7 +39,7 @@ describe('tensorboard', () => {
   });
 
   it('Create summaryFileWriter and write scalar', () => {
-    const writer = summaryFileWriter(tmpLogDir);
+    const writer = tfn.node.summaryFileWriter(tmpLogDir);
     writer.scalar('foo', 42, 0);
     writer.flush();
 
@@ -67,7 +66,7 @@ describe('tensorboard', () => {
   });
 
   it('Writing tf.Scalar works', () => {
-    const writer = summaryFileWriter(tmpLogDir);
+    const writer = tfn.node.summaryFileWriter(tmpLogDir);
     writer.scalar('foo', scalar(42), 0);
     writer.flush();
 
@@ -81,12 +80,12 @@ describe('tensorboard', () => {
 
   it('No crosstalk between two summary writers', () => {
     const logDir1 = path.join(tmpLogDir, '1');
-    const writer1 = summaryFileWriter(logDir1);
+    const writer1 = tfn.node.summaryFileWriter(logDir1);
     writer1.scalar('foo', 42, 0);
     writer1.flush();
 
     const logDir2 = path.join(tmpLogDir, '2');
-    const writer2 = summaryFileWriter(logDir2);
+    const writer2 = tfn.node.summaryFileWriter(logDir2);
     writer2.scalar('foo', 1.337, 0);
     writer2.flush();
 
@@ -132,7 +131,7 @@ describe('tensorboard', () => {
 
   it('Writing into existing directory works', () => {
     shelljs.mkdir('-p', tmpLogDir);
-    const writer = summaryFileWriter(path.join(tmpLogDir, '22'));
+    const writer = tfn.node.summaryFileWriter(path.join(tmpLogDir, '22'));
     writer.scalar('foo', 42, 0);
     writer.flush();
 
@@ -141,6 +140,6 @@ describe('tensorboard', () => {
   });
 
   it('empty logdir leads to error', () => {
-    expect(() => summaryFileWriter('')).toThrowError(/empty string/);
+    expect(() => tfn.node.summaryFileWriter('')).toThrowError(/empty string/);
   });
 });

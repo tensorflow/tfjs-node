@@ -59,7 +59,7 @@ export class Int64Scalar {
 
     // We use two int32 elements to represent a int64 value. This assumes
     // little endian, which is checked above.
-    const highPart = Math.floor(value / INT32_MAX);
+    const highPart = value >= 0 ? 0 : -1;
     const lowPart = value % INT32_MAX;
     this.valueArray_ = new Int32Array([lowPart, highPart]);
   }
