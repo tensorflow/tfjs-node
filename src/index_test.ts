@@ -42,4 +42,17 @@ describe('packages merge', () => {
     expect(tf.io.listModels).toBeDefined();
     expect(tf.io.nodeHTTPRequest).toBeDefined();
   });
+
+  // tslint:disable-next-line:ban
+  fit('lots of reshapes', () => {
+    const a = tf.zeros([1, 1, 1]);
+    const N = 100000;
+    const start = process.hrtime();
+    for (let i = 0; i < N; i++) {
+      const b = a.reshape([1]);
+    }
+    const end = process.hrtime(start);
+    const elapsed = end[0] * 1000 + end[1] / 1000000;
+    console.log('ms/reshape', elapsed / N);
+  });
 });
