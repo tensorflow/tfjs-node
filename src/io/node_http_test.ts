@@ -17,7 +17,6 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
-import {ConsoleReporter} from 'jasmine';
 
 import * as tfn from '../index';
 
