@@ -237,9 +237,10 @@ export class TensorBoard extends CustomCallback {
  * Callback for logging to TensorBoard durnig traning.
  *
  * This callback logs loss and metric values (if any) generated during a call
- * to the `fit()` or `fitDataset()` method of  to a specific log
+ * to the `fit()` or `fitDataset()` method of to a specific log
  * directory (logdir), which can be ingested and visualized by the TensorBoard
- * binary.
+ * binary. The frequency at which the values are logged can be controlled with
+ * the `updateFreq` field of the configuration object (2nd argument).
  *
  * Usage example:
  * ```js
@@ -268,7 +269,13 @@ export class TensorBoard extends CustomCallback {
  *   callbacks: tf.node.tensorBoard('/tmp/fit_logs_1')
  * });
  * ```
+ *
+ * @param logdir Directory to which the logs will be written.
+ * @args args Optional configuration arguments.
+ * @returns An instance of `TensorBoard`, which is a subclass of
+ *   `tf.CustomCallback`.
  */
-export function tensorBoard(logdir = './logs', args?: TensorBoardCallbackArgs) {
+export function tensorBoard(
+    logdir = './logs', args?: TensorBoardCallbackArgs): TensorBoard {
   return new TensorBoard(logdir, args);
 }

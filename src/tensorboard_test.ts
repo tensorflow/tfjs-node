@@ -180,7 +180,7 @@ describe('tensorBoard callback', () => {
       verbose: 0,
       validationData: [valXs, valYs],
       callbacks: tfn.node.tensorBoard(tmpLogDir)
-    })
+    });
 
     // Get the initial size of the file.
     // Verify the content of the train and val sub-logdirs.
@@ -239,7 +239,7 @@ describe('tensorBoard callback', () => {
       validationData: [valXs, valYs],
       // Use batch updateFreq here.
       callbacks: tfn.node.tensorBoard(tmpLogDir, {updateFreq: 'batch'})
-    })
+    });
 
     // Get the initial size of the file.
     // Verify the content of the train and val sub-logdirs.
@@ -288,6 +288,7 @@ describe('tensorBoard callback', () => {
 
   it('Invalid updateFreq value causes error', async () => {
     expect(() => tfn.node.tensorBoard(tmpLogDir, {
+      // tslint:disable-next-line:no-any
       updateFreq: 'foo' as any
     })).toThrowError(/Expected updateFreq/);
   });
