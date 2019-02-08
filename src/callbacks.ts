@@ -154,7 +154,7 @@ export interface TensorBoardCallbackArgs {
    *
    * Note that writing logs too often slows down the training.
    *
-   * Default: 'epoch';
+   * Default: 'epoch'.
    */
   updateFreq?: 'batch'|'epoch';
 }

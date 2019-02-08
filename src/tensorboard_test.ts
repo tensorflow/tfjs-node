@@ -197,7 +197,7 @@ describe('tensorBoard callback', () => {
     const valFiles = fs.readdirSync(valLogDir);
     const valFileSize0 = fs.statSync(path.join(valLogDir, valFiles[0])).size;
     expect(valFileSize0).toBeGreaterThan(0);
-    // With updateFreq === epoch, the train and val subset should have generate
+    // With updateFreq === epoch, the train and val subset should have generated
     // the same amount of logs.
     expect(valFileSize0).toEqual(trainFileSize0);
 
@@ -220,7 +220,7 @@ describe('tensorBoard callback', () => {
     // file.
     expect(trainFileSize1).toBeGreaterThan(trainFileSize0);
     expect(valFileSize1).toBeGreaterThan(valFileSize0);
-    // With updateFreq === epoch, the train and val subset should have generate
+    // With updateFreq === epoch, the train and val subset should have generated
     // the same amount of logs.
     expect(valFileSize1).toEqual(trainFileSize1);
   });
@@ -256,7 +256,7 @@ describe('tensorBoard callback', () => {
     const valFiles = fs.readdirSync(valLogDir);
     const valFileSize0 = fs.statSync(path.join(valLogDir, valFiles[0])).size;
     expect(valFileSize0).toBeGreaterThan(0);
-    // The train subset should have generate more logs than the val subset,
+    // The train subset should have generated more logs than the val subset,
     // because the train subset gets logged every batch, while the val subset
     // gets logged every epoch.
     expect(trainFileSize0).toBeGreaterThan(valFileSize0);
@@ -280,7 +280,7 @@ describe('tensorBoard callback', () => {
     // file.
     expect(trainFileSize1).toBeGreaterThan(trainFileSize0);
     expect(valFileSize1).toBeGreaterThan(valFileSize0);
-    // The train subset should have generate more logs than the val subset,
+    // The train subset should have generated more logs than the val subset,
     // because the train subset gets logged every batch, while the val subset
     // gets logged every epoch.
     expect(trainFileSize1).toBeGreaterThan(valFileSize1);
