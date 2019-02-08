@@ -165,7 +165,7 @@ export interface TensorBoardCallbackArgs {
  * Users are expected to access this class through the `tensorBoardCallback()`
  * factory method instead.
  */
-export class TensorBoard extends CustomCallback {
+export class TensorBoardCallback extends CustomCallback {
   private trainWriter: SummaryFileWriter;
   private valWriter: SummaryFileWriter;
   private batchesSeen: number;
@@ -236,12 +236,12 @@ export class TensorBoard extends CustomCallback {
 /**
  * Callback for logging to TensorBoard durnig training.
  *
- * This callback logs loss and metric values (if any) generated during a call
- * to the `tf.Model.fit()` or `tf.Model.fitDataset()` method of to a specific
- * log directory (logdir), which can be ingested and visualized by the
- * TensorBoard binary. The frequency at which the values are logged can be
- * controlled with the `updateFreq` field of the configuration object (2nd
- * argument).
+ * Writes the loss and metric values (if any) to the specified log directory
+ * (`logdir`) which can be ingested and visualized by TensorBoard.
+ * This callback is usually passed as a callback to `tf.Model.fit()` or
+ * `tf.Model.fitDataset()` calls model training. The frequency at which the
+ * values are logged can be controlled with the `updateFreq` field of the
+ * configuration object (2nd argument).
  *
  * Usage example:
  * ```js
@@ -280,11 +280,11 @@ export class TensorBoard extends CustomCallback {
  * ```
  *
  * @param logdir Directory to which the logs will be written.
- * @args args Optional configuration arguments.
- * @returns An instance of `TensorBoard`, which is a subclass of
+ * @param args Optional configuration arguments.
+ * @returns An instance of `TensorBoardCallback`, which is a subclass of
  *   `tf.CustomCallback`.
  */
 export function tensorBoard(
-    logdir = './logs', args?: TensorBoardCallbackArgs): TensorBoard {
-  return new TensorBoard(logdir, args);
+    logdir = './logs', args?: TensorBoardCallbackArgs): TensorBoardCallback {
+  return new TensorBoardCallback(logdir, args);
 }
