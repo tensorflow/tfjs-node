@@ -146,6 +146,14 @@ export interface TensorBoardCallbackArgs {
   /**
    * The frequency at which loss and metric values are written to logs.
    *
+   * Currently supported options are:
+   *
+   * - 'batch': Write logs at the end of every batch of training, in addition
+   *   to the end of every epoch of training.
+   * - 'epoch': Write logs at the end of every epoch of training.
+   *
+   * Note that writing logs too often slows down the training.
+   *
    * Default: 'epoch';
    */
   updateFreq?: 'batch'|'epoch';
@@ -177,7 +185,12 @@ export class TensorBoard extends CustomCallback {
         this.logMetrics(logs, 'epoch_', this.epochsSeen);
       },
       onTrainEnd: async (logs?: Logs) => {
-        this.trainWriter.flush();
+        if (this.trainWriter != null) {
+          this.trainWriter.flush();
+        }
+        if (this.valWriter != null) {
+          this.valWriter.flush();
+        }
       }
     });
 
