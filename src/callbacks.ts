@@ -160,7 +160,7 @@ export interface TensorBoardCallbackArgs {
 }
 
 /**
- * Callback for logging to TensorBoard durnig traning.
+ * Callback for logging to TensorBoard durnig training.
  *
  * Users are expected to access this class through the `tensorBoardCallback()`
  * factory method instead.
@@ -234,13 +234,14 @@ export class TensorBoard extends CustomCallback {
 }
 
 /**
- * Callback for logging to TensorBoard durnig traning.
+ * Callback for logging to TensorBoard durnig training.
  *
  * This callback logs loss and metric values (if any) generated during a call
- * to the `fit()` or `fitDataset()` method of to a specific log
- * directory (logdir), which can be ingested and visualized by the TensorBoard
- * binary. The frequency at which the values are logged can be controlled with
- * the `updateFreq` field of the configuration object (2nd argument).
+ * to the `tf.Model.fit()` or `tf.Model.fitDataset()` method of to a specific
+ * log directory (logdir), which can be ingested and visualized by the
+ * TensorBoard binary. The frequency at which the values are logged can be
+ * controlled with the `updateFreq` field of the configuration object (2nd
+ * argument).
  *
  * Usage example:
  * ```js
@@ -268,6 +269,14 @@ export class TensorBoard extends CustomCallback {
  *    // Add the tensorBoard callback here.
  *   callbacks: tf.node.tensorBoard('/tmp/fit_logs_1')
  * });
+ * ```
+ *
+ * Then you can use the following commands to point tensorboard
+ * to the logdir:
+ *
+ * ```sh
+ * pip install tensorboard  # Unless you've already installed it.
+ * tensorboard --logdir /tmp/fit_logs_1
  * ```
  *
  * @param logdir Directory to which the logs will be written.
