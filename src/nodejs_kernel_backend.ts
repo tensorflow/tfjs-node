@@ -36,13 +36,13 @@ type TensorInfo = {
 
 interface DataId {}
 
-export class NodeJSKernelBackend implements KernelBackend {
+export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding, packageName: string) {
-    // super();
+    super();
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
   }
