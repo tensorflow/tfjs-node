@@ -239,8 +239,8 @@ export class TensorBoardCallback extends CustomCallback {
  * Writes the loss and metric values (if any) to the specified log directory
  * (`logdir`) which can be ingested and visualized by TensorBoard.
  * This callback is usually passed as a callback to `tf.Model.fit()` or
- * `tf.Model.fitDataset()` calls model training. The frequency at which the
- * values are logged can be controlled with the `updateFreq` field of the
+ * `tf.Model.fitDataset()` calls during model training. The frequency at which
+ * the values are logged can be controlled with the `updateFreq` field of the
  * configuration object (2nd argument).
  *
  * Usage example:
