@@ -9,7 +9,7 @@
     "url": "https://github.com/tensorflow/tfjs-node.git"
   },
   "engines": {
-    "node": ">=8.11.0"
+    "node": ">=8.10.0"
   },
   "scripts": {
     "build": "tsc",
