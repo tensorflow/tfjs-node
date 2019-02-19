@@ -86,8 +86,6 @@ async function downloadAndUnpackResource(uri, destPath, callback) {
     } else {
       throw new Error(`Unsupported packed resource: ${uri}`);
     }
-
-    response.on('data', chunk => bar.tick(chunk.length))
   });
   request.end();
 }

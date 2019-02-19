@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -103,10 +103,7 @@ async function downloadLibtensorflow(callback) {
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
 
-  // The deps folder and resources do not exist, download and callback as
-  // needed:
   console.error('* Downloading libtensorflow');
-
   resources.downloadAndUnpackResource(
       getPlatformLibtensorflowUri(), depsPath, async () => {
         if (platform === 'win32') {
