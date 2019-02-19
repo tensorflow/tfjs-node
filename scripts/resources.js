@@ -23,6 +23,7 @@ const path = require('os').platform() === 'win32' ? require('path') :
 const ProgressBar = require('progress');
 const tar = require('tar');
 const url = require('url');
+const util = require('util');
 const zip = require('adm-zip');
 
 const unlink = util.promisify(fs.unlink);
@@ -42,7 +43,7 @@ async function downloadAndUnpackResource(uri, destPath, callback) {
   // http request.  the '...url.parse(targetUri)' part fills in the host,
   // path, protocol, etc from the targetUri and then we set the agent to the
   // default agent which is overridden a few lines down if there is a proxy
-  const options = {...url.parse(targetUri), agent: https.globalAgent};
+  const options = {...url.parse(uri), agent: https.globalAgent};
 
   if (proxy !== '') {
     options.agent = new HttpsProxyAgent(proxy);
@@ -65,7 +66,7 @@ async function downloadAndUnpackResource(uri, destPath, callback) {
           .pipe(outputFile)
           .on('close', async () => {
             const zipFile = new zip(tempFileName);
-            zipFile.extractAllTo(depsPath, true /* overwrite */);
+            zipFile.extractAllTo(destPath, true /* overwrite */);
 
             await unlink(tempFileName);
 
@@ -75,7 +76,7 @@ async function downloadAndUnpackResource(uri, destPath, callback) {
           });
     } else if (uri.endsWith('.tar.gz')) {
       response.on('data', chunk => bar.tick(chunk.length))
-          .pipe(tar.x({C: depsPath, strict: true}))
+          .pipe(tar.x({C: destPath, strict: true}))
           .on('close', () => {
             if (callback !== undefined) {
               callback();

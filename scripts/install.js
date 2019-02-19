@@ -26,7 +26,9 @@ const resources = require('./resources');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
+const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
+const unlink = util.promisify(fs.unlink);
 
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
@@ -36,7 +38,7 @@ const GPU_LINUX = 'gpu-linux-x86_64-1.12.0.tar.gz';
 const CPU_WINDOWS = 'cpu-windows-x86_64-1.12.0.zip';
 const GPU_WINDOWS = 'gpu-windows-x86_64-1.12.0.zip';
 
-const TF_HEADERS_URI =
+const TF_WIN_HEADERS_URI =
     'https://storage.googleapis.com/tf-builds/tensorflow-headers-1.12.zip';
 
 const platform = os.platform();
@@ -105,27 +107,52 @@ async function downloadLibtensorflow(callback) {
   // needed:
   console.error('* Downloading libtensorflow');
 
-  resources.downloadAndUnpackResource(getPlatformLibtensorflowUri(), () => {
-    if (platform === 'win32') {
-    } else {
-      // No other work is required on other platforms.
-      callback();
-    }
-  });
-  // TODO - download...
+  resources.downloadAndUnpackResource(
+      getPlatformLibtensorflowUri(), depsPath, async () => {
+        if (platform === 'win32') {
+          // Some windows libtensorflow zip files are missing structure and the
+          // eager headers. Check, restructure, and download resources as
+          // needed.
+          // TODO(kreeger): File issue on windows-GPU builds.
+          const depsIncludePath = path.join(depsPath, 'include');
+          if (!await exists(depsLibTensorFlowPath)) {
+            // Verify that tensorflow.dll exists
+            const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
+            if (!await exists(libtensorflowDll)) {
+              throw new Error('Could not find libtensorflow.dll');
+            }
 
-  //           // TODO - this is getting moved....
-  //           // Some windows packages for GPU are missing the `include` and
-  //           `lib`
-  //           // directory. Create and move if that is the case.
-  //           const depsIncludePath = path.join(depsPath, 'include');
-  //           if (!await exists(depsIncludePath)) {
-  //             // Move
-  //           }
-  //           if (!await exists(depsLibPath)) {
-  //             await ensureDir(depsLibPath);
-  //             // Move
-  //           }
+            await ensureDir(depsLibPath);
+            await rename(libtensorflowDll, depsLibTensorFlowPath);
+          }
+
+          // Next check the structure for the C-library headers. If they don't
+          // exist, download and unzip them.
+          if (!await exists(depsIncludePath)) {
+            // Remove duplicated assets from the original libtensorflow package.
+            // They will be replaced by the download below:
+            await unlink(path.join(depsPath, 'c_api.h'));
+            await unlink(path.join(depsPath, 'LICENSE'));
+
+            // Download the C headers only and unpack:
+            resources.downloadAndUnpackResource(
+                TF_WIN_HEADERS_URI, depsPath, () => {
+                  if (callback !== undefined) {
+                    callback();
+                  }
+                });
+          } else {
+            if (callback !== undefined) {
+              callback();
+            }
+          }
+        } else {
+          // No other work is required on other platforms.
+          if (callback !== undefined) {
+            callback();
+          }
+        }
+      });
 }
 
 /**
@@ -133,6 +160,9 @@ async function downloadLibtensorflow(callback) {
  */
 async function build() {
   console.error('* Building TensorFlow Node.js bindings');
+  if (true) {
+    return;
+  }
   cp.exec('node-gyp rebuild', (err) => {
     if (err) {
       throw new Error('node-gyp rebuild failed with: ' + err);
