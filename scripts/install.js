@@ -31,7 +31,6 @@ const {depsPath, depsLibPath, depsLibTensorFlowPath} =
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
-const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
 
@@ -95,46 +94,6 @@ async function cleanDeps() {
 }
 
 /**
- * Downloads a given URI and calls back when complete.
- * @param {string} uri
- * @param {Function} callback
- */
-async function downloadPath(uri, callback) {
-  // If HTTPS_PROXY, https_proxy, HTTP_PROXY, or http_proxy is set
-  const proxy = process.env['HTTPS_PROXY'] || process.env['https_proxy'] ||
-      process.env['HTTP_PROXY'] || process.env['http_proxy'] || '';
-
-  // Using object destructuring to construct the options object for the
-  // http request.  the '...url.parse(targetUri)' part fills in the host,
-  // path, protocol, etc from the targetUri and then we set the agent to the
-  // default agent which is overridden a few lines down if there is a proxy
-  const options = {...url.parse(targetUri), agent: https.globalAgent};
-
-  if (proxy !== '') {
-    options.agent = new HttpsProxyAgent(proxy);
-  }
-
-  const request = https.get(options, response => {
-    const bar = new ProgressBar('[:bar] :rate/bps :percent :etas', {
-      complete: '=',
-      incomplete: ' ',
-      width: 30,
-      total: parseInt(response.headers['content-length'], 10)
-    });
-
-    // TODO(kreeger): Left off right here.
-
-    response.on('data', (chunk) => bar.tick(chunk.length))
-        .pipe(outputPath)  // This needs to be TAR for '!win32'...
-        .on('close',
-            async () => {
-                // TODO - hit callback..
-            });
-  });
-  request.end();
-}
-
-/**
  * Downloads libtensorflow and notifies via a callback when unpacked.
  */
 async function downloadLibtensorflow(callback) {
@@ -184,6 +143,7 @@ async function downloadLibtensorflow(callback) {
             zipFile.extractAllTo(depsPath, true /* overwrite */);
             await unlink(tempFileName);
 
+            // TODO - this is getting moved....
             // Some windows packages for GPU are missing the `include` and `lib`
             // directory. Create and move if that is the case.
             const depsIncludePath = path.join(depsPath, 'include');
