@@ -26,13 +26,14 @@ const zip = require('adm-zip');
 const cp = require('child_process');
 const os = require('os');
 const ProgressBar = require('progress');
-const {depsPath, depsLibTensorFlowPath} = require('./deps-constants.js');
+const {depsPath, depsLibPath, depsLibTensorFlowPath} =
+    require('./deps-constants.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
+const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
-const exec = util.promisify(cp.exec);
 
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
@@ -45,7 +46,6 @@ const GPU_WINDOWS = 'gpu-windows-x86_64-1.12.0.zip';
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
-
 let targetUri = BASE_URI;
 
 async function getTargetUri() {
@@ -92,6 +92,46 @@ async function cleanDeps() {
     await rimrafPromise(depsPath);
   }
   await mkdir(depsPath);
+}
+
+/**
+ * Downloads a given URI and calls back when complete.
+ * @param {string} uri
+ * @param {Function} callback
+ */
+async function downloadPath(uri, callback) {
+  // If HTTPS_PROXY, https_proxy, HTTP_PROXY, or http_proxy is set
+  const proxy = process.env['HTTPS_PROXY'] || process.env['https_proxy'] ||
+      process.env['HTTP_PROXY'] || process.env['http_proxy'] || '';
+
+  // Using object destructuring to construct the options object for the
+  // http request.  the '...url.parse(targetUri)' part fills in the host,
+  // path, protocol, etc from the targetUri and then we set the agent to the
+  // default agent which is overridden a few lines down if there is a proxy
+  const options = {...url.parse(targetUri), agent: https.globalAgent};
+
+  if (proxy !== '') {
+    options.agent = new HttpsProxyAgent(proxy);
+  }
+
+  const request = https.get(options, response => {
+    const bar = new ProgressBar('[:bar] :rate/bps :percent :etas', {
+      complete: '=',
+      incomplete: ' ',
+      width: 30,
+      total: parseInt(response.headers['content-length'], 10)
+    });
+
+    // TODO(kreeger): Left off right here.
+
+    response.on('data', (chunk) => bar.tick(chunk.length))
+        .pipe(outputPath)  // This needs to be TAR for '!win32'...
+        .on('close',
+            async () => {
+                // TODO - hit callback..
+            });
+  });
+  request.end();
 }
 
 /**
@@ -143,6 +183,17 @@ async function downloadLibtensorflow(callback) {
             const zipFile = new zip(tempFileName);
             zipFile.extractAllTo(depsPath, true /* overwrite */);
             await unlink(tempFileName);
+
+            // Some windows packages for GPU are missing the `include` and `lib`
+            // directory. Create and move if that is the case.
+            const depsIncludePath = path.join(depsPath, 'include');
+            if (!await exists(depsIncludePath)) {
+              // Move
+            }
+            if (!await exists(depsLibPath)) {
+              await ensureDir(depsLibPath);
+              // Move
+            }
 
             if (callback !== undefined) {
               callback();
