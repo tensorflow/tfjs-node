@@ -103,7 +103,7 @@ async function downloadLibtensorflow(callback) {
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
 
-  console.error('* Downloading libtensorflow');
+  console.warn('* Downloading libtensorflow');
   resources.downloadAndUnpackResource(
       getPlatformLibtensorflowUri(), depsPath, async () => {
         if (platform === 'win32') {
