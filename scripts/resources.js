@@ -29,10 +29,11 @@ const zip = require('adm-zip');
 const unlink = util.promisify(fs.unlink);
 
 /**
- * TODO - doc me.
- * @param {string} uri
- * @param {string} destPath
- * @param {Function} callback
+ * Downloads and unpacks a given tarball or zip file at a given path.
+ * @param {string} uri The path of the compressed file to download and extract.
+ * @param {string} destPath The destination path for the compressed content.
+ * @param {Function} callback Handler for when downloading and extraction is
+ *     complete.
  */
 async function downloadAndUnpackResource(uri, destPath, callback) {
   // If HTTPS_PROXY, https_proxy, HTTP_PROXY, or http_proxy is set
