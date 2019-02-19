@@ -160,9 +160,6 @@ async function downloadLibtensorflow(callback) {
  */
 async function build() {
   console.error('* Building TensorFlow Node.js bindings');
-  if (true) {
-    return;
-  }
   cp.exec('node-gyp rebuild', (err) => {
     if (err) {
       throw new Error('node-gyp rebuild failed with: ' + err);
