@@ -89,3 +89,5 @@ async function downloadAndUnpackResource(uri, destPath, callback) {
   });
   request.end();
 }
+
+module.exports = {downloadAndUnpackResource};
