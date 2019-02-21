@@ -71,6 +71,11 @@ describe('fill', () => {
     expect(x.dtype).toEqual('float32');
     expectArraysClose(x, tf.ones([2, 2]).mul(42));
   });
+  it('scalar', () => {
+    const x = tf.fill([], 42);
+    expect(x.dtype).toEqual('float32');
+    expectArraysClose(x, tf.scalar(42));
+  });
   it('float32 explicit', () => {
     const x = tf.fill([3], -7, 'float32');
     expect(x.dtype).toEqual('float32');
