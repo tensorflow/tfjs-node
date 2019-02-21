@@ -271,6 +271,24 @@ export class NodeJSKernelBackend extends KernelBackend {
                'Fill', opAttrs, [shapeTensor, valueTensor]) as Tensor<R>;
   }
 
+  onesLike(x: Tensor): Tensor {
+    const opAttrs = [{
+      name: 'T',
+      type: this.binding.TF_ATTR_TYPE,
+      value: this.getDTypeInteger(x.dtype)
+    }];
+    return this.executeSingleOutput('OnesLike', opAttrs, [x]);
+  }
+
+  zerosLike(x: Tensor): Tensor {
+    const opAttrs = [{
+      name: 'T',
+      type: this.binding.TF_ATTR_TYPE,
+      value: this.getDTypeInteger(x.dtype)
+    }];
+    return this.executeSingleOutput('ZerosLike', opAttrs, [x]);
+  }
+
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[],
       beginMask: number, endMask: number, ellipsisMask: number,

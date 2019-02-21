@@ -65,7 +65,7 @@ describe('conv3d dilations', () => {
   });
 });
 
-describe('fill', () => {
+describe('fill binding', () => {
   it('float32 default', () => {
     const x = tf.fill([2, 2], 42);
     expect(x.dtype).toEqual('float32');
@@ -92,5 +92,21 @@ describe('fill', () => {
     expect(x.dataSync() as any).toEqual([
       'foo', 'foo', 'foo', 'foo', 'foo', 'foo', 'foo', 'foo'
     ]);
+  });
+});
+
+describe('zerosLike binding', () => {
+  it('float32', () => {
+    const x = tf.ones([2, 3]);
+    const y = tf.zerosLike(x)
+    expectArraysClose(y, tf.zeros([2, 3]));
+  });
+});
+
+describe('onesLike binding', () => {
+  it('float32', () => {
+    const x = tf.zeros([2, 3]);
+    const y = tf.onesLike(x);
+    expectArraysClose(y, tf.ones([2, 3]));
   });
 });
