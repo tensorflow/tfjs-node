@@ -37,6 +37,7 @@ type TensorInfo = {
 
 interface DataId {}
 
+
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
@@ -66,6 +67,23 @@ export class NodeJSKernelBackend extends KernelBackend {
         return this.binding.TF_STRING;
       default:
         throw new Error(`Unsupported dtype ${value.dtype}`);
+    }
+  }
+
+  private getDTypeInteger(dtype: DataType): number {
+    switch (dtype) {
+      case 'float32':
+        return this.binding.TF_FLOAT;
+      case 'int32':
+        return this.binding.TF_INT32;
+      case 'bool':
+        return this.binding.TF_BOOL;
+      case 'complex64':
+        return this.binding.TF_COMPLEX64;
+      case 'string':
+        return this.binding.TF_STRING;
+      default:
+        throw new Error(`Unsupported DType: ${dtype}`);
     }
   }
 
@@ -224,6 +242,33 @@ export class NodeJSKernelBackend extends KernelBackend {
       this.tensorMap.set(
           dataId, {shape, dtype: getTFDType(dtype), values: null, id: -1});
     }
+  }
+
+  fill<R extends Rank>(
+      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+    if (dtype == null) {
+      if (typeof value === 'number') {
+        dtype = 'float32';
+      } else {
+        dtype = 'string';
+      }
+    }
+    const shapeTensor = tensor1d(shape, 'int32');
+    const valueTensor = scalar(value, dtype);
+    const opAttrs = [
+      {
+        name: 'T',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.getDTypeInteger(dtype)
+      },
+      {
+        name: 'index_type',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
+    ];
+    return this.executeSingleOutput(
+               'Fill', opAttrs, [shapeTensor, valueTensor]) as Tensor<R>;
   }
 
   stridedSlice<T extends Tensor>(

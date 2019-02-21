@@ -64,3 +64,28 @@ describe('conv3d dilations', () => {
     }
   });
 });
+
+describe('fill', () => {
+  it('float32 default', () => {
+    const x = tf.fill([2, 2], 42);
+    expect(x.dtype).toEqual('float32');
+    expectArraysClose(x, tf.ones([2, 2]).mul(42));
+  });
+  it('float32 explicit', () => {
+    const x = tf.fill([3], -7, 'float32');
+    expect(x.dtype).toEqual('float32');
+    expectArraysClose(x, tf.ones([3]).mul(-7));
+  });
+  it('int32', () => {
+    const x = tf.fill([3], -7, 'int32');
+    expect(x.dtype).toEqual('int32');
+    expectArraysClose(x, tf.ones([3], 'int32').mul(tf.scalar(-7, 'int32')));
+  });
+  it('string', () => {
+    const x = tf.fill([2, 2, 2], 'foo', 'string');
+    expect(x.dtype).toEqual('string');
+    expect(x.dataSync() as any).toEqual([
+      'foo', 'foo', 'foo', 'foo', 'foo', 'foo', 'foo', 'foo'
+    ]);
+  });
+});
