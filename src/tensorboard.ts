@@ -87,6 +87,9 @@ const summaryFileWriterCache: {[logdir: string]: SummaryFileWriter} = {};
  *   written in the `logdir` (default: `.v2`).
  * @returns An instance of `SummaryFileWriter`.
  */
+/**
+ * @doc {heading: 'Node.js', subheading: 'TensorBoard', namespace: 'node'}
+ */
 export function summaryFileWriter(
     logdir: string, maxQueue = 10, flushMillis = 120000,
     filenameSuffix = '.v2'): SummaryFileWriter {
