@@ -285,7 +285,7 @@ export class TensorBoardCallback extends CustomCallback {
  *   `tf.CustomCallback`.
  */
 /**
- * @doc {heading: 'Node.js', subheading: 'TensorBoard', namespace: 'node'}
+ * @doc {heading: 'TensorBoard', namespace: 'node'}
  */
 export function tensorBoard(
     logdir = './logs', args?: TensorBoardCallbackArgs): TensorBoardCallback {

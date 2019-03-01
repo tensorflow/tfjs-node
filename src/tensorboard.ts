@@ -88,7 +88,7 @@ const summaryFileWriterCache: {[logdir: string]: SummaryFileWriter} = {};
  * @returns An instance of `SummaryFileWriter`.
  */
 /**
- * @doc {heading: 'Node.js', subheading: 'TensorBoard', namespace: 'node'}
+ * @doc {heading: 'TensorBoard', namespace: 'node'}
  */
 export function summaryFileWriter(
     logdir: string, maxQueue = 10, flushMillis = 120000,
