@@ -52,23 +52,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     // TODO(kreeger, smilkov): Implement this.
   }
 
-  private typeAttributeFromTensor(value: Tensor): number {
-    switch (value.dtype) {
-      case 'float32':
-        return this.binding.TF_FLOAT;
-      case 'int32':
-        return this.binding.TF_INT32;
-      case 'bool':
-        return this.binding.TF_BOOL;
-      case 'complex64':
-        return this.binding.TF_COMPLEX64;
-      case 'string':
-        return this.binding.TF_STRING;
-      default:
-        throw new Error(`Unsupported dtype ${value.dtype}`);
-    }
-  }
-
   private getDTypeInteger(dtype: DataType): number {
     switch (dtype) {
       case 'float32':
@@ -84,6 +67,10 @@ export class NodeJSKernelBackend extends KernelBackend {
       default:
         throw new Error(`Unsupported DType: ${dtype}`);
     }
+  }
+
+  private typeAttributeFromTensor(value: Tensor): number {
+    return this.getDTypeInteger(value.dtype);
   }
 
   // Creates a new Tensor and maps the dataId to the passed in ID.
