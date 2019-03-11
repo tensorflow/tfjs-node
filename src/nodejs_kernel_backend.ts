@@ -37,7 +37,6 @@ type TensorInfo = {
 
 interface DataId {}
 
-
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
@@ -271,22 +270,22 @@ export class NodeJSKernelBackend extends KernelBackend {
                'Fill', opAttrs, [shapeTensor, valueTensor]) as Tensor<R>;
   }
 
-  onesLike(x: Tensor): Tensor {
+  onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
     const opAttrs = [{
       name: 'T',
       type: this.binding.TF_ATTR_TYPE,
       value: this.getDTypeInteger(x.dtype)
     }];
-    return this.executeSingleOutput('OnesLike', opAttrs, [x]);
+    return this.executeSingleOutput('OnesLike', opAttrs, [x]) as Tensor<R>;
   }
 
-  zerosLike(x: Tensor): Tensor {
+  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
     const opAttrs = [{
       name: 'T',
       type: this.binding.TF_ATTR_TYPE,
       value: this.getDTypeInteger(x.dtype)
     }];
-    return this.executeSingleOutput('ZerosLike', opAttrs, [x]);
+    return this.executeSingleOutput('ZerosLike', opAttrs, [x]) as Tensor<R>;
   }
 
   stridedSlice<T extends Tensor>(

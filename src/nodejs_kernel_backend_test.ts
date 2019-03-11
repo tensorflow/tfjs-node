@@ -89,6 +89,7 @@ describe('fill binding', () => {
   it('string', () => {
     const x = tf.fill([2, 2, 2], 'foo', 'string');
     expect(x.dtype).toEqual('string');
+    // tslint:disable-next-line:no-any
     expect(x.dataSync() as any).toEqual([
       'foo', 'foo', 'foo', 'foo', 'foo', 'foo', 'foo', 'foo'
     ]);
@@ -98,7 +99,7 @@ describe('fill binding', () => {
 describe('zerosLike binding', () => {
   it('float32', () => {
     const x = tf.ones([2, 3]);
-    const y = tf.zerosLike(x)
+    const y = tf.zerosLike(x);
     expectArraysClose(y, tf.zeros([2, 3]));
   });
 });
