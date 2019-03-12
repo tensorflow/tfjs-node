@@ -232,6 +232,9 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   fill<R extends Rank>(
       shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
+    // TODO(cais, nkreeger): Investigate whether this can be made into
+    // a dtype helper method. The underlying op kernel doesn't accept undefined
+    // or null dtype.
     if (dtype == null) {
       if (typeof value === 'number') {
         dtype = 'float32';
