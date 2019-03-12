@@ -3,6 +3,7 @@
     "module": "commonjs",
     "noImplicitAny": true,
     "sourceMap": true,
+    "baseUrl": ".",
     "removeComments": false,
     "preserveConstEnums": true,
     "declaration": true,
@@ -20,9 +21,18 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "paths": {
+      "*": [
+        "*",
+        "src/*"
+      ]
+    },
   },
   "include": [
     "src/"
   ],
+  "files": [
+    "src/tfjs_binding.d.ts"
+  ]
 }

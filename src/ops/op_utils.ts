@@ -19,7 +19,6 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {isArray, isNullOrUndefined} from 'util';
 
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
-import {TFEOpAttr} from '../tfjs_binding';
 
 let gBackend: NodeJSKernelBackend = null;
 
@@ -63,7 +62,7 @@ export function getTFDType(dataType: tfc.DataType): number {
  * @deprecated Please use createTensorsTypeOpAttr() going forward.
  */
 export function createTypeOpAttr(
-    attrName: string, dtype: tfc.DataType): TFEOpAttr {
+    attrName: string, dtype: tfc.DataType): TensorFlow.TFEOpAttr {
   return {
     name: attrName,
     type: nodeBackend().binding.TF_ATTR_TYPE,

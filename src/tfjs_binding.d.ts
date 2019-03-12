@@ -15,55 +15,57 @@
  * =============================================================================
  */
 
-declare class TensorMetadata {
-  id: number;
-  shape: number[];
-  dtype: number;
-}
+declare namespace TensorFlow {
+  class TensorMetadata {
+    id: number;
+    shape: number[];
+    dtype: number;
+  }
 
-declare class TFEOpAttr {
-  name: string;
-  type: number;
-  value: boolean|number|object|string|number[];
-}
+  class TFEOpAttr {
+    name: string;
+    type: number;
+    value: boolean|number|object|string|number[];
+  }
 
-export interface TFJSBinding {
-  TensorMetadata: typeof TensorMetadata;
-  TFEOpAttr: typeof TFEOpAttr;
+  interface TFJSBinding {
+    TensorMetadata: typeof TensorMetadata;
+    TFEOpAttr: typeof TFEOpAttr;
 
-  // Creates a tensor with the backend:
-  createTensor(
-      shape: number[], dtype: number,
-      buffer: Float32Array|Int32Array|Uint8Array): number;
+    // Creates a tensor with the backend:
+    createTensor(
+        shape: number[], dtype: number,
+        buffer: Float32Array|Int32Array|Uint8Array): number;
 
-  // Deletes a tensor with the backend:
-  deleteTensor(tensorId: number): void;
+    // Deletes a tensor with the backend:
+    deleteTensor(tensorId: number): void;
 
-  // Reads data-sync from a tensor on the backend:
-  tensorDataSync(tensorId: number): Float32Array|Int32Array|Uint8Array;
+    // Reads data-sync from a tensor on the backend:
+    tensorDataSync(tensorId: number): Float32Array|Int32Array|Uint8Array;
 
-  // Executes an Op on the backend, returns an array of output TensorMetadata:
-  executeOp(
-      opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
-      numOutputs: number): TensorMetadata[];
+    // Executes an Op on the backend, returns an array of output TensorMetadata:
+    executeOp(
+        opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
+        numOutputs: number): TensorMetadata[];
 
-  // TF Types
-  TF_FLOAT: number;
-  TF_INT32: number;
-  TF_INT64: number;
-  TF_BOOL: number;
-  TF_COMPLEX64: number;
-  TF_STRING: number;
-  TF_RESOURCE: number;
+    // TF Types
+    TF_FLOAT: number;
+    TF_INT32: number;
+    TF_INT64: number;
+    TF_BOOL: number;
+    TF_COMPLEX64: number;
+    TF_STRING: number;
+    TF_RESOURCE: number;
 
-  // TF OpAttrTypes
-  TF_ATTR_STRING: number;
-  TF_ATTR_INT: number;
-  TF_ATTR_FLOAT: number;
-  TF_ATTR_BOOL: number;
-  TF_ATTR_TYPE: number;
-  TF_ATTR_SHAPE: number;
-  TF_ATTR_RESOURCE: number;
+    // TF OpAttrTypes
+    TF_ATTR_STRING: number;
+    TF_ATTR_INT: number;
+    TF_ATTR_FLOAT: number;
+    TF_ATTR_BOOL: number;
+    TF_ATTR_TYPE: number;
+    TF_ATTR_SHAPE: number;
+    TF_ATTR_RESOURCE: number;
 
-  TF_Version: string;
+    TF_Version: string;
+  }
 }

@@ -26,7 +26,6 @@ import {isNullOrUndefined} from 'util';
 import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
 import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
-import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
   shape: number[],
@@ -38,11 +37,11 @@ type TensorInfo = {
 interface DataId {}
 
 export class NodeJSKernelBackend extends KernelBackend {
-  binding: TFJSBinding;
+  binding: TensorFlow.TFJSBinding;
   isGPUPackage: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
 
-  constructor(binding: TFJSBinding, packageName: string) {
+  constructor(binding: TensorFlow.TFJSBinding, packageName: string) {
     super();
     this.binding = binding;
     this.isGPUPackage = packageName === '@tensorflow/tfjs-node-gpu';
@@ -70,7 +69,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   // Creates a new Tensor and maps the dataId to the passed in ID.
-  private createOutputTensor(metadata: TensorMetadata): Tensor {
+  private createOutputTensor(metadata: TensorFlow.TensorMetadata): Tensor {
     const newId = {};
 
     this.tensorMap.set(newId, {
@@ -137,7 +136,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return ids;
   }
 
-  private createReductionOpAttrs(tensor: Tensor): TFEOpAttr[] {
+  private createReductionOpAttrs(tensor: Tensor): TensorFlow.TFEOpAttr[] {
     return [
       {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
       createTypeOpAttr('T', tensor.dtype), createTypeOpAttr('Tidx', 'int32')
@@ -160,8 +159,8 @@ export class NodeJSKernelBackend extends KernelBackend {
    * @param inputs The list of input Tensors for the Op.
    * @return A resulting Tensor from Op execution.
    */
-  executeSingleOutput(name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]):
-      Tensor {
+  executeSingleOutput(
+      name: string, opAttrs: TensorFlow.TFEOpAttr[], inputs: Tensor[]): Tensor {
     const outputMetadata = this.binding.executeOp(
         name, opAttrs, this.getInputTensorIds(inputs), 1);
     return this.createOutputTensor(outputMetadata[0]);
@@ -176,7 +175,7 @@ export class NodeJSKernelBackend extends KernelBackend {
    * @return A resulting Tensor array from Op execution.
    */
   executeMultipleOutputs(
-      name: string, opAttrs: TFEOpAttr[], inputs: Tensor[],
+      name: string, opAttrs: TensorFlow.TFEOpAttr[], inputs: Tensor[],
       numOutputs: number): Tensor[] {
     const outputMetadata = this.binding.executeOp(
         name, opAttrs, this.getInputTensorIds(inputs), numOutputs);
@@ -1569,7 +1568,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         inputArgs.push(value);
         typeAttr = this.typeAttributeFromTensor(value);
       }
-      const opAttrs: TFEOpAttr[] =
+      const opAttrs: TensorFlow.TFEOpAttr[] =
           [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
 
       this.binding.executeOp(
