@@ -24,6 +24,7 @@ pip install -r requirements.txt
 # Build the NPM package for tfjs-node.
 # TODO(cais): Add a flag for GPU vs non-GPU.
 cd "${SCRIPT_DIR}/../.."
+rm -rf ./dist
 yarn
 yarn build-npm
 
