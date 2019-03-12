@@ -25,6 +25,7 @@ import * as nodeVersion from './version';
 
 // tslint:disable-next-line:no-require-imports
 import bindings = require('bindings');
+import {TFJSBinding} from './tfjs_binding';
 
 // Merge version and io namespaces.
 export const version = {
@@ -44,7 +45,7 @@ const pjson = require('../package.json');
 
 tf.ENV.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(
-      bindings('tfjs_binding.node') as TensorFlow.TFJSBinding, pjson.name);
+      bindings('tfjs_binding.node') as TFJSBinding, pjson.name);
 }, 3 /* priority */);
 
 // If registration succeeded, set the backend.

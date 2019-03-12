@@ -3,15 +3,11 @@
     "module": "commonjs",
     "noImplicitAny": true,
     "sourceMap": true,
-    "baseUrl": ".",
     "removeComments": false,
     "preserveConstEnums": true,
     "declaration": true,
     "target": "es5",
-    "lib": [
-      "es2015",
-      "dom"
-    ],
+    "lib": ["es2015", "dom"],
     "outDir": "./dist",
     "noUnusedLocals": true,
     "noImplicitReturns": true,
@@ -21,18 +17,9 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "experimentalDecorators": true,
-    "paths": {
-      "*": [
-        "*",
-        "src/*"
-      ]
-    },
+    "experimentalDecorators": true
   },
   "include": [
     "src/"
-  ],
-  "files": [
-    "src/tfjs_binding.d.ts"
   ]
 }
