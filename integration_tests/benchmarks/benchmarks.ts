@@ -192,6 +192,12 @@ function postPad(str: string, targetLength: number, padChar = ' '): string {
   return output;
 }
 
+function relPercentageStr(value: number, ref: number) {
+  const percent = (value - ref) / ref * 100;
+  let percentStr = `${percent.toFixed(1)}%`;
+  return percent >= 0 ? `+${percentStr}` : percentStr;
+}
+
 async function main() {
   const artifactsDir = 'data/';
 
@@ -206,7 +212,6 @@ async function main() {
   const pyFitTimeMs: number[] = [];
   const tsFitTimeMs: number[] = [];
 
-  // TODO(cais): Restore.
   for (let i = 0; i < benchmarks.models.length; ++i) {
     const modelName = benchmarks.models[i];
     console.log(
@@ -223,6 +228,13 @@ async function main() {
   }
 
   console.log('\n');
+  console.log(`TensorFlow (Python) version: ` +
+      `${benchmarks.metadata.tensorflow_version}`);
+  console.log(`Keras (Python) version: ` +
+      `${benchmarks.metadata.keras_version}`);
+  console.log(`Python uses GPU?: ` +
+      `${benchmarks.metadata.tensorflow_uses_gpu}`);
+  console.log(`TypeScript uses GPU?: true`);  // TODO(cais): Don't hard code.
   console.log(`predict # of runs: ${benchmarks.config.PREDICT_RUNS}`);
 
   const FIRST_COLUMN_WIDTH = 28;
@@ -244,11 +256,15 @@ async function main() {
         postPad(modelNames[i], FIRST_COLUMN_WIDTH) +
         postPad(`${batchSizes[i]}`, CONFIG_COLUMN_WIDTH) +
         postPad(pyPredictTimeMs[i].toFixed(1), OTHER_COLUMN_WIDTH) +
-        postPad(tsPredictTimeMs[i].toFixed(1), OTHER_COLUMN_WIDTH);
+        postPad(`${tsPredictTimeMs[i].toFixed(1)} ` +
+            `(${relPercentageStr(tsPredictTimeMs[i], pyPredictTimeMs[i])})`,
+            OTHER_COLUMN_WIDTH);
     if (!isNaN(pyFitTimeMs[i]) && pyFitTimeMs[i] > 0) {
       line +=
           postPad(pyFitTimeMs[i].toFixed(1), OTHER_COLUMN_WIDTH) +
-          postPad(tsFitTimeMs[i].toFixed(1), OTHER_COLUMN_WIDTH);
+          postPad(`${tsFitTimeMs[i].toFixed(1)} ` +
+            `(${relPercentageStr(tsFitTimeMs[i], pyFitTimeMs[i])})`,
+            OTHER_COLUMN_WIDTH);
     }
     console.log(line);
   }
