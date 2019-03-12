@@ -87,12 +87,16 @@ const summaryFileWriterCache: {[logdir: string]: SummaryFileWriter} = {};
  *   written in the `logdir` (default: `.v2`).
  * @returns An instance of `SummaryFileWriter`.
  */
+/**
+ * @doc {heading: 'TensorBoard', namespace: 'node'}
+ */
 export function summaryFileWriter(
     logdir: string, maxQueue = 10, flushMillis = 120000,
     filenameSuffix = '.v2'): SummaryFileWriter {
   util.assert(
       logdir != null && typeof logdir === 'string' && logdir.length > 0,
-      `Invalid logdir: ${logdir}. Expected a non-empty string for logdir.`);
+      () =>
+          `Invalid logdir: ${logdir}. Expected a non-empty string for logdir.`);
   if (!(logdir in summaryFileWriterCache)) {
     const backend = nodeBackend();
     const writerResource = backend.summaryWriter(logdir);
