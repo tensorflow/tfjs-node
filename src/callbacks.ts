@@ -200,7 +200,7 @@ export class TensorBoardCallback extends CustomCallback {
     }
     util.assert(
         ['batch', 'epoch'].indexOf(this.args.updateFreq) !== -1,
-        `Expected updateFreq to be 'batch' or 'epoch', but got ` +
+        () => `Expected updateFreq to be 'batch' or 'epoch', but got ` +
             `${this.args.updateFreq}`);
     this.batchesSeen = 0;
     this.epochsSeen = 0;
@@ -283,6 +283,9 @@ export class TensorBoardCallback extends CustomCallback {
  * @param args Optional configuration arguments.
  * @returns An instance of `TensorBoardCallback`, which is a subclass of
  *   `tf.CustomCallback`.
+ */
+/**
+ * @doc {heading: 'TensorBoard', namespace: 'node'}
  */
 export function tensorBoard(
     logdir = './logs', args?: TensorBoardCallbackArgs): TensorBoardCallback {
