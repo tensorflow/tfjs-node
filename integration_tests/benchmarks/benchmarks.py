@@ -78,12 +78,16 @@ def benchmark_and_serialize_model(model_name,
 
   # Perform fit() burn-in.
   if train_epochs:
-    model.fit(xs, ys, batch_size=batch_size, epochs=_FIT_BURNIN_EPOCHS)
+    model.fit(
+        xs, ys,
+        batch_size=batch_size, epochs=_FIT_BURNIN_EPOCHS, verbose=0)
 
   # Time fit().
   if train_epochs:
     train_t_begin = time.time()
-    model.fit(xs, ys, batch_size=batch_size, epochs=train_epochs)
+    model.fit(
+        xs, ys,
+        batch_size=batch_size, epochs=train_epochs, verbose=0)
     train_t_end = time.time()
 
   # Perform predict() burn-in.
