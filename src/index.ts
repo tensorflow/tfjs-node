@@ -64,3 +64,4 @@ import {ProgbarLogger} from './callbacks';
 tf.registerCallbackConstructor(1, ProgbarLogger);
 
 export * from './node';
+export * from './tfjs_binding';
