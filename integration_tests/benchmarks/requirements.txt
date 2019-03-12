@@ -1,0 +1,4 @@
+keras==2.2.4
+tensorflow-gpu==1.12.0
+tensorflowjs==0.8.0
+tensorflow-hub==0.3.0
