@@ -18,6 +18,9 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+cd "${SCRIPT_DIR}"
+pip install -r requirements.txt
+
 # Build the NPM package for tfjs-node.
 # TODO(cais): Add a flag for GPU vs non-GPU.
 cd "${SCRIPT_DIR}/../.."
