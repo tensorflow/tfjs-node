@@ -57,7 +57,6 @@ async function symlinkDepsLib() {
     console.error(
         `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
     await copy(depsLibTensorFlowPath, destLibPath);
-    // Linux will require this library as well:
     if (os.platform() !== 'win32') {
       await copy(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
     }
