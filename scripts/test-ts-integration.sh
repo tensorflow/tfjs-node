@@ -26,6 +26,7 @@ function test() {
   cd integration/typescript
   yarn && yarn yalc add '@tensorflow/tfjs-node' && yarn prep && yarn test
   TS_INTEGRATION_TEST_EXIT_CODE=$?
+  git checkout package.json
 
   echo '==== TYPESCRIPT INTEGRATION TEST RESULTS ===='
   print_status "Exit code" "$TS_INTEGRATION_TEST_EXIT_CODE"
