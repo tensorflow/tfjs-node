@@ -17,6 +17,7 @@
 
 #include "tfjs_backend.h"
 
+#include "napi_auto_ref.h"
 #include "tf_auto_tensor.h"
 #include "tfe_auto_op.h"
 #include "utils.h"
@@ -31,6 +32,21 @@ namespace tfnodejs {
 
 // Used to hold strings beyond the lifetime of a JS call.
 static std::set<std::string> ATTR_NAME_SET;
+
+// Cleans up extra reference count for shared V8/TF tensor memory:
+static void DeallocTensor(void *data, size_t len, void *arg) {
+  NapiAutoRef *auto_ref = static_cast<NapiAutoRef *>(arg);
+  if (!auto_ref) {
+    fprintf(stderr, "WARNING: Invalid TF_Tensor deallocator arg!\n");
+    return;
+  }
+
+  napi_status nstatus = auto_ref->Cleanup();
+  if (nstatus != napi_ok) {
+    fprintf(stderr, "WARNING: Invalid status cleaning up reference!\n");
+  }
+  delete auto_ref;
+}
 
 // Creates a TFE_TensorHandle from a JS typed array.
 TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
@@ -139,14 +155,27 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   // and the byte size of the tensor dtype needs to be special-cased for int64.
   const size_t byte_size =
       dtype == TF_INT64 ? num_elements * width * 2 : num_elements * width;
-  TF_AutoTensor tensor(
-      TF_AllocateTensor(dtype, shape, shape_length, byte_size));
-  memcpy(TF_TensorData(tensor.tensor), array_data, byte_size);
+
+  // Sharing memory with V8 requires adding an additional refcount. When the
+  // Tensor is deleted, the ref count will be reduced.
+  NapiAutoRef *auto_ref = new NapiAutoRef();
+  nstatus = auto_ref->Init(env, array_value);
+  if (nstatus != napi_ok) {
+    delete auto_ref;
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  }
+
+  TF_AutoTensor tensor(TF_NewTensor(dtype, shape, shape_length, array_data,
+                                    byte_size, DeallocTensor, auto_ref));
 
   TF_AutoStatus tf_status;
   TFE_TensorHandle *tfe_tensor_handle =
       TFE_NewTensorHandle(tensor.tensor, tf_status.status);
-  ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+  if (TF_GetCode(tf_status.status) != TF_OK) {
+    delete auto_ref;
+    TFE_DeleteTensorHandle(tfe_tensor_handle);
+    ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
+  }
 
   return tfe_tensor_handle;
 }
@@ -292,6 +321,7 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   // current value to the newly allocated NAPI buffer.
   memcpy(array_buffer_data, TF_TensorData(tensor.tensor), byte_length);
 
+  fprintf(stderr, "---> TensorHandle data to TypedArray\n");
   nstatus = napi_create_typedarray(env, array_type, num_elements,
                                    array_buffer_value, 0, result);
   ENSURE_NAPI_OK(env, nstatus);
