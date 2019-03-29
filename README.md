@@ -83,10 +83,18 @@ yarn enable-gpu
 
 See the [tfjs-examples repository](https://github.com/tensorflow/tfjs-examples/tree/master/mnist-node) for training the MNIST dataset using the Node.js bindings.
 
-### Optional: Build libtensorflow From TensorFlow source
+### Optional: Build optimal TensorFlow from source
 
-This requires installing bazel first.
+To get the most optimal TensorFlow build that can take advantage of your specific hardware (AVX512, MKL-DNN), you can build the `libtensorflow` library from source:
+- [Install bazel](https://docs.bazel.build/versions/master/install.html)
+- Checkout the [main tensorflow repo](https://github.com/tensorflow/tensorflow) and follow the instructions in [here](https://www.tensorflow.org/install/source) with **one difference**: instead of building the pip package, build `libtensorflow`:
 
 ```sh
-bazel build --config=monolithic //tensorflow/tools/lib_package:libtensorflow
+./configure
+bazel build --config=opt --config=monolithic //tensorflow/tools/lib_package:libtensorflow
+```
+
+The build might take a while and will produce a `blaze-bin/tensorflow/libtensorflow.so` file which should be copied into the `tfjs-node` repo under the `build/Release` folder:
+```sh
+cp bazel-bin/tensorflow/libtensorflow.so ~/myproject/node_modules/@tensorflow/tfjs-node/build/Release/
 ```
