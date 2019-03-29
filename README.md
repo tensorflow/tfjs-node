@@ -94,7 +94,7 @@ To get the most optimal TensorFlow build that can take advantage of your specifi
 bazel build --config=opt --config=monolithic //tensorflow/tools/lib_package:libtensorflow
 ```
 
-The build might take a while and will produce a `blaze-bin/tensorflow/libtensorflow.so` file which should be copied into the `tfjs-node` repo under the `build/Release` folder:
+The build might take a while and will produce a `bazel-bin/tensorflow/libtensorflow.so` file which should be copied into the `tfjs-node` repo under the `build/Release` folder:
 ```sh
 cp bazel-bin/tensorflow/libtensorflow.so ~/myproject/node_modules/@tensorflow/tfjs-node/build/Release/
 ```
