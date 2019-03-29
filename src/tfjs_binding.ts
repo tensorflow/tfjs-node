@@ -32,17 +32,21 @@ export interface TFJSBinding {
   TFEOpAttr: typeof TFEOpAttr;
 
   // Creates a tensor with the backend:
+  // TODO(kreeger): Need to pass in the Tensor key object here as well.
   createTensor(
       shape: number[], dtype: number,
       buffer: Float32Array|Int32Array|Uint8Array): TensorMetadata;
 
   // Deletes a tensor with the backend:
+  // TODO(kreeger): Need to pass in the Tensor key as well??
   deleteTensor(tensorId: number): void;
 
   // Reads data-sync from a tensor on the backend:
   tensorDataSync(tensorId: number): Float32Array|Int32Array|Uint8Array;
 
   // Executes an Op on the backend, returns an array of output TensorMetadata:
+  // TODO(kreeger): Output must be a 2D array  - first keys, second values...
+  // (or map?)
   executeOp(
       opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
       numOutputs: number): TensorMetadata[];

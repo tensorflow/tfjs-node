@@ -33,6 +33,7 @@ type TensorInfo = {
   values: Float32Array|Int32Array|Uint8Array,
 };
 
+// TODO(kreeger): Move to binding def.
 interface DataId {}
 
 export class NodeJSKernelBackend extends KernelBackend {
