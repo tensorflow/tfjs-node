@@ -34,7 +34,7 @@ export interface TFJSBinding {
   // Creates a tensor with the backend:
   createTensor(
       shape: number[], dtype: number,
-      buffer: Float32Array|Int32Array|Uint8Array): number;
+      buffer: Float32Array|Int32Array|Uint8Array): TensorMetadata;
 
   // Deletes a tensor with the backend:
   deleteTensor(tensorId: number): void;

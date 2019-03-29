@@ -29,10 +29,8 @@ import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_ut
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
-  shape: number[],
-  dtype: number,
+  metadata: TensorMetadata,
   values: Float32Array|Int32Array|Uint8Array,
-  id: number
 };
 
 interface DataId {}
@@ -77,12 +75,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   private createOutputTensor(metadata: TensorMetadata): Tensor {
     const newId = {};
 
-    this.tensorMap.set(newId, {
-      shape: metadata.shape,
-      dtype: metadata.dtype,
-      id: metadata.id,
-      values: null
-    });
+    this.tensorMap.set(newId, {metadata, values: null});
 
     let dtype: DataType;
     switch (metadata.dtype) {
@@ -122,18 +115,19 @@ export class NodeJSKernelBackend extends KernelBackend {
         if (info.values != null) {
           // Values were delayed to write into the TensorHandle. Do that before
           // Op execution and clear stored values.
-          info.id =
-              this.binding.createTensor(info.shape, info.dtype, info.values);
+          info.metadata = this.binding.createTensor(
+              info.metadata.shape, info.metadata.dtype, info.values);
           info.values = null;
           this.tensorMap.set((tensors[i] as Tensor).dataId, info);
         }
-        ids.push(info.id);
+        ids.push(info.metadata.id);
       } else if (tensors[i] instanceof Int64Scalar) {
         // Then `tensors[i]` is a Int64Scalar, which we currently represent
         // using an `Int32Array`.
         const value = (tensors[i] as Int64Scalar).valueArray;
-        const id = this.binding.createTensor([], this.binding.TF_INT64, value);
-        ids.push(id);
+        const metadata =
+            this.binding.createTensor([], this.binding.TF_INT64, value);
+        ids.push(metadata.id);
       } else {
         throw new Error(`Invalid Tensor type: ${typeof tensors[i]}`);
       }
@@ -201,12 +195,12 @@ export class NodeJSKernelBackend extends KernelBackend {
     if (info.values != null) {
       return info.values;
     } else {
-      return this.binding.tensorDataSync(info.id);
+      return this.binding.tensorDataSync(info.metadata.id);
     }
   }
 
   disposeData(dataId: object): void {
-    const id = this.tensorMap.get(dataId).id;
+    const id = this.tensorMap.get(dataId).metadata.id;
     if (id != null && id >= 0) {
       this.binding.deleteTensor(id);
     }
@@ -226,7 +220,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   register(dataId: object, shape: number[], dtype: DataType): void {
     if (!this.tensorMap.has(dataId)) {
       this.tensorMap.set(
-          dataId, {shape, dtype: getTFDType(dtype), values: null, id: -1});
+          dataId,
+          {metadata: {id: -1, shape, dtype: getTFDType(dtype)}, values: null});
     }
   }
 

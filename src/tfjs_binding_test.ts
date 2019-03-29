@@ -68,10 +68,12 @@ describe('Exposes TF Version', () => {
 describe('tensor management', () => {
   it('Creates and deletes a valid tensor', () => {
     const values = new Int32Array([1, 2]);
-    const id = binding.createTensor([2], binding.TF_INT32, values);
-    expect(id).toBeDefined();
+    const tensor = binding.createTensor([2], binding.TF_INT32, values);
+    expect(tensor).toBeDefined();
 
-    binding.deleteTensor(id);
+    // TODO(kreeger): Check shape and dtype here
+
+    binding.deleteTensor(tensor.id);
   });
   it('throws exception when shape does not match data', () => {
     expect(() => {
@@ -90,9 +92,9 @@ describe('tensor management', () => {
   it('works with 0-dim tensors', () => {
     // Reduce op (e.g 'Max') will produce a 0-dim TFE_Tensor.
 
-    const inputId =
+    const input =
         binding.createTensor([3], binding.TF_INT32, new Int32Array([1, 2, 3]));
-    const axesId =
+    const axes =
         binding.createTensor([1], binding.TF_INT32, new Int32Array([0]));
 
     const attrs = [
@@ -102,7 +104,7 @@ describe('tensor management', () => {
     ];
 
     const outputMetadata =
-        binding.executeOp('Max', attrs, [inputId, axesId], 1);
+        binding.executeOp('Max', attrs, [input.id, axes.id], 1);
     expect(outputMetadata.length).toBe(1);
 
     expect(outputMetadata[0].id).toBeDefined();
@@ -120,11 +122,11 @@ describe('executeOp', () => {
     {name: 'transpose_b', type: binding.TF_ATTR_BOOL, value: false},
     {name: 'T', type: binding.TF_ATTR_TYPE, value: binding.TF_FLOAT}
   ];
-  const aId = binding.createTensor(
+  const a = binding.createTensor(
       [2, 2], binding.TF_FLOAT, new Float32Array([1, 2, 3, 4]));
-  const bId = binding.createTensor(
+  const b = binding.createTensor(
       [2, 2], binding.TF_FLOAT, new Float32Array([4, 3, 2, 1]));
-  const matMulInput = [aId, bId];
+  const matMulInput = [a.id, b.id];
 
   it('throws exception with invalid Op Name', () => {
     expect(() => {
