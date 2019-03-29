@@ -73,6 +73,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   // Creates a new Tensor and maps the dataId to the passed in ID.
   private createOutputTensor(metadata: TensorMetadata): Tensor {
+    // TODO(kreeger): Can we pass ID back from the backend???
     const newId = {};
 
     this.tensorMap.set(newId, {metadata, values: null});
@@ -115,6 +116,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         if (info.values != null) {
           // Values were delayed to write into the TensorHandle. Do that before
           // Op execution and clear stored values.
+
+          // TODO(kreeger): Pass object to bind since that is the GC'd key.
           info.metadata = this.binding.createTensor(
               info.metadata.shape, info.metadata.dtype, info.values);
           info.values = null;
