@@ -26,15 +26,12 @@ import {isNullOrUndefined} from 'util';
 import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
 import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
-import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+import {DataId, TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
   metadata: TensorMetadata,
   values: Float32Array|Int32Array|Uint8Array,
 };
-
-// TODO(kreeger): Move to binding def.
-interface DataId {}
 
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
@@ -73,11 +70,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   // Creates a new Tensor and maps the dataId to the passed in ID.
-  private createOutputTensor(metadata: TensorMetadata): Tensor {
-    // TODO(kreeger): Can we pass ID back from the backend???
-    const newId = {};
-
-    this.tensorMap.set(newId, {metadata, values: null});
+  private createOutputTensor(dataId: DataId, metadata: TensorMetadata): Tensor {
+    this.tensorMap.set(dataId, {metadata, values: null});
 
     let dtype: DataType;
     switch (metadata.dtype) {
@@ -104,7 +98,7 @@ export class NodeJSKernelBackend extends KernelBackend {
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
-    return Tensor.make(metadata.shape, {dataId: newId}, dtype);
+    return Tensor.make(metadata.shape, {dataId}, dtype);
   }
 
   // Prepares Tensor instances for Op execution.
@@ -112,25 +106,27 @@ export class NodeJSKernelBackend extends KernelBackend {
     const ids: number[] = [];
     for (let i = 0; i < tensors.length; i++) {
       if (tensors[i] instanceof Tensor) {
-        const info = this.tensorMap.get((tensors[i] as Tensor).dataId);
+        const curTensor = tensors[i] as Tensor;
+        const info = this.tensorMap.get(curTensor.dataId);
         // TODO - what about ID in this case? Handle in write()??
         if (info.values != null) {
           // Values were delayed to write into the TensorHandle. Do that before
           // Op execution and clear stored values.
-
-          // TODO(kreeger): Pass object to bind since that is the GC'd key.
           info.metadata = this.binding.createTensor(
-              info.metadata.shape, info.metadata.dtype, info.values);
+              curTensor.dataId, info.metadata.shape, info.metadata.dtype,
+              info.values);
           info.values = null;
-          this.tensorMap.set((tensors[i] as Tensor).dataId, info);
+          this.tensorMap.set(curTensor.dataId, info);
         }
         ids.push(info.metadata.id);
       } else if (tensors[i] instanceof Int64Scalar) {
         // Then `tensors[i]` is a Int64Scalar, which we currently represent
         // using an `Int32Array`.
         const value = (tensors[i] as Int64Scalar).valueArray;
+
+        // TODO(kreeger): How does this case work?
         const metadata =
-            this.binding.createTensor([], this.binding.TF_INT64, value);
+            this.binding.createTensor({}, [], this.binding.TF_INT64, value);
         ids.push(metadata.id);
       } else {
         throw new Error(`Invalid Tensor type: ${typeof tensors[i]}`);
@@ -164,9 +160,9 @@ export class NodeJSKernelBackend extends KernelBackend {
    */
   executeSingleOutput(name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]):
       Tensor {
-    const outputMetadata = this.binding.executeOp(
+    const opResult = this.binding.executeOp(
         name, opAttrs, this.getInputTensorIds(inputs), 1);
-    return this.createOutputTensor(outputMetadata[0]);
+    return this.createOutputTensor(opResult.keys[0], opResult.tensors[0]);
   }
 
   /**
@@ -180,9 +176,14 @@ export class NodeJSKernelBackend extends KernelBackend {
   executeMultipleOutputs(
       name: string, opAttrs: TFEOpAttr[], inputs: Tensor[],
       numOutputs: number): Tensor[] {
-    const outputMetadata = this.binding.executeOp(
+    const results = [] as Tensor[];
+    const opOutputs = this.binding.executeOp(
         name, opAttrs, this.getInputTensorIds(inputs), numOutputs);
-    return outputMetadata.map(m => this.createOutputTensor(m));
+    for (let i = 0; i < opOutputs.keys.length; i++) {
+      results.push(
+          this.createOutputTensor(opOutputs.keys[i], opOutputs.tensors[i]));
+    }
+    return results;
   }
 
   dispose(): void {}

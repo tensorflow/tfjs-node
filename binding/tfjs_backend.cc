@@ -790,17 +790,18 @@ static void TFEHandlePairFinalize(napi_env env, void *data, void *hint) {
 }
 
 napi_status TFJSBackend::CreateTensorMetadataValue(
-    napi_env env, TFE_TensorHandle *tfe_handle, napi_value shape_value,
-    napi_value dtype_value, napi_value *tensor_metadata_value) {
+    napi_env env, TFE_TensorHandle *tfe_handle, napi_value key_value,
+    napi_value shape_value, napi_value dtype_value,
+    napi_value *tensor_metadata_value) {
   napi_status nstatus;
 
   // First bump tensor index and insert into the handle map:
   int32_t next_idx = next_tensor_id_++;  // XXX heap?
   tfe_handle_map_->insert(std::make_pair(next_idx, tfe_handle));
 
-  if (next_idx % 1000 == 0) {
-    fprintf(stderr, ":: next_id: %d\n", next_idx);
-  }
+  // if (next_idx % 1000 == 0) {
+  //   fprintf(stderr, ":: next_id: %d\n", next_idx);
+  // }
 
   // Next, create an object to represent the TensorMetadata class.
   nstatus = napi_create_object(env, tensor_metadata_value);
@@ -823,17 +824,20 @@ napi_status TFJSBackend::CreateTensorMetadataValue(
                                     dtype_value);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nstatus);
 
+  // TODO: update doc.
+  // TODO: consider napi_add_finalizer
   // Next create an external JS object that can be tracked for GC. This object
   // must be tracked to ensure the underlying TFE_TensorHandle data is cleanedup
   // when Tensor reference is GC'd.
-  nstatus = napi_wrap(env, *tensor_metadata_value, tfe_handle_map_,
-                      TFEHandlePairFinalize, id_value, nullptr);
+  nstatus = napi_wrap(env, key_value, tfe_handle_map_, TFEHandlePairFinalize,
+                      id_value, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nstatus);
 
   return napi_ok;
 }
 
-napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
+napi_value TFJSBackend::CreateTensor(napi_env env, napi_value key_value,
+                                     napi_value shape_value,
                                      napi_value dtype_value,
                                      napi_value array_value) {
   napi_status nstatus;
@@ -871,8 +875,8 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
   }
 
   napi_value tensor_metadata_value;
-  nstatus = CreateTensorMetadataValue(env, tfe_handle, shape_value, dtype_value,
-                                      &tensor_metadata_value);
+  nstatus = CreateTensorMetadataValue(env, tfe_handle, key_value, shape_value,
+                                      dtype_value, &tensor_metadata_value);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   return tensor_metadata_value;
@@ -981,6 +985,10 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   TFE_Execute(tfe_op.op, result_handles.data(), &size, tf_status.status);
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
+  napi_value output_tensor_keys;
+  nstatus = napi_create_array_with_length(env, size, &output_tensor_keys);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
   napi_value output_tensor_infos;
   nstatus = napi_create_array_with_length(env, size, &output_tensor_infos);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
@@ -990,6 +998,10 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   for (int32_t i = 0; i < num_outputs; i++) {
     TFE_TensorHandle *handle = result_handles[i];
 
+    napi_value key_value;
+    nstatus = napi_create_object(env, &key_value);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
     napi_value shape_value;
     GetTFE_TensorHandleShape(env, handle, &shape_value);  // nstatus??
 
@@ -997,17 +1009,33 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
     GetTFE_TensorHandleType(env, handle, &dtype_value);
 
     napi_value tensor_metadata_value;
-    nstatus = CreateTensorMetadataValue(env, handle, shape_value, dtype_value,
-                                        &tensor_metadata_value);
+    nstatus = CreateTensorMetadataValue(env, handle, key_value, shape_value,
+                                        dtype_value, &tensor_metadata_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
+    // TODO update docs..
     // Push into output array
+    nstatus = napi_set_element(env, output_tensor_keys, i, key_value);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
     nstatus =
         napi_set_element(env, output_tensor_infos, i, tensor_metadata_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
   }
 
-  return output_tensor_infos;
+  napi_value op_output_value;
+  nstatus = napi_create_object(env, &op_output_value);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  nstatus =
+      napi_set_named_property(env, op_output_value, "keys", output_tensor_keys);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  nstatus = napi_set_named_property(env, op_output_value, "tensors",
+                                    output_tensor_infos);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  return op_output_value;
 }
 
 }  // namespace tfnodejs

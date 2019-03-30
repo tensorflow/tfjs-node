@@ -7,9 +7,9 @@ function sleep(ms) {
 }
 
 async function run() {
-  // console.log('waiting...');
-  // await sleep(20000);
-  // console.log('running...');
+  console.log('waiting...');
+  await sleep(20000);
+  console.log('running...');
 
   // Uncomment to use vanilla cpu backend.
   // tf.setBackend('cpu');

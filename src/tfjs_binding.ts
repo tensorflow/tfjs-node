@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+export interface DataId {}
+
 export declare class TensorMetadata {
   id: number;
   shape: number[];
@@ -34,7 +36,7 @@ export interface TFJSBinding {
   // Creates a tensor with the backend:
   // TODO(kreeger): Need to pass in the Tensor key object here as well.
   createTensor(
-      shape: number[], dtype: number,
+      dataId: DataId, shape: number[], dtype: number,
       buffer: Float32Array|Int32Array|Uint8Array): TensorMetadata;
 
   // Deletes a tensor with the backend:
@@ -49,7 +51,7 @@ export interface TFJSBinding {
   // (or map?)
   executeOp(
       opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
-      numOutputs: number): TensorMetadata[];
+      numOutputs: number): {keys: DataId[], tensors: TensorMetadata[]};
 
   // TF Types
   TF_FLOAT: number;
