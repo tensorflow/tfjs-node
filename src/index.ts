@@ -43,14 +43,14 @@ export * from '@tensorflow/tfjs';
 // tslint:disable-next-line:no-require-imports
 const pjson = require('../package.json');
 
-tf.ENV.registerBackend('tensorflow', () => {
+tf.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(
       bindings('tfjs_binding.node') as TFJSBinding, pjson.name);
 }, 3 /* priority */);
 
-// If registration succeeded, set the backend.
-if (tf.ENV.findBackend('tensorflow') != null) {
-  tf.setBackend('tensorflow');
+const success = tf.setBackend('tensorflow');
+if (!success) {
+  throw new Error(`Could not initialize TensorFlow backend.`);
 }
 
 // Register the model saving and loading handlers for the 'file://' URL scheme.
