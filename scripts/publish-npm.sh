@@ -41,6 +41,9 @@ fi
 
 yarn build-npm
 ./scripts/make-version # This is for safety in case you forgot to do 2).
+# Publish the CPU package
 npm publish
+# Publish the GPU package
+ls tensorflow-tfjs-node-gpu* | xargs npm publish
 ./scripts/tag-version
 echo 'Yay! Published a new package to npm.'
