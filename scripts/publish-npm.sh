@@ -44,6 +44,6 @@ yarn build-npm
 # Publish the CPU package
 npm publish
 # Publish the GPU package
-ls tensorflow-tfjs-node-gpu* | xargs npm publish
+ls tensorflow-tfjs-node-gpu*.tgz | xargs npm publish
 ./scripts/tag-version
 echo 'Yay! Published a new package to npm.'
