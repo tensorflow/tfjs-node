@@ -29,17 +29,17 @@ set -e
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 ORIGIN=`git config --get remote.origin.url`
 
-# if [ "$BRANCH" != "master" ] && [ "$BRANCH" != "0.3.x" ]; then
-#   echo "Error: Switch to the master or a release branch before publishing."
-#   exit
-# fi
+if [ "$BRANCH" != "master" ] && [ "$BRANCH" != "0.3.x" ]; then
+  echo "Error: Switch to the master or a release branch before publishing."
+  exit
+fi
 
 if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
   echo "Error: Switch to the main repo (tensorflow/tfjs-node) before publishing."
   exit
 fi
 
-#yarn build-npm
+yarn build-npm
 ./scripts/make-version # This is for safety in case you forgot to do 2).
 
 GPU_TARBALLS=$(ls tensorflow-tfjs-node-gpu*.tgz)
