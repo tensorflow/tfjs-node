@@ -45,7 +45,7 @@ fi
 GPU_TARBALLS=$(ls tensorflow-tfjs-node-gpu*.tgz)
 GPU_TARBALL_COUNT=$(echo $GPU_TARBALLS | wc -w | xargs)
 if [ "$GPU_TARBALL_COUNT" != "1" ]; then
-  echo "Error: found multiple GPU tarballs. Please make sure there is only one."
+  echo "Error: Please make sure there is exactly one GPU tarball, found:"
   echo $GPU_TARBALLS
   exit
 fi
