@@ -34,11 +34,13 @@ class TFJSBackend {
 
   // Creates a new Tensor with given shape and data and returns an ID that
   // refernces the new Tensor.
+  // - key_value (TODO:kreeger - doc me.)
   // - shape_value (number[])
   // - dtype_value (number)
   // - array_value (TypedArray|Array)
-  napi_value CreateTensor(napi_env env, napi_value shape_value,
-                          napi_value dtype_value, napi_value array_value);
+  napi_value CreateTensor(napi_env env, napi_value key_value,
+                          napi_value shape_value, napi_value dtype_value,
+                          napi_value array_value);
 
   // Deletes a created Tensor.
   // - tensor_id_value (number)
@@ -63,10 +65,17 @@ class TFJSBackend {
   TFJSBackend(napi_env env);
   ~TFJSBackend();
 
-  int32_t InsertHandle(TFE_TensorHandle* tfe_handle);
+  // TODO - doc me.
+  napi_status CreateTensorMetadataValue(napi_env env,
+                                        TFE_TensorHandle* tfe_handle,
+                                        napi_value key_value,
+                                        napi_value shape_value,
+                                        napi_value dtype_value,
+                                        napi_value* tensor_metadata_value);
 
   TFE_Context* tfe_context_;
-  std::map<int32_t, TFE_TensorHandle*> tfe_handle_map_;
+  // TODO (type-def this thing)
+  std::map<int32_t, TFE_TensorHandle*>* tfe_handle_map_;
   int32_t next_tensor_id_;
   std::string device_name;
 };

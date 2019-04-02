@@ -40,29 +40,30 @@ static napi_value CreateTensor(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
   // Create tensor takes 3 params: shape, dtype, typed-array/array:
-  size_t argc = 3;
-  napi_value args[3];
+  size_t argc = 4;
+  napi_value args[4];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  if (argc < 3) {
+  if (argc < 4) {
     NAPI_THROW_ERROR(env, "Invalid number of args passed to createTensor()");
     return nullptr;
   }
 
-  ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[0], nullptr);
-  ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[1], nullptr);
+  ENSURE_VALUE_IS_OBJECT_RETVAL(env, args[0], nullptr);
+  ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[1], nullptr);
+  ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[2], nullptr);
 
   // The third array can either be a typed array or an array:
   bool is_typed_array;
-  nstatus = napi_is_typedarray(env, args[2], &is_typed_array);
+  nstatus = napi_is_typedarray(env, args[3], &is_typed_array);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
   if (!is_typed_array) {
-    ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[2], nullptr);
+    ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[3], nullptr);
   }
 
-  return gBackend->CreateTensor(env, args[0], args[1], args[2]);
+  return gBackend->CreateTensor(env, args[0], args[1], args[2], args[3]);
 }
 
 static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
