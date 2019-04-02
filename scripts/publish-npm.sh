@@ -29,21 +29,30 @@ set -e
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 ORIGIN=`git config --get remote.origin.url`
 
-if [ "$BRANCH" != "master" ] && [ "$BRANCH" != "0.3.x" ]; then
-  echo "Error: Switch to the master or a release branch before publishing."
-  exit
-fi
+# if [ "$BRANCH" != "master" ] && [ "$BRANCH" != "0.3.x" ]; then
+#   echo "Error: Switch to the master or a release branch before publishing."
+#   exit
+# fi
 
 if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
   echo "Error: Switch to the main repo (tensorflow/tfjs-node) before publishing."
   exit
 fi
 
-yarn build-npm
+#yarn build-npm
 ./scripts/make-version # This is for safety in case you forgot to do 2).
+
+GPU_TARBALLS=$(ls tensorflow-tfjs-node-gpu*.tgz)
+GPU_TARBALL_COUNT=$(echo $GPU_TARBALLS | wc -w | xargs)
+if [ "$GPU_TARBALL_COUNT" != "1" ]; then
+  echo "Error: found multiple GPU tarballs. Please make sure there is only one."
+  echo $GPU_TARBALLS
+  exit
+fi
+
 # Publish the CPU package
 npm publish
 # Publish the GPU package
-ls tensorflow-tfjs-node-gpu*.tgz | xargs npm publish
+echo $GPU_TARBALLS | xargs npm publish
 ./scripts/tag-version
 echo 'Yay! Published a new package to npm.'
