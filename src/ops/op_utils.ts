@@ -80,23 +80,25 @@ export function createTensorsTypeOpAttr(
   if (isNullOrUndefined(tensors)) {
     throw new Error('Invalid input tensors value.');
   }
+  const value = getTFDTypeForInputs(tensors);
   return {
     name: attrName,
     type: nodeBackend().binding.TF_ATTR_TYPE,
-    value: getTFDTypeForInputs(tensors)
+    value: isArray(value) ? value[0] : value
   };
 }
 
 /** Returns the dtype number for a single or list of input Tensors. */
-function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]): number {
+function getTFDTypeForInputs(tensors: tfc.Tensor|tfc.Tensor[]):
+    number|number[] {
   if (isNullOrUndefined(tensors)) {
     throw new Error('Invalid input tensors value.');
-  }
-  if (isArray(tensors)) {
-    for (let i = 0; i < tensors.length; i++) {
-      return getTFDType(tensors[i].dtype);
+  } else if (isArray(tensors)) {
+    if(tensors.length>0){
+      return tensors.map(tensor=>getTFDType(tensor.dtype));
+    } else {
+      return -1;
     }
-    return -1;
   } else {
     return getTFDType(tensors.dtype);
   }
