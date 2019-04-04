@@ -18,7 +18,30 @@
 const {symlinkDepsLib} = require('./deps-stage.js');
 const path = require('path');
 const os = require('os');
-const {frameworkLibName, libName} = require('./deps-constants.js');
+
+const linuxConfig = {
+  srcLib: 'libtensorflow.so',
+  destLib: 'libtensorflow.so',
+  frameworkLib: 'libtensorflow_framework.so'
+};
+const macConfig = {
+  srcLib: 'libtensorflow.dylib',
+  destLib: 'libtensorflow.so',
+  frameworkLib: ''
+};
+const winConfig = {
+  srcLib: 'libtensorflow.dll',
+  destLib: 'libtensorflow.dll',
+  frameworkLib: ''
+};
+
+// Assume linux by default.
+let config = linuxConfig;
+if (os.platform() === 'darwin') {
+  config = macConfig;
+} else if (os.platform() === 'win32') {
+  config = winConfig;
+}
 
 let sourceDir = process.argv[2];
 if (sourceDir == null) {
@@ -29,9 +52,9 @@ if (sourceDir == null) {
 sourceDir = path.join(sourceDir, 'bazel-bin', 'tensorflow');
 const targetDir = path.join(__dirname, '..', 'build', 'Release');
 
-const libPath = path.join(sourceDir, libName);
-const frameworkPath = path.join(sourceDir, frameworkLibName);
-const destLibPath = path.join(targetDir, libName);
-const destFrameworkPath = path.join(targetDir, frameworkLibName);
+const libPath = path.join(sourceDir, config.srcLib);
+const frameworkPath = path.join(sourceDir, config.frameworkLib);
+const destLibPath = path.join(targetDir, config.destLib);
+const destFrameworkPath = path.join(targetDir, config.frameworkLib);
 console.log(libPath, frameworkPath, destLibPath, destFrameworkPath);
-// symlinkDepsLib(libPath, frameworkPath, destLibPath, destFrameworkPath);
+symlinkDepsLib(libPath, frameworkPath, destLibPath, destFrameworkPath);
