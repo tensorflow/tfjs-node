@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
@@ -29,36 +30,26 @@ const {
   libName
 } = require('./deps-constants.js');
 
-const action = process.argv[2];
-let targetDir = process.argv[3];
-
-// Some windows machines contain a trailing " char:
-if (targetDir != undefined && targetDir.endsWith('"')) {
-  targetDir = targetDir.substr(0, targetDir.length - 1);
-}
-
-const destFrameworkLibPath = path.join(targetDir, frameworkLibName);
-const destLibPath = path.join(targetDir, libName);
-
 /**
  * Symlinks the extracted libtensorflow library to the destination path. If the
  * symlink fails, a copy is made.
  */
-async function symlinkDepsLib() {
-  if (destLibPath === undefined) {
+async function symlinkDepsLib(
+    libPath, frameworkPath, destLibPath, destFrameworkPath) {
+  if (destLibPath == null || destFrameworkPath == null) {
     throw new Error('Destination path not supplied!');
   }
   try {
-    await symlink(depsLibTensorFlowPath, destLibPath);
-    if (os.platform() !== 'win32') {
-      await symlink(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
+    await symlink(libPath, destLibPath);
+    if (frameworkLibName !== '') {
+      await symlink(frameworkPath, destFrameworkPath);
     }
   } catch (e) {
     console.error(
         `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
-    await copy(depsLibTensorFlowPath, destLibPath);
-    if (os.platform() !== 'win32') {
-      await copy(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
+    await copy(libPath, destLibPath);
+    if (frameworkLibName !== '') {
+      await copy(frameworkPath, destFrameworkPath);
     }
   }
 }
@@ -66,26 +57,46 @@ async function symlinkDepsLib() {
 /**
  * Moves the deps library path to the destination path.
  */
-async function moveDepsLib() {
-  await rename(depsLibTensorFlowPath, destLibPath);
-  if (os.platform() !== 'win32') {
-    await rename(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
+async function moveDepsLib(
+    libPath, frameworkPath, destLibPath, destFrameworkPath) {
+  await rename(libPath, destLibPath);
+  if (frameworkLibName !== '') {
+    await rename(frameworkPath, destFrameworkPath);
   }
 }
 
 /**
  * Symlink or move libtensorflow for building the binding.
  */
-async function run(action) {
+async function run() {
+  // Some windows machines contain a trailing " char:
+  if (targetDir != undefined && targetDir.endsWith('"')) {
+    targetDir = targetDir.substr(0, targetDir.length - 1);
+  }
+
+  const libPath = depsLibTensorFlowPath;
+  const frameworkPath = depsLibTensorFlowFrameworkPath;
+  const destLibPath = path.join(targetDir, libName);
+  const destFrameworkPath = path.join(targetDir, frameworkLibName);
+
   if (action.endsWith('symlink')) {
     // Symlink will happen during `node-gyp rebuild`
-    await symlinkDepsLib();
+    await symlinkDepsLib(
+        libPath, frameworkPath, destLibPath, destFrameworkPath);
   } else if (action.endsWith('move')) {
     // Move action is used when installing this module as a package.
-    await moveDepsLib();
+    await moveDepsLib(libPath, frameworkPath, destLibPath, destFrameworkPath);
   } else {
     throw new Error('Invalid action: ' + action);
   }
 }
 
-run(action);
+const action = process.argv[2];
+let targetDir = process.argv[3];
+
+// Run as a script if there are command-line arguments.
+if (action != null && targetDir != null) {
+  run();
+}
+// Otherwise use the utility methods in other scripts.
+module.exports = {symlinkDepsLib};
