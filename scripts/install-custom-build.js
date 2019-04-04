@@ -18,6 +18,8 @@
 const {symlinkDepsLib} = require('./deps-stage.js');
 const path = require('path');
 const os = require('os');
+const {existsSync} = require('fs');
+const rimraf = require('rimraf');
 
 const linuxConfig = {
   srcLib: 'libtensorflow.so',
@@ -50,11 +52,16 @@ if (sourceDir == null) {
       'Usage: install-custom-build sourceDir');
 }
 sourceDir = path.join(sourceDir, 'bazel-bin', 'tensorflow');
-const targetDir = path.join(__dirname, '..', 'build', 'Release');
+const targetDir = path.join(__dirname, '..', 'deps', 'lib');
 
 const libPath = path.join(sourceDir, config.srcLib);
 const frameworkPath = path.join(sourceDir, config.frameworkLib);
 const destLibPath = path.join(targetDir, config.destLib);
+if (existsSync(destLibPath)) {
+  rimraf.sync(destLibPath);
+}
 const destFrameworkPath = path.join(targetDir, config.frameworkLib);
-console.log(libPath, frameworkPath, destLibPath, destFrameworkPath);
+if (config.frameworkLib !== '' && existsSync(destFrameworkPath)) {
+  rimraf.sync(destFrameworkPath);
+}
 symlinkDepsLib(libPath, frameworkPath, destLibPath, destFrameworkPath);
