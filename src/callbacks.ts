@@ -40,6 +40,10 @@ export class ProgbarLogger extends CustomCallback {
   private usPerStep: number;
   private batchesInLatestEpoch: number;
 
+  private terminalWidth: number;
+
+  private readonly RENDER_THROTTLE_MS = 50;
+
   /**
    * Construtor of LoggingCallback.
    */
@@ -64,16 +68,24 @@ export class ProgbarLogger extends CustomCallback {
         this.epochDurationMillis = null;
         this.usPerStep = null;
         this.batchesInLatestEpoch = 0;
+        this.terminalWidth = process.stderr.columns;
       },
       onBatchEnd: async (batch: number, logs?: Logs) => {
         this.batchesInLatestEpoch++;
         if (batch === 0) {
           this.progressBar = new progressBarHelper.ProgressBar(
-              'eta=:eta :bar :placeholderForLossesAndMetrics',
-              {total: this.numTrainBatchesPerEpoch + 1, head: `>`});
+              'eta=:eta :bar :placeholderForLossesAndMetrics', {
+                width: Math.floor(0.4 * this.terminalWidth),
+                total: this.numTrainBatchesPerEpoch + 1,
+                head: `>`,
+                renderThrottle: this.RENDER_THROTTLE_MS
+              });
         }
+        const maxMetricsStringLength =
+            Math.floor(this.terminalWidth * 0.5 - 4);
         const tickTokens = {
-          placeholderForLossesAndMetrics: this.formatLogsAsMetricsContent(logs)
+          placeholderForLossesAndMetrics:
+              this.formatLogsAsMetricsContent(logs, maxMetricsStringLength)
         };
         if (this.numTrainBatchesPerEpoch === 0) {
           // Undetermined number of batches per epoch.
@@ -109,15 +121,21 @@ export class ProgbarLogger extends CustomCallback {
     });
   }
 
-  private formatLogsAsMetricsContent(logs: Logs): string {
+  private formatLogsAsMetricsContent(
+      logs: Logs, maxMetricsLength?: number): string {
     let metricsContent = '';
     const keys = Object.keys(logs).sort();
     for (const key of keys) {
       if (this.isFieldRelevant(key)) {
         const value = logs[key];
-        const decimalPlaces = getDisplayDecimalPlaces(value);
-        metricsContent += `${key}=${value.toFixed(decimalPlaces)} `;
+        metricsContent += `${key}=${getSuccinctNumberDisplay(value)} `;
       }
+    }
+
+    if (maxMetricsLength != null && metricsContent.length > maxMetricsLength) {
+      // Cut off metrics strings that are too long to avoid new lines being
+      // constantly created.
+      metricsContent = metricsContent.slice(0, maxMetricsLength);
     }
     return metricsContent;
   }
@@ -127,6 +145,14 @@ export class ProgbarLogger extends CustomCallback {
   }
 }
 
+const BASE_NUM_DIGITS = 2;
+
+export function getSuccinctNumberDisplay(x: number): string {
+  const decimalPlaces = getDisplayDecimalPlaces(x);
+  return decimalPlaces > 4 ?
+      x.toExponential(BASE_NUM_DIGITS) : x.toFixed(decimalPlaces);
+}
+
 /**
  * Determine the number of decimal places to display.
  *
@@ -134,7 +160,7 @@ export class ProgbarLogger extends CustomCallback {
  * @return Number of decimal places to display for `x`.
  */
 export function getDisplayDecimalPlaces(x: number): number {
-  const BASE_NUM_DIGITS = 2;
+
   if (!Number.isFinite(x) || x === 0 || x > 1 || x < -1) {
     return BASE_NUM_DIGITS;
   } else {
