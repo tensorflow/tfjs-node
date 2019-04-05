@@ -32,6 +32,18 @@ describe('progbarLogger', () => {
     }
   }
 
+  let originalStderrColumns: number;
+
+  beforeEach(() => {
+    // In some CI environments, process.stderr.columns has a null value.
+    originalStderrColumns = process.stderr.columns;
+    process.stderr.columns = 100;
+  });
+
+  afterEach(() => {
+    process.stderr.columns = originalStderrColumns;
+  });
+
   it('Model.fit with loss, no metric, no validation, verobse = 1', async () => {
     const fakeProgbars: FakeProgbar[] = [];
     spyOn(progressBarHelper, 'ProgressBar')
