@@ -146,6 +146,7 @@ export class ProgbarLogger extends CustomCallback {
 }
 
 const BASE_NUM_DIGITS = 2;
+const MAX_NUM_DECIMAL_PLACES = 4;
 
 /**
  * Get a succint string representation of a number.
@@ -158,7 +159,7 @@ const BASE_NUM_DIGITS = 2;
  */
 export function getSuccinctNumberDisplay(x: number): string {
   const decimalPlaces = getDisplayDecimalPlaces(x);
-  return decimalPlaces > 4 ?
+  return decimalPlaces > MAX_NUM_DECIMAL_PLACES ?
       x.toExponential(BASE_NUM_DIGITS) : x.toFixed(decimalPlaces);
 }
 
