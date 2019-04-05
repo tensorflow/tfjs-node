@@ -36,19 +36,19 @@ const {
  */
 async function symlinkDepsLib(
     libPath, frameworkPath, destLibPath, destFrameworkPath) {
-  if (destLibPath == null || destFrameworkPath == null) {
+  if (destLibPath == null) {
     throw new Error('Destination path not supplied!');
   }
   try {
     await symlink(libPath, destLibPath);
-    if (frameworkLibName !== '') {
+    if (destFrameworkPath != null) {
       await symlink(frameworkPath, destFrameworkPath);
     }
   } catch (e) {
     console.error(
         `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
     await copy(libPath, destLibPath);
-    if (frameworkLibName !== '') {
+    if (destFrameworkPath != null) {
       await copy(frameworkPath, destFrameworkPath);
     }
   }
@@ -60,7 +60,7 @@ async function symlinkDepsLib(
 async function moveDepsLib(
     libPath, frameworkPath, destLibPath, destFrameworkPath) {
   await rename(libPath, destLibPath);
-  if (frameworkLibName !== '') {
+  if (destFrameworkPath != null) {
     await rename(frameworkPath, destFrameworkPath);
   }
 }
@@ -77,8 +77,14 @@ async function run() {
   const libPath = depsLibTensorFlowPath;
   const frameworkPath = depsLibTensorFlowFrameworkPath;
   const destLibPath = path.join(targetDir, libName);
-  const destFrameworkPath = path.join(targetDir, frameworkLibName);
+  const destFrameworkPath =
+      frameworkLibName === '' ? null : path.join(targetDir, frameworkLibName);
 
+  console.log('action', action);
+  console.log('libpath', libPath);
+  console.log('framework path', frameworkPath);
+  console.log('destlib path', destLibPath);
+  console.log('dest framework path', destFrameworkPath);
   if (action.endsWith('symlink')) {
     // Symlink will happen during `node-gyp rebuild`
     await symlinkDepsLib(

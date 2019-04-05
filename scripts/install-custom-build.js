@@ -60,8 +60,10 @@ const destLibPath = path.join(targetDir, config.destLib);
 if (existsSync(destLibPath)) {
   rimraf.sync(destLibPath);
 }
-const destFrameworkPath = path.join(targetDir, config.frameworkLib);
-if (config.frameworkLib !== '' && existsSync(destFrameworkPath)) {
+const destFrameworkPath = config.frameworkLib === '' ?
+    null :
+    path.join(targetDir, config.frameworkLib);
+if (destFrameworkPath != null && existsSync(destFrameworkPath)) {
   rimraf.sync(destFrameworkPath);
 }
 symlinkDepsLib(libPath, frameworkPath, destLibPath, destFrameworkPath);
