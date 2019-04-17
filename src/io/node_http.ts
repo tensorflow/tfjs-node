@@ -17,14 +17,10 @@
 
 import {io} from '@tensorflow/tfjs-core';
 
-// tslint:disable-next-line:no-require-imports
-const fetch = require('node-fetch');
-
-// For testing: Enables jasmine `spyOn()` with `fetch`.
-export const fetchWrapper = {fetch};
-
 /**
  * Factory function for HTTP IO Handler in Node.js.
+ *
+ * Deprecated. Please use tf.io.httpRequest.
  *
  * @param path URL path or an array of them.
  * @param requestInit Request init for the HTTP IOHandler. May include fields
@@ -34,9 +30,7 @@ export const fetchWrapper = {fetch};
 export function nodeHTTPRequest(
     path: string, requestInit?: RequestInit,
     weightPathPrefix?: string): io.IOHandler {
-  return io.browserHTTPRequest(
-      path as string,
-      {requestInit, weightPathPrefix, fetchFunc: fetchWrapper.fetch});
+  return io.browserHTTPRequest(path as string, {requestInit, weightPathPrefix});
 }
 
 export const nodeHTTPRequestRouter = (url: string) => {

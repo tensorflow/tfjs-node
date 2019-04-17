@@ -19,7 +19,6 @@ import * as tf from '@tensorflow/tfjs';
 
 import {nodeFileSystemRouter} from './io/file_system';
 import * as nodeIo from './io/index';
-import {nodeHTTPRequestRouter} from './io/node_http';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 import * as nodeVersion from './version';
 
@@ -56,7 +55,6 @@ if (!success) {
 // Register the model saving and loading handlers for the 'file://' URL scheme.
 tf.io.registerLoadRouter(nodeFileSystemRouter);
 tf.io.registerSaveRouter(nodeFileSystemRouter);
-tf.io.registerLoadRouter(nodeHTTPRequestRouter);
 // TODO(cais): Make HTTP-based save work from Node.js.
 
 import {ProgbarLogger} from './callbacks';
