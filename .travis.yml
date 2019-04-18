@@ -4,7 +4,6 @@ os:
 language: node_js
 node_js:
   - "10"
-  - "8"
 script:
   - ./scripts/test-ci.sh
   - ./scripts/test-ts-integration.sh
