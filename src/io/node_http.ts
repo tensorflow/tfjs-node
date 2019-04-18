@@ -20,8 +20,6 @@ import {io} from '@tensorflow/tfjs-core';
 /**
  * Factory function for HTTP IO Handler in Node.js.
  *
- * Deprecated. Please use tf.io.httpRequest.
- *
  * @param path URL path or an array of them.
  * @param requestInit Request init for the HTTP IOHandler. May include fields
  *   such as "credentials" and "cache". (Optional)

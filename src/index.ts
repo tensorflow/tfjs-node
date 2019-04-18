@@ -55,7 +55,6 @@ if (!success) {
 // Register the model saving and loading handlers for the 'file://' URL scheme.
 tf.io.registerLoadRouter(nodeFileSystemRouter);
 tf.io.registerSaveRouter(nodeFileSystemRouter);
-// TODO(cais): Make HTTP-based save work from Node.js.
 
 import {ProgbarLogger} from './callbacks';
 // Register the ProgbarLogger for Model.fit() at verbosity level 1.
