@@ -1,5 +1,4 @@
 os:
-  - linux
   - osx
   - windows
 language: node_js
@@ -7,7 +6,7 @@ node_js:
   - "10"
   - "8"
 script:
-  - ./scripts/test-travis.sh
+  - ./scripts/test-ci.sh
   - ./scripts/test-ts-integration.sh
 cache: yarn
 git:
