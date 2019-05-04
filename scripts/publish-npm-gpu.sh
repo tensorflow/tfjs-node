@@ -49,6 +49,7 @@ if [ "$GPU_TARBALL_COUNT" != "1" ]; then
   exit
 fi
 
+yarn build-npm-gpu
 # Publish the GPU package
 echo $GPU_TARBALLS | xargs npm publish
 ./scripts/tag-version
