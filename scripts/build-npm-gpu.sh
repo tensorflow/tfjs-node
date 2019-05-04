@@ -20,9 +20,15 @@ set -e
 # download option to move libtensorflow next to the prebuilt binary.
 sed -i -e 's/symlink/move/' binding.gyp
 
-# Build CPU:
+# Build GPU:
+sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
+sed -i -e 's/install.js"/install.js gpu download"/' package.json
+rimraf deps/
 rimraf dist/
 yarn
 yarn prep
 tsc --sourceMap false
 npm pack
+
+# Revert GPU changes:
+git checkout .
