@@ -25,4 +25,5 @@ rimraf dist/
 yarn
 yarn prep
 tsc --sourceMap false
+# This produces a tarball that will later be used by `npm publish`.
 npm pack
