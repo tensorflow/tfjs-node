@@ -22,7 +22,7 @@
       '<@(tensorflow_include_dir)/tensorflow/c/c_api.h',
       '<@(tensorflow_include_dir)/tensorflow/c/eager/c_api.h',
     ],
-    'tensorflow-library-action': 'symlink'
+    'tensorflow-library-action': 'move'
   },
   'targets' : [{
     'target_name' : 'tfjs_binding',
@@ -39,7 +39,7 @@
             '-ltensorflow',
             '-ltensorflow_framework',
           ],
-          'library_dirs' : ['<(PRODUCT_DIR)'],
+          'library_dirs' : ['<(module_path)'],
           'actions': [
             {
               'action_name': 'deps-stage',
@@ -47,107 +47,34 @@
                 '<(module_root_dir)/scripts/deps-stage.js'
               ],
               'outputs': [
-                '<(PRODUCT_DIR)/libtensorflow.so',
+                '<(module_path)/libtensorflow.so',
               ],
               'action': [
                 'node',
                 '<@(_inputs)',
                 '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
+                '<(module_path)'
               ]
             }
           ],
         }
-      ],
-      [
-        'OS=="mac"', {
-          'libraries' : [
-            '-Wl,-rpath,@loader_path',
-            '-ltensorflow',
-          ],
-          'library_dirs' : ['<(PRODUCT_DIR)'],
-          'actions': [
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/libtensorflow.so',
-              ],
-              'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
-              ]
-            }
-          ],
-        }
-      ],
-      [
-        'OS=="win"', {
-          'defines': ['COMPILER_MSVC'],
-          'libraries': ['tensorflow'],
-          'library_dirs' : ['<(INTERMEDIATE_DIR)'],
-          'variables': {
-            'tensorflow-library-target': 'windows'
-          },
-          'msvs_disabled_warnings': [
-            # Warning	C4190: 'TF_NewWhile' has C-linkage specified, but returns
-            # UDT 'TF_WhileParams' which is incompatible with C.
-            # (in include/tensorflow/c/c_api.h)
-            4190
-          ],
-          'actions': [
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/tensorflow.dll',
-              ],
-              'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
-              ]
-            },
-            {
-              'action_name': 'generate_def',
-              'inputs': [
-                '<(module_root_dir)/scripts/generate_defs.js',
-                '<@(tensorflow_headers)',
-                "<(PRODUCT_DIR)/tensorflow.dll"
-              ],
-              'outputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.def'
-              ],
-              'action': [
-                'cmd',
-                '/c node --max-old-space-size=4096 <@(_inputs) > <@(_outputs)'
-              ]
-            },
-            {
-              'action_name': 'build-tensorflow-lib',
-              'inputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.def'
-              ],
-              'outputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.lib'
-              ],
-              'action': [
-                'lib',
-                '/def:<@(_inputs)',
-                '/out:<@(_outputs)',
-                '/machine:<@(target_arch)'
-              ]
-            },
-          ],
-        },
       ]
     ],
-  }]
+  }
+  , {
+      "target_name": "action_after_build",
+      "type": "none",
+      "dependencies": [ "<(module_name)" ],
+      "copies": [
+        {
+          "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
+          "destination": "<(module_path)"
+          # "destination": "<(PRODUCT_DIR)"
+        }
+      ]
+    }
+    ],
+  "defines": [
+      "NAPI_VERSION=<(napi_build_version)"
+  ]
 }

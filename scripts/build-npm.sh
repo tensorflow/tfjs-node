@@ -28,14 +28,14 @@ tsc --sourceMap false
 npm pack
 
 # Build GPU:
-sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
-sed -i -e 's/install.js"/install.js gpu download"/' package.json
-rimraf deps/
-rimraf dist/
-yarn
-yarn prep
-tsc --sourceMap false
-npm pack
+# sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
+# sed -i -e 's/install.js"/install.js gpu download"/' package.json
+# rimraf deps/
+# rimraf dist/
+# yarn
+# yarn prep
+# tsc --sourceMap false
+# npm pack
 
 # Revert GPU changes:
-git checkout .
+# git checkout .
