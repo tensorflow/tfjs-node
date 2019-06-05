@@ -21,3 +21,4 @@ yarn-error.log
 lib/
 deps/
 build-tmp-napi-v3/
+*.tar.gz
