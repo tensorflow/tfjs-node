@@ -26,7 +26,8 @@
     "publish-local": "yarn prep && yalc push",
     "test": "ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
-    "test-ts-integration": "./scripts/test-ts-integration.sh"
+    "test-ts-integration": "./scripts/test-ts-integration.sh",
+    "upload-binary": "./scripts/compress-and-upload-binary.sh"
   },
   "devDependencies": {
     "@types/bindings": "~1.3.0",
