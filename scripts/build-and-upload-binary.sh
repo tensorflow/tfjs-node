@@ -40,13 +40,17 @@ set -e
 # fi
 
 # get package name based on os and processor
-PACKAGE_NAME=$(node scripts/print-module-name.js)
-sed -i -e 's/temp_package_name/'$PACKAGE_NAME'/' package.json
-
+PACKAGE_NAME=$(node scripts/get-module-name.js)
 # remove the pre-built binary tarball if it already exist
-rm -f napi-v3.tar.gz
-# build a new pre-built binary tarball
-tar -czvf napi-v3.tar.gz -C lib/binding napi-v3
-# upload pre-built binary tarball to gcloud
-PACKAGE_HOST=`node -p "require('./package.json').binary.host.split('.com/')[1] + '/' + require('./package.json').version + '/'"`
-gsutil cp napi-v3.tar.gz gs://$PACKAGE_HOST
+rm -f $PACKAGE_NAME
+# update package name in package.json.binary
+# sed -i -e 's/temp_package_name/'$PACKAGE_NAME'/' package.json
+yarn install-local
+if [ "$1"=="upload" ]; then
+  # build a new pre-built binary tarball
+  tar -czvf $PACKAGE_NAME -C lib/binding napi-v3
+  # upload pre-built binary tarball to gcloud
+  PACKAGE_HOST=`node -p "require('./package.json').binary.host.split('.com/')[1] + '/napi-v3/' + require('./package.json').version + '/'"`
+  gsutil cp $PACKAGE_NAME gs://$PACKAGE_HOST
+fi
+# sed -i -e 's/'$PACKAGE_NAME'/temp_package_name/' package.json
