@@ -59,9 +59,9 @@
   "binary": {
     "module_name": "tfjs_binding",
     "module_path": "./lib/binding/napi-v{napi_build_version}",
-    "host": "https://storage.googleapis.com/tfjs-cdn/test/addon/",
-    "remote_path": "./{name}/v{version}/",
-    "package_name": "napi-v{napi_build_version}.tar.gz",
+    "host": "https://storage.googleapis.com/tf-builds/pre-built-binary",
+    "remote_path": "./napi-v{napi_build_version}/{version}/",
+    "package_name": "temp_package_name",
     "napi_versions": [
       3
     ]

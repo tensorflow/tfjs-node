@@ -16,16 +16,32 @@
  */
 const os = require('os');
 const path = require('path');
+const name = require('../package.json').name;
+const version = require('../package.json').version;
 
 const libName =
-    os.platform() === 'win32' ? 'tensorflow.dll' : 'libtensorflow.so';
+  os.platform() === 'win32' ? 'tensorflow.dll' : 'libtensorflow.so';
 const frameworkLibName =
-    os.platform() !== 'win32' ? 'libtensorflow_framework.so' : '';
+  os.platform() !== 'win32' ? 'libtensorflow_framework.so' : '';
 
 const depsPath = path.join(__dirname, '..', 'deps');
 const depsLibPath = path.join(depsPath, 'lib');
 const depsLibTensorFlowPath = path.join(depsLibPath, libName);
 const depsLibTensorFlowFrameworkPath = path.join(depsLibPath, frameworkLibName);
+
+
+let processor = '';
+if (name.includes('gpu')) {
+  processor = 'gpu';
+} else {
+  processor = 'cpu';
+}
+
+const CPU_DARWIN = `${processor}-darwin-${version}-v{napi_build_version}.tar.gz`;
+const CPU_LINUX = `${processor}-linux-${version}-v{napi_build_version}.tar.gz`;
+const GPU_LINUX = `${processor}-linux-${version}-v{napi_build_version}.tar.gz`;
+const CPU_WINDOWS = `${processor}-windows-x86_64-1.13.1.zip`;
+const GPU_WINDOWS = `${processor}-windows-x86_64-1.13.1.zip`;
 
 module.exports = {
   depsLibPath,
@@ -33,5 +49,10 @@ module.exports = {
   depsLibTensorFlowPath,
   depsPath,
   frameworkLibName,
-  libName
+  libName,
+  CPU_DARWIN,
+  CPU_LINUX,
+  GPU_LINUX,
+  CPU_WINDOWS,
+  GPU_WINDOWS
 };

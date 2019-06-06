@@ -39,9 +39,14 @@ set -e
 #   exit
 # fi
 
+# get package name based on os and processor
+PACKAGE_NAME=$(node scripts/print-module-name.js)
+sed -i -e 's/temp_package_name/'$PACKAGE_NAME'/' package.json
+
 # remove the pre-built binary tarball if it already exist
 rm -f napi-v3.tar.gz
 # build a new pre-built binary tarball
 tar -czvf napi-v3.tar.gz -C lib/binding napi-v3
 # upload pre-built binary tarball to gcloud
-gsutil cp napi-v3.tar.gz gs://tfjs-cdn/test/addon/
+PACKAGE_HOST=`node -p "require('./package.json').binary.host.split('.com/')[1] + '/' + require('./package.json').version + '/'"`
+gsutil cp napi-v3.tar.gz gs://$PACKAGE_HOST

@@ -39,7 +39,8 @@ if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
   exit
 fi
 
-yarn build-npm
+# build package, upload pre-built binary, revert temp changes
+yarn build-npm upload
 ./scripts/make-version # This is for safety in case you forgot to do 2).
 
 GPU_TARBALLS=$(ls tensorflow-tfjs-node-gpu*.tgz)
