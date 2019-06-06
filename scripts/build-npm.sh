@@ -23,8 +23,7 @@ sed -i -e 's/symlink/move/' binding.gyp
 # Build CPU:
 rimraf dist/
 # get package name based on os and processor
-PACKAGE_NAME=$(node scripts/print-module-name.js)
-echo $PACKAGE_NAME
+PACKAGE_NAME=$(node scripts/get-module-name.js)
 # remove the pre-built binary tarball if it already exist
 rm -f $PACKAGE_NAME
 # update package name in package.json.binary
@@ -37,10 +36,10 @@ if [ "$1"=="upload" ]; then
   PACKAGE_HOST=`node -p "require('./package.json').binary.host.split('.com/')[1] + '/napi-v3/' + require('./package.json').version + '/'"`
   gsutil cp $PACKAGE_NAME gs://$PACKAGE_HOST
 fi
+sed -i -e 's/'$PACKAGE_NAME'/temp_package_name/' package.json
 yarn prep
 tsc --sourceMap false
 npm pack
-sed -i -e 's/'$PACKAGE_NAME'/temp_package_name/' package.json
 
 
 # Build GPU:
