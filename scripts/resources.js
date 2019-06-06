@@ -40,6 +40,8 @@ async function downloadAndUnpackResource(uri, destPath, callback) {
   const proxy = process.env['HTTPS_PROXY'] || process.env['https_proxy'] ||
       process.env['HTTP_PROXY'] || process.env['http_proxy'] || '';
 
+  console.log('uuurrrlllll2',uri);
+  console.log('prrroooxxxy2', proxy);
   // Using object destructuring to construct the options object for the
   // http request.  the '...url.parse(targetUri)' part fills in the host,
   // path, protocol, etc from the targetUri and then we set the agent to the
