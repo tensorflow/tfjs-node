@@ -20,4 +20,5 @@ set -e
 PACKAGE_NAME=$(node scripts/get-module-name.js)
 # update package name in package.json.binary
 sed -i -e 's/temp_package_name/'$PACKAGE_NAME'/' package.json
-node-pre-gyp install
+# run node-pre-gyp to load pre-built binary. Fall back to live build it node-pre-gyp fail.
+node-pre-gyp install || yarn install-local
