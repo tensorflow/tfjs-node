@@ -11,7 +11,7 @@ TensorFlow.js for Node currently supports the following platforms:
 - Linux CPU (Ubuntu 14.04 or higher)
 - Linux GPU (Ubuntu 14.04 or higher and Cuda 10.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#software_requirements))
 - Windows CPU (Win 7 or higher)
-- Windows GPU (Win 7 or higher and Cuda 9.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#windows_setup))
+- Windows GPU (Win 7 or higher and Cuda 10.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#windows_setup))
 
 *Other Linux variants might also work but this project matches [core TensorFlow installation requirements](https://www.tensorflow.org/install/install_linux).*
 
