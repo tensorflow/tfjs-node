@@ -23,7 +23,7 @@ sed -i -e 's/symlink/move/' binding.gyp
 # Build CPU:
 rimraf dist/
 # Build and upload pre-built binary
-yarn build-binary upload
+yarn build-binary "$1"
 yarn prep
 tsc --sourceMap false
 npm pack
@@ -35,7 +35,7 @@ sed -i -e 's/install.js"/install.js gpu download"/' package.json
 rimraf deps/
 rimraf dist/
 rimraf lib/
-yarn build-binary upload
+yarn build-binary "$1"
 yarn prep
 tsc --sourceMap false
 npm pack
