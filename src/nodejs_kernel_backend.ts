@@ -19,7 +19,7 @@
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
-import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
+import {StringTensor, Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
 
@@ -1550,6 +1550,21 @@ export class NodeJSKernelBackend extends KernelBackend {
       scalar(start, 'float32'), scalar(stop, 'float32'), scalar(num, 'int32')
     ];
     return this.executeSingleOutput('LinSpace', opAttrs, inputs) as Tensor1D;
+  }
+
+  encodeBase64<T extends StringTensor>(str: StringTensor|Tensor, pad = false):
+      T {
+    const opAttrs =
+        [{name: 'pad', type: this.binding.TF_ATTR_BOOL, value: pad}];
+    return this.executeSingleOutput('EncodeBase64', opAttrs, [str as Tensor]) as
+        T;
+  }
+
+  decodeBase64<T extends StringTensor>(str: StringTensor|Tensor): T {
+    // return this.executeSingleInput('DecodeBase64', str as Tensor) as Tensor;
+    const opAttrs: TFEOpAttr[] = [];
+    return this.executeSingleOutput('DecodeBase64', opAttrs, [str as Tensor]) as
+        T;
   }
 
   fromPixels(
