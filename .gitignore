@@ -15,3 +15,4 @@ tensorflow-tfjs-node*.tgz
 lib/
 build-tmp-napi-v3/
 *.tar.gz
+*.zip

@@ -22,3 +22,4 @@ lib/
 deps/
 build-tmp-napi-v3/
 *.tar.gz
+*.zip
