@@ -16,7 +16,7 @@
 
 # Before you run this script, do this:
 # 1) Checkout the master branch of this repo.
-# 2) Run `yarn install-local` to build binding from source
+# 2) Run `yarn install-from-source` to build binding from source
 # 3) Run this script as `./scripts/compress-and-upload-binary.sh` from the project base dir.
 
 set -e
@@ -40,12 +40,12 @@ set -e
 # fi
 
 # get package name based on os and processor
-PACKAGE_NAME=$(node scripts/get-module-name.js)
+PACKAGE_NAME=$(node scripts/get-binary-name.js)
 # remove the pre-built binary tarball if it already exist
 rm -f $PACKAGE_NAME
 # update package name in package.json.binary
 # sed -i -e 's/temp_package_name/'$PACKAGE_NAME'/' package.json
-yarn install-local
+yarn install-from-source
 if [ "$1"=="upload" ]; then
   # build a new pre-built binary tarball
   tar -czvf $PACKAGE_NAME -C lib/binding napi-v3

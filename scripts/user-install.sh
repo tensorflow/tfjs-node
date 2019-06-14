@@ -17,10 +17,10 @@
 set -e
 
 # get package name based on os and processor
-PACKAGE_NAME=$(node scripts/get-module-name.js)
+PACKAGE_NAME=$(node scripts/get-binary-name.js)
 # update package name in package.json.binary
 sed -i -e 's/temp_package_name/'$PACKAGE_NAME'/' package.json
 # run node-pre-gyp to load pre-built binary. Fall back to live build it node-pre-gyp fail.
-node-pre-gyp install || yarn install-local
+node-pre-gyp install || yarn install-from-source
 # revert package name in package.json.binary
 sed -i -e 's/'$PACKAGE_NAME'/temp_package_name/' package.json

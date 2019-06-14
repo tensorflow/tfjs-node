@@ -40,5 +40,5 @@ yarn prep
 tsc --sourceMap false
 npm pack
 
-# # Revert GPU changes:
+# Revert GPU changes:
 git checkout .
