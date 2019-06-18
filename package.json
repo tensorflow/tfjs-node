@@ -63,8 +63,9 @@
     "host": "https://storage.googleapis.com/tf-builds/pre-built-binary",
     "remote_path": "./napi-v{napi_build_version}/{version}/",
     "napi_versions": [
-      3
+      3,
+      4
     ],
-    "package_name": "CPU-windows-1.1.2.zip"
+    "package_name": "CPU-linux-1.1.2.tar.gz"
   }
 }
