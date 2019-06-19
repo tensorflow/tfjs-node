@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Copyright 2019 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,42 +14,23 @@
 # =============================================================================
 
 # Before you run this script, do this:
-# 1) Checkout the master branch of this repo.
+# 1) Remove the existing pre-built binary tarball.
 # 2) Run `yarn install-from-source` to build binding from source
-# 3) Run this script as `./scripts/compress-and-upload-binary.sh` from the project base dir.
+# 3) Compress and upload the pre-built binary tarball.
 
 set -e
 
-# BRANCH=`git rev-parse --abbrev-ref HEAD`
-# ORIGIN=`git config --get remote.origin.url`
-
-# if [ "$BRANCH" != "master" ] && [ "$BRANCH" != "0.3.x" ]; then
-#   echo "Error: Switch to the master or a release branch before uploading binary."
-#   exit
-# fi
-
-# if ! [ -z "$(git status --porcelain)" ]; then
-#   echo "Error: Please clear local changes before compress and upload pre-built binary."
-#   exit
-# fi
-
-# if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
-#   echo "Error: Switch to the main repo (tensorflow/tfjs-node) before uploading binary."
-#   exit
-# fi
-
 # get package name based on os and processor
 PACKAGE_NAME=$(node scripts/get-binary-name.js)
+# get NAPI version
+NAPI_VERSION=`node -p "process.versions.napi"`
 # remove the pre-built binary tarball if it already exist
 rm -f $PACKAGE_NAME
-# update package name in package.json.binary
-# sed -i -e 's/temp_package_name/'$PACKAGE_NAME'/' package.json
 yarn install-from-source
-if [ "$1"=="upload" ]; then
+if [ "$1" = "upload" ]; then
   # build a new pre-built binary tarball
-  tar -czvf $PACKAGE_NAME -C lib/binding napi-v3
+  tar -czvf $PACKAGE_NAME -C lib/binding napi-v$NAPI_VERSION
   # upload pre-built binary tarball to gcloud
-  PACKAGE_HOST=`node -p "require('./package.json').binary.host.split('.com/')[1] + '/napi-v3/' + require('./package.json').version + '/'"`
+  PACKAGE_HOST=`node -p "require('./package.json').binary.host.split('.com/')[1] + '/napi-v' + process.versions.napi + '/' + require('./package.json').version + '/'"`
   gsutil cp $PACKAGE_NAME gs://$PACKAGE_HOST
 fi
-# sed -i -e 's/'$PACKAGE_NAME'/temp_package_name/' package.json
