@@ -16,13 +16,16 @@
 
 set -e
 
-# Build CPU:
+# Build GPU:
+sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
+sed -i -e 's/install-from-source.js"/install-from-source.js gpu download"/' package.json
 rimraf deps/
 rimraf dist/
 rimraf lib/
-# Build and upload pre-built binary
 yarn build-binary "$1"
 yarn prep
 tsc --sourceMap false
-# This produces a tarball that will later be used by `npm publish`.
 npm pack
+
+# Revert GPU changes:
+git checkout .
