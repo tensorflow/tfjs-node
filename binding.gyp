@@ -35,7 +35,7 @@
       [
         'OS=="linux"', {
           'libraries' : [
-            '-Wl,-rpath,\$$ORIGIN',
+            '-Wl,-rpath,\$$ORIGIN/../../deps/lib',
             '-ltensorflow',
             '-ltensorflow_framework',
           ],
