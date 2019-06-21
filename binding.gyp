@@ -67,7 +67,7 @@
           ],
           'postbuilds': [
             {
-              'postbuild_name': 'Adjust link path 1',
+              'postbuild_name': 'Adjust libtensorflow load path',
               'action': [
                 'install_name_tool',
                 "-change",
@@ -77,7 +77,7 @@
               ]
             },
             {
-              'postbuild_name': 'Adjust link path',
+              'postbuild_name': 'Adjust libtensorflow_framework load path',
               'action': [
                 'install_name_tool',
                 "-change",

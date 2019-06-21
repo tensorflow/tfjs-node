@@ -23,7 +23,6 @@ if (os.platform() === 'win32') {
   libName += '.dll';
   frameworkLibName = '';  // Not supported on Windows
 } else if (os.platform() === 'darwin') {
-  // libName = 'tensorflow.dylib';
   libName += '.dylib';
   frameworkLibName += '.dylib';
 } else if (os.platform() === 'linux') {
