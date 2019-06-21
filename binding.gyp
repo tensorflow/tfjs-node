@@ -22,7 +22,7 @@
       '<@(tensorflow_include_dir)/tensorflow/c/c_api.h',
       '<@(tensorflow_include_dir)/tensorflow/c/eager/c_api.h',
     ],
-    'tensorflow-library-action': 'symlink'
+    'tensorflow-library-action': 'move'
   },
   'targets' : [{
     'target_name' : 'tfjs_binding',
@@ -39,7 +39,7 @@
             '-ltensorflow',
             '-ltensorflow_framework',
           ],
-          'library_dirs' : ['<(PRODUCT_DIR)'],
+          'library_dirs' : ['<(module_path)'],
           'actions': [
             {
               'action_name': 'deps-stage',
@@ -47,13 +47,13 @@
                 '<(module_root_dir)/scripts/deps-stage.js'
               ],
               'outputs': [
-                '<(PRODUCT_DIR)/libtensorflow.so',
+                '<(module_path)/libtensorflow.so',
               ],
               'action': [
                 'node',
                 '<@(_inputs)',
                 '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
+                '<(module_path)'
               ]
             }
           ],
@@ -65,7 +65,7 @@
             '-Wl,-rpath,@loader_path',
             '-ltensorflow',
           ],
-          'library_dirs' : ['<(PRODUCT_DIR)'],
+          'library_dirs' : ['<(module_path)'],
           'actions': [
             {
               'action_name': 'deps-stage',
@@ -73,13 +73,13 @@
                 '<(module_root_dir)/scripts/deps-stage.js'
               ],
               'outputs': [
-                '<(PRODUCT_DIR)/libtensorflow.so',
+                '<(module_path)/libtensorflow.so',
               ],
               'action': [
                 'node',
                 '<@(_inputs)',
                 '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
+                '<(module_path)'
               ]
             }
           ],
@@ -89,7 +89,7 @@
         'OS=="win"', {
           'defines': ['COMPILER_MSVC'],
           'libraries': ['tensorflow'],
-          'library_dirs' : ['<(INTERMEDIATE_DIR)'],
+          'library_dirs' : ['<(module_path)'],
           'variables': {
             'tensorflow-library-target': 'windows'
           },
@@ -106,13 +106,13 @@
                 '<(module_root_dir)/scripts/deps-stage.js'
               ],
               'outputs': [
-                '<(PRODUCT_DIR)/tensorflow.dll',
+                '<(module_path)/tensorflow.dll',
               ],
               'action': [
                 'node',
                 '<@(_inputs)',
                 '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
+                '<(module_path)'
               ]
             },
             {
@@ -120,10 +120,10 @@
               'inputs': [
                 '<(module_root_dir)/scripts/generate_defs.js',
                 '<@(tensorflow_headers)',
-                "<(PRODUCT_DIR)/tensorflow.dll"
+                "<(module_path)/tensorflow.dll"
               ],
               'outputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.def'
+                '<(module_path)/tensorflow.def'
               ],
               'action': [
                 'cmd',
@@ -133,10 +133,10 @@
             {
               'action_name': 'build-tensorflow-lib',
               'inputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.def'
+                '<(module_path)/tensorflow.def'
               ],
               'outputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.lib'
+                '<(module_path)/tensorflow.lib'
               ],
               'action': [
                 'lib',
@@ -149,5 +149,20 @@
         },
       ]
     ],
-  }]
+  }
+  , {
+      "target_name": "action_after_build",
+      "type": "none",
+      "dependencies": [ "<(module_name)" ],
+      "copies": [
+        {
+          "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
+          "destination": "<(module_path)"
+        }
+      ]
+    }
+    ],
+  "defines": [
+      "NAPI_VERSION=<(napi_build_version)"
+  ]
 }

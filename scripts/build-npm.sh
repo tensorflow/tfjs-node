@@ -16,13 +16,13 @@
 
 set -e
 
-# The binding builds with a symlink by default, for NPM packages change the
-# download option to move libtensorflow next to the prebuilt binary.
-sed -i -e 's/symlink/move/' binding.gyp
-
 # Build CPU:
+rimraf deps/
 rimraf dist/
-yarn
+rimraf lib/
+# Upload pre-built binary only when required, so that TFJS developers does not
+# accidentally upload binary when developing.
+yarn build-binary "$1"
 yarn prep
 tsc --sourceMap false
 # This produces a tarball that will later be used by `npm publish`.
