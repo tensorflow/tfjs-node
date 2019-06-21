@@ -17,7 +17,7 @@
 const os = require('os');
 const path = require('path');
 
-let libName = 'tensorflow';
+let libName = 'libtensorflow';
 let frameworkLibName = 'libtensorflow_framework';
 if (os.platform() === 'win32') {
   libName += '.dll';
