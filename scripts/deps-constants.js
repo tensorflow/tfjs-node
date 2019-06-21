@@ -17,10 +17,21 @@
 const os = require('os');
 const path = require('path');
 
-const libName =
-    os.platform() === 'win32' ? 'tensorflow.dll' : 'libtensorflow.so';
-const frameworkLibName =
-    os.platform() !== 'win32' ? 'libtensorflow_framework.so' : '';
+let libName = 'tensorflow';
+let frameworkLibName = 'libtensorflow_framework';
+if (os.platform() === 'win32') {
+  libName += '.dll';
+  frameworkLibName = '';  // Not supported on Windows
+} else if (os.platform() === 'darwin') {
+  // libName = 'tensorflow.dylib';
+  libName += '.dylib';
+  frameworkLibName += '.dylib';
+} else if (os.platform() === 'linux') {
+  libName += '.so';
+  frameworkLibName += '.so';
+} else {
+  throw Exception('Unsupported platform: ' + os.platform());
+}
 
 const depsPath = path.join(__dirname, '..', 'deps');
 const depsLibPath = path.join(depsPath, 'lib');

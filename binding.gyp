@@ -62,24 +62,28 @@
       [
         'OS=="mac"', {
           'libraries' : [
-            '-Wl,-rpath,@loader_path',
-            '-ltensorflow',
+            '<(module_root_dir)/deps/lib/libtensorflow.dylib',
+            '<(module_root_dir)/deps/lib/libtensorflow_framework.dylib',
           ],
-          'library_dirs' : ['<(PRODUCT_DIR)'],
-          'actions': [
+          'postbuilds': [
             {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/libtensorflow.so',
-              ],
+              'postbuild_name': 'Adjust link path 1',
               'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
+                'install_name_tool',
+                "-change",
+                "@rpath/libtensorflow.1.dylib",
+                "@loader_path/../../deps/lib/libtensorflow.dylib",
+                "<@(PRODUCT_DIR)/tfjs_binding.node"
+              ]
+            },
+            {
+              'postbuild_name': 'Adjust link path',
+              'action': [
+                'install_name_tool',
+                "-change",
+                "@rpath/libtensorflow_framework.1.dylib",
+                "@loader_path/../../deps/lib/libtensorflow_framework.dylib",
+                "<@(PRODUCT_DIR)/tfjs_binding.node"
               ]
             }
           ],
