@@ -20,7 +20,7 @@ const path = require('path');
 let libName = 'libtensorflow';
 let frameworkLibName = 'libtensorflow_framework';
 if (os.platform() === 'win32') {
-  libName += '.dll';
+  libName = 'tensorflow.dll';
   frameworkLibName = '';  // Not supported on Windows
 } else if (os.platform() === 'darwin') {
   libName += '.dylib';
