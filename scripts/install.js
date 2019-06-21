@@ -20,8 +20,8 @@ const rimraf = require('rimraf');
 const util = require('util');
 const cp = require('child_process');
 const os = require('os');
-const {depsPath, depsLibPath, depsLibTensorFlowPath} =
-    require('./deps-constants.js');
+const { depsPath, depsLibPath, depsLibTensorFlowPath } =
+  require('./deps-constants.js');
 const resources = require('./resources');
 
 const exists = util.promisify(fs.exists);
@@ -31,7 +31,7 @@ const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
 
 const BASE_URI =
-    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
+  'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
 const CPU_DARWIN = 'cpu-darwin-x86_64-1.14.0.tar.gz';
 const CPU_LINUX = 'cpu-linux-x86_64-1.14.0.tar.gz';
 const GPU_LINUX = 'gpu-linux-x86_64-1.14.0.tar.gz';
@@ -41,7 +41,7 @@ const GPU_WINDOWS = 'gpu-windows-x86_64-1.14.0.zip';
 // TODO(kreeger): Update to TensorFlow 1.13:
 // https://github.com/tensorflow/tfjs/issues/1369
 const TF_WIN_HEADERS_URI =
-    'https://storage.googleapis.com/tf-builds/tensorflow-headers-1.12.zip';
+  'https://storage.googleapis.com/tf-builds/tensorflow-headers-1.14.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
@@ -57,7 +57,7 @@ function getPlatformLibtensorflowUri() {
       // TODO(kreeger): Update to TensorFlow 1.14:
       // https://github.com/tensorflow/tfjs/issues/1370
       targetUri =
-          'https://storage.googleapis.com/tf-builds/libtensorflow_r1_12_linux_arm.tar.gz';
+        'https://storage.googleapis.com/tf-builds/libtensorflow_r1_12_linux_arm.tar.gz';
     } else {
       if (libType === 'gpu') {
         targetUri += GPU_LINUX;
@@ -109,50 +109,50 @@ async function downloadLibtensorflow(callback) {
 
   console.warn('* Downloading libtensorflow');
   resources.downloadAndUnpackResource(
-      getPlatformLibtensorflowUri(), depsPath, async () => {
-        if (platform === 'win32') {
-          // Some windows libtensorflow zip files are missing structure and the
-          // eager headers. Check, restructure, and download resources as
-          // needed.
-          const depsIncludePath = path.join(depsPath, 'include');
-          if (!await exists(depsLibTensorFlowPath)) {
-            // Verify that tensorflow.dll exists
-            const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
-            if (!await exists(libtensorflowDll)) {
-              throw new Error('Could not find libtensorflow.dll');
-            }
-
-            await ensureDir(depsLibPath);
-            await rename(libtensorflowDll, depsLibTensorFlowPath);
+    getPlatformLibtensorflowUri(), depsPath, async () => {
+      if (platform === 'win32') {
+        // Some windows libtensorflow zip files are missing structure and the
+        // eager headers. Check, restructure, and download resources as
+        // needed.
+        const depsIncludePath = path.join(depsPath, 'include');
+        if (!await exists(depsLibTensorFlowPath)) {
+          // Verify that tensorflow.dll exists
+          const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
+          if (!await exists(libtensorflowDll)) {
+            throw new Error('Could not find libtensorflow.dll');
           }
 
-          // Next check the structure for the C-library headers. If they don't
-          // exist, download and unzip them.
-          if (!await exists(depsIncludePath)) {
-            // Remove duplicated assets from the original libtensorflow package.
-            // They will be replaced by the download below:
-            await unlink(path.join(depsPath, 'c_api.h'));
-            await unlink(path.join(depsPath, 'LICENSE'));
+          await ensureDir(depsLibPath);
+          await rename(libtensorflowDll, depsLibTensorFlowPath);
+        }
 
-            // Download the C headers only and unpack:
-            resources.downloadAndUnpackResource(
-                TF_WIN_HEADERS_URI, depsPath, () => {
-                  if (callback !== undefined) {
-                    callback();
-                  }
-                });
-          } else {
-            if (callback !== undefined) {
-              callback();
-            }
-          }
+        // Next check the structure for the C-library headers. If they don't
+        // exist, download and unzip them.
+        if (!await exists(depsIncludePath)) {
+          // Remove duplicated assets from the original libtensorflow package.
+          // They will be replaced by the download below:
+          await unlink(path.join(depsPath, 'c_api.h'));
+          await unlink(path.join(depsPath, 'LICENSE'));
+
+          // Download the C headers only and unpack:
+          resources.downloadAndUnpackResource(
+            TF_WIN_HEADERS_URI, depsPath, () => {
+              if (callback !== undefined) {
+                callback();
+              }
+            });
         } else {
-          // No other work is required on other platforms.
           if (callback !== undefined) {
             callback();
           }
         }
-      });
+      } else {
+        // No other work is required on other platforms.
+        if (callback !== undefined) {
+          callback();
+        }
+      }
+    });
 }
 
 /**
