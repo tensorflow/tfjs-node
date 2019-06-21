@@ -18,7 +18,7 @@
     "build-npm-gpu": "./scripts/build-npm-gpu.sh",
     "clean-deps": "rm -rf deps",
     "coverage": "nyc ts-node src/run_tests.ts",
-    "enable-gpu": "node scripts/install-from-source.js gpu download && yarn",
+    "enable-gpu": "node scripts/install-from-source.js gpu download",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "install-from-source": "node scripts/install-from-source.js",
     "install": "node scripts/install.js",
