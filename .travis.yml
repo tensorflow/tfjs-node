@@ -1,17 +1,19 @@
 os:
-- osx
-- windows
-- linux
+  - osx
+  - windows
+  - linux
 language: node_js
 node_js:
-- '10'
+  - "8"
+  - "10"
+  - "12"
 script:
-- "./scripts/build-and-upload-binary.sh upload"
+  - "./scripts/build-and-upload-binary.sh upload"
 cache: yarn
 git:
   depth: 5
 env:
-- YARN_GPG=no
+   YARN_GPG=no
   global:
     - GCS_ACCESS_KEY_ID: GOOGTN632LI2F6KAIFRLGS5W
     - secret_access_key:
@@ -28,6 +30,6 @@ deploy:
   on:
     branch: upload-binary
     node_js:
-    - '8'
-    - '10'
-    - '12'
+      - '8'
+      - '10'
+      - '12'
