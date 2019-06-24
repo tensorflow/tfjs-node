@@ -12,8 +12,15 @@ script:
 cache: yarn
 git:
   depth: 5
+notifications:
+  email:
+    recipients:
+      - kangyizhang@google.com
+    on_success: never
+    on_failure: always
+    on_pull_requests: false
 env:
-   YARN_GPG=no
+  - YARN_GPG=no
   global:
     - GCS_ACCESS_KEY_ID: GOOGTN632LI2F6KAIFRLGS5W
     - secret_access_key:
