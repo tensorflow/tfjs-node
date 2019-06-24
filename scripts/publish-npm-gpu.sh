@@ -50,12 +50,8 @@ if [ "$GPU_TARBALL_COUNT" != "1" ]; then
   exit
 fi
 
-#echo "Enter OTP: "
-#read otp
-
 # Publish the GPU package
 npm publish $GPU_TARBALLS
-#echo $GPU_TARBALLS | xargs npm publish $GPU_TARBALLS --otp $otp
 
 ./scripts/tag-version
 echo 'Yay! Published the tfjs-node-gpu package to npm.'
