@@ -62,6 +62,7 @@ const IGNORE_LIST: string[] = [
 // Windows has two failing tests:
 // https://github.com/tensorflow/tfjs/issues/598
 if (process.platform === 'win32') {
+  IGNORE_LIST.push('tensorboard');
   IGNORE_LIST.push('clip test-tensorflow {} propagates NaNs');
   IGNORE_LIST.push(
       'maxPool test-tensorflow {} [x=[3,3,1] f=[2,2] s=1 ignores NaNs');
