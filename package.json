@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node-gpu",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -15,9 +15,9 @@
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "build-npm-gpu": "./scripts/build-npm-gpu.sh",
-    "clean-deps": "rm -rf deps",
+    "clean-deps": "rm -rf deps && rm -rf lib && rm -rf build-tmp-napi-v3 && rm -rf build-tmp-napi-v4 ",
     "coverage": "nyc ts-node src/run_tests.ts",
-    "enable-gpu": "node scripts/install-from-source.js gpu download",
+    "enable-gpu": "yarn clean-deps && node scripts/install-from-source.js gpu download",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "install-from-source": "node scripts/install-from-source.js",
     "install": "node scripts/install.js",
@@ -47,7 +47,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "~1.2.1",
+    "@tensorflow/tfjs": "~1.2.2",
     "adm-zip": "^0.4.11",
     "bindings": "~1.3.0",
     "edit-json-file": "^1.2.1",
@@ -67,6 +67,6 @@
       3,
       4
     ],
-    "package_name": "CPU-linux-1.2.1.tar.gz"
+    "package_name": "GPU-linux-1.2.2.tar.gz"
   }
 }

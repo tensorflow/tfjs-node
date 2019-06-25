@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:no-require-imports
-// import bindings = require('bindings');
 import * as path from 'path';
 import {TFEOpAttr, TFJSBinding} from './tfjs_binding';
 // tslint:disable-next-line:no-require-imports

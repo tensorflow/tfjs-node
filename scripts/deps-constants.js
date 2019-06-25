@@ -16,8 +16,6 @@
  */
 const os = require('os');
 const path = require('path');
-const name = require('../package.json').name;
-const version = require('../package.json').version;
 
 let libName = 'libtensorflow';
 let frameworkLibName = 'libtensorflow_framework';
@@ -39,30 +37,11 @@ const depsLibPath = path.join(depsPath, 'lib');
 const depsLibTensorFlowPath = path.join(depsLibPath, libName);
 const depsLibTensorFlowFrameworkPath = path.join(depsLibPath, frameworkLibName);
 
-
-let processor = '';
-if (name.includes('gpu')) {
-  processor = 'gpu';
-} else {
-  processor = 'cpu';
-}
-
-const CPU_DARWIN = `${processor}-darwin-${version}-v{napi_build_version}.tar.gz`;
-const CPU_LINUX = `${processor}-linux-${version}-v{napi_build_version}.tar.gz`;
-const GPU_LINUX = `${processor}-linux-${version}-v{napi_build_version}.tar.gz`;
-const CPU_WINDOWS = `${processor}-windows-x86_64-1.13.1.zip`;
-const GPU_WINDOWS = `${processor}-windows-x86_64-1.13.1.zip`;
-
 module.exports = {
   depsLibPath,
   depsLibTensorFlowFrameworkPath,
   depsLibTensorFlowPath,
   depsPath,
   frameworkLibName,
-  libName,
-  CPU_DARWIN,
-  CPU_LINUX,
-  GPU_LINUX,
-  CPU_WINDOWS,
-  GPU_WINDOWS
+  libName
 };

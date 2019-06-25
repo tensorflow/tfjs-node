@@ -1,6 +1,14 @@
 const editJsonFile = require("edit-json-file");
 const cp = require('child_process');
-const { binaryName } = require('./get-binary-name.js');
+const {
+  binaryName
+} = require('./get-binary-name.js');
+const package_name = require('../package.json').name;
+
+let INSTALL_FROM_SOURCE_COMMAND = 'node scripts/install-from-source.js';
+if (package_name.endsWith('-gpu')) {
+  INSTALL_FROM_SOURCE_COMMAND = INSTALL_FROM_SOURCE_COMMAND + ' gpu';
+}
 
 const file = editJsonFile(`${__dirname}/../package.json`);
 
@@ -9,8 +17,7 @@ file.save();
 cp.exec('node-pre-gyp install', (err) => {
   if (err) {
     console.log('node-pre-gyp rebuild failed with: ' + err);
-    console.log('Start building from source binary.')
-    cp.exec('node scripts/install-from-source.js');
+    console.log('Start building from source binary.');
+    cp.exec(INSTALL_FROM_SOURCE_COMMAND);
   }
 });
-
