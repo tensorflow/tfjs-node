@@ -25,7 +25,7 @@ const {
   depsLibPath,
   depsLibTensorFlowPath
 } =
-  require('./deps-constants.js');
+require('./deps-constants.js');
 const resources = require('./resources');
 
 const exists = util.promisify(fs.exists);
@@ -45,7 +45,7 @@ const GPU_WINDOWS = 'gpu-windows-x86_64-1.14.0.zip';
 // TODO(kreeger): Update to TensorFlow 1.13:
 // https://github.com/tensorflow/tfjs/issues/1369
 const TF_WIN_HEADERS_URI =
-    'https://storage.googleapis.com/tf-builds/tensorflow-headers-1.14.zip';
+  'https://storage.googleapis.com/tf-builds/tensorflow-headers-1.14.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
@@ -82,6 +82,7 @@ function getPlatformLibtensorflowUri() {
   } else {
     throw new Error(`Unsupported platform: ${platform}`);
   }
+  console.log(111111111111111, targetUri);
   return targetUri;
 }
 
@@ -138,11 +139,11 @@ async function downloadLibtensorflow(callback) {
 
         // Download the C headers only and unpack:
         resources.downloadAndUnpackResource(
-            TF_WIN_HEADERS_URI, depsPath, () => {
-              if (callback !== undefined) {
-                callback();
-              }
-            });
+          TF_WIN_HEADERS_URI, depsPath, () => {
+            if (callback !== undefined) {
+              callback();
+            }
+          });
       } else {
         // No other work is required on other platforms.
         if (callback !== undefined) {
@@ -157,7 +158,7 @@ async function downloadLibtensorflow(callback) {
  */
 async function build() {
   console.error('* Building TensorFlow Node.js bindings');
-  cp.exec('node-pre-gyp install --fallback-to-build --build-from-source', (err) => {
+  cp.exec('node-pre-gyp install --build-from-source', (err) => {
     if (err) {
       throw new Error('node-pre-gyp install failed with: ' + err);
     }

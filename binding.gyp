@@ -160,7 +160,7 @@
       "dependencies": [ "<(module_name)" ],
       "copies": [
         {
-          "files": [ "<(module_name).node" ],
+          "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
           "destination": "<(module_path)"
           # "destination": "<(PRODUCT_DIR)"
         }

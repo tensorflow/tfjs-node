@@ -1,5 +1,5 @@
 {
-  "name": "@tensorflow/tfjs-node",
+  "name": "@tensorflow/tfjs-node-gpu",
   "version": "1.2.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,7 +17,7 @@
     "build-npm-gpu": "./scripts/build-npm-gpu.sh",
     "clean-deps": "rm -rf deps",
     "coverage": "nyc ts-node src/run_tests.ts",
-    "enable-gpu": "node scripts/install-from-source.js gpu download && yarn",
+    "enable-gpu": "node scripts/install-from-source.js gpu download",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "install-from-source": "node scripts/install-from-source.js",
     "install": "node scripts/install.js",
@@ -60,7 +60,7 @@
   },
   "binary": {
     "module_name": "tfjs_binding",
-    "module_path": "./lib/binding/napi-v{napi_build_version}",
+    "module_path": "./lib/napi-v{napi_build_version}",
     "host": "https://storage.googleapis.com/tf-builds/pre-built-binary",
     "remote_path": "./napi-v{napi_build_version}/{version}/",
     "napi_versions": [
