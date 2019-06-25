@@ -61,7 +61,8 @@ const IGNORE_LIST: string[] = [
 
 if (process.platform === 'win32') {
   // Ignore tensorboard on windows because tmp folder cleanup used in tests
-  // fails with tmp folder cleanup.
+  // fails with tmp folder cleanup:
+  // https://github.com/tensorflow/tfjs/issues/1692
   IGNORE_LIST.push('tensorboard');
   IGNORE_LIST.push('tensorBoard');
   // Windows has two failing tests:
