@@ -22,7 +22,7 @@
       '<@(tensorflow_include_dir)/tensorflow/c/c_api.h',
       '<@(tensorflow_include_dir)/tensorflow/c/eager/c_api.h',
     ],
-    'tensorflow-library-action': 'symlink'
+    'tensorflow-library-action': 'move'
   },
   'targets' : [{
     'target_name' : 'tfjs_binding',
@@ -39,24 +39,7 @@
             '-ltensorflow',
             '-ltensorflow_framework',
           ],
-          'library_dirs' : ['<(PRODUCT_DIR)'],
-          'actions': [
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/libtensorflow.so',
-              ],
-              'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
-              ]
-            }
-          ],
+          'library_dirs' : ['<(module_root_dir)/deps/lib'],
         }
       ],
       [
