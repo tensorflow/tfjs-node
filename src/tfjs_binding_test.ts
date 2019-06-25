@@ -201,11 +201,6 @@ describe('executeOp', () => {
           [{name: 'T', type: binding.TF_ATTR_INT, value: 'test'}];
       binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
-    expect(() => {
-      const badOpAttrs: TFEOpAttr[] =
-          [{name: 'T', type: binding.TF_ATTR_INT, value: [1, 2, 3]}];
-      binding.executeOp(name, badOpAttrs, matMulInput, 1);
-    }).toThrowError();
   });
   it('throws exception with invalid TF_ATTR_FLOAT op attr', () => {
     expect(() => {
@@ -226,11 +221,6 @@ describe('executeOp', () => {
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_FLOAT, value: 'test'}];
-      binding.executeOp(name, badOpAttrs, matMulInput, 1);
-    }).toThrowError();
-    expect(() => {
-      const badOpAttrs: TFEOpAttr[] =
-          [{name: 'T', type: binding.TF_ATTR_FLOAT, value: [1, 2, 3]}];
       binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
   });
