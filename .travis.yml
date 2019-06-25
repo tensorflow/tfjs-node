@@ -8,8 +8,6 @@ node_js:
   - "10"
   - "12"
 script:
-  - ./scripts/test-ci.sh
-  - ./scripts/test-ts-integration.sh
   - ./scripts/build-and-upload-binary.sh upload
 cache: yarn
 git:
