@@ -1,5 +1,5 @@
 {
-  "name": "@tensorflow/tfjs-node-gpu",
+  "name": "@tensorflow/tfjs-node",
   "version": "1.2.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -67,6 +67,6 @@
       3,
       4
     ],
-    "package_name": "GPU-linux-1.2.2.tar.gz"
+    "package_name": "CPU-darwin-1.2.2.tar.gz"
   }
 }
