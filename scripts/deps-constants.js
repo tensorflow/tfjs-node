@@ -24,6 +24,8 @@ let depsLibTensorFlowFrameworkName = 'libtensorflow_framework';
 let destLibTensorFlowName = depsLibTensorFlowName;
 let destLibTensorFlowFrameworkName = depsLibTensorFlowFrameworkName;
 
+// TODO - this file is Windows only for now...
+
 if (os.platform() === 'win32') {
   depsLibTensorFlowName = 'tensorflow.dll';
   depsLibTensorFlowFrameworkName = '';  // Not supported on Windows
@@ -34,8 +36,8 @@ if (os.platform() === 'win32') {
   depsLibTensorFlowName += '.dylib';
   depsLibTensorFlowFrameworkName += '.dylib';
 
-  destLibTensorFlowName = depsLibName;
-  destLibTensorFlowFrameworkName = depsLibFrameworkName;
+  destLibTensorFlowName = depsLibTensorFlowName;
+  destLibTensorFlowFrameworkName = depsLibTensorFlowFrameworkName;
 } else if (os.platform() === 'linux') {
   // Linux has a hard-coded version number, make the destination name simpler:
   depsLibTensorFlowName += '.so.1.14.0';
