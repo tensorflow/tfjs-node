@@ -25,8 +25,8 @@ const symlink = util.promisify(fs.symlink);
 const {
   depsLibTensorFlowFrameworkPath,
   depsLibTensorFlowPath,
-  frameworkLibName,
-  libName
+  destLibTensorFlowFrameworkName,
+  destLibTensorFlowName
 } = require('./deps-constants.js');
 
 const action = process.argv[2];
@@ -37,34 +37,38 @@ if (targetDir != undefined && targetDir.endsWith('"')) {
   targetDir = targetDir.substr(0, targetDir.length - 1);
 }
 
-const destFrameworkLibPath = path.join(targetDir, frameworkLibName);
-const destLibPath = path.join(targetDir, libName);
+// Setup dest binary paths:
+const destLibTensorFlowPath = path.join(targetDir, destLibTensorFlowName);
+const destLibTensorFlowFrameworkPath =
+    path.join(targetDir, destLibTensorFlowFrameworkName);
 
 /**
  * Symlinks the extracted libtensorflow library to the destination path. If the
  * symlink fails, a copy is made.
  */
 async function symlinkDepsLib() {
-  if (destLibPath === undefined) {
+  if (destLibTensorFlowPath === undefined) {
     throw new Error('Destination path not supplied!');
   }
   try {
     await symlink(
-      path.relative(path.dirname(destLibPath), depsLibTensorFlowPath),
-      destLibPath);
+        path.relative(
+            path.dirname(destLibTensorFlowPath), depsLibTensorFlowPath),
+        destLibTensorFlowPath);
     if (os.platform() !== 'win32') {
       await symlink(
-        path.relative(
-          path.dirname(destFrameworkLibPath),
-          depsLibTensorFlowFrameworkPath),
-        destFrameworkLibPath);
+          path.relative(
+              path.dirname(destLibTensorFlowFrameworkPath),
+              depsLibTensorFlowFrameworkPath),
+          destLibTensorFlowFrameworkPath);
     }
   } catch (e) {
-    console.error(
-      `  * Symlink of ${destLibPath} failed, creating a copy on disk.`);
-    await copy(depsLibTensorFlowPath, destLibPath);
+    console.error(`  * Symlink of ${
+        destLibTensorFlowPath} failed, creating a copy on disk.`);
+    await copy(depsLibTensorFlowPath, destLibTensorFlowPath);
     if (os.platform() !== 'win32') {
-      await copy(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
+      await copy(
+          depsLibTensorFlowFrameworkPath, destLibTensorFlowFrameworkPath);
     }
   }
 }
@@ -73,9 +77,10 @@ async function symlinkDepsLib() {
  * Moves the deps library path to the destination path.
  */
 async function moveDepsLib() {
-  await rename(depsLibTensorFlowPath, destLibPath);
+  await rename(depsLibTensorFlowPath, destLibTensorFlowPath);
   if (os.platform() !== 'win32') {
-    await rename(depsLibTensorFlowFrameworkPath, destFrameworkLibPath);
+    await rename(
+        depsLibTensorFlowFrameworkPath, destLibTensorFlowFrameworkPath);
   }
 }
 
