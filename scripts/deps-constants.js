@@ -21,8 +21,8 @@ const path = require('path');
 let depsLibTensorFlowName = 'libtensorflow';
 let depsLibTensorFlowFrameworkName = 'libtensorflow_framework';
 
-let destLibTensorFlowName = '';
-let destLibTensorFlowFrameworkName = '';
+let destLibTensorFlowName = depsLibTensorFlowName;
+let destLibTensorFlowFrameworkName = depsLibTensorFlowFrameworkName;
 
 if (os.platform() === 'win32') {
   depsLibTensorFlowName = 'tensorflow.dll';
@@ -38,11 +38,11 @@ if (os.platform() === 'win32') {
   destLibTensorFlowFrameworkName = depsLibFrameworkName;
 } else if (os.platform() === 'linux') {
   // Linux has a hard-coded version number, make the destination name simpler:
-  depsLibTensorFlowName = '.so.1.14.0';
+  depsLibTensorFlowName += '.so.1.14.0';
   depsLibTensorFlowFrameworkName += '.so.1.14.0';
 
-  destLibTensorFlowName = '.so';
-  destLibTensorFlowFrameworkName = '.so';
+  destLibTensorFlowName += '.so';
+  destLibTensorFlowFrameworkName += '.so';
 } else {
   throw Exception('Unsupported platform: ' + os.platform());
 }
@@ -52,7 +52,7 @@ const depsLibPath = path.join(depsPath, 'lib');
 
 const depsLibTensorFlowPath = path.join(depsLibPath, depsLibTensorFlowName);
 const depsLibTensorFlowFrameworkPath =
-    path.join(depsPath, depsLibTensorFlowFrameworkName);
+    path.join(depsLibPath, depsLibTensorFlowFrameworkName);
 
 module.exports = {
   depsPath,
