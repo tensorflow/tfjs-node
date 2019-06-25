@@ -85,21 +85,6 @@
                 "@loader_path/../../deps/lib/libtensorflow_framework.dylib",
                 "<@(PRODUCT_DIR)/tfjs_binding.node"
               ]
-            }，
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(module_path)/libtensorflow.dylib',
-              ],
-               'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(module_path)'
-              ]
             }
           ],
         }

@@ -23,13 +23,13 @@ let libName = 'libtensorflow';
 let frameworkLibName = 'libtensorflow_framework';
 if (os.platform() === 'win32') {
   libName = 'tensorflow.dll';
-  frameworkLibName = '';  // Not supported on Windows
+  frameworkLibName = ''; // Not supported on Windows
 } else if (os.platform() === 'darwin') {
-  libName += '.dylib';
-  frameworkLibName += '.dylib';
+  libName += '.dylib.1.14.0';
+  frameworkLibName += '.dylib.1.14.0';
 } else if (os.platform() === 'linux') {
-  libName += '.so';
-  frameworkLibName += '.so';
+  libName += '.so.1.14.0';
+  frameworkLibName += '.so.1.14.0';
 } else {
   throw Exception('Unsupported platform: ' + os.platform());
 }
