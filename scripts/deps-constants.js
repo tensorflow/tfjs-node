@@ -24,8 +24,6 @@ let depsLibTensorFlowFrameworkName = 'libtensorflow_framework';
 let destLibTensorFlowName = depsLibTensorFlowName;
 let destLibTensorFlowFrameworkName = depsLibTensorFlowFrameworkName;
 
-// TODO - this file is Windows only for now...
-
 if (os.platform() === 'win32') {
   depsLibTensorFlowName = 'tensorflow.dll';
   depsLibTensorFlowFrameworkName = '';  // Not supported on Windows

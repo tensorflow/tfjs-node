@@ -32,6 +32,12 @@ const {
 const action = process.argv[2];
 let targetDir = process.argv[3];
 
+// This file is Windows only - the libraries must be placed in the correct
+// directory to work.
+if (os.platform() !== 'win32') {
+  throw new Exception('Dep staging is only supported on Windows');
+}
+
 // Some windows machines contain a trailing " char:
 if (targetDir != undefined && targetDir.endsWith('"')) {
   targetDir = targetDir.substr(0, targetDir.length - 1);
@@ -55,21 +61,10 @@ async function symlinkDepsLib() {
         path.relative(
             path.dirname(destLibTensorFlowPath), depsLibTensorFlowPath),
         destLibTensorFlowPath);
-    if (os.platform() !== 'win32') {
-      await symlink(
-          path.relative(
-              path.dirname(destLibTensorFlowFrameworkPath),
-              depsLibTensorFlowFrameworkPath),
-          destLibTensorFlowFrameworkPath);
-    }
   } catch (e) {
     console.error(`  * Symlink of ${
         destLibTensorFlowPath} failed, creating a copy on disk.`);
     await copy(depsLibTensorFlowPath, destLibTensorFlowPath);
-    if (os.platform() !== 'win32') {
-      await copy(
-          depsLibTensorFlowFrameworkPath, destLibTensorFlowFrameworkPath);
-    }
   }
 }
 
