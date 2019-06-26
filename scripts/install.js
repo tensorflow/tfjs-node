@@ -113,7 +113,6 @@ async function downloadLibtensorflow(callback) {
           // Some windows libtensorflow zip files are missing structure and the
           // eager headers. Check, restructure, and download resources as
           // needed.
-          // TODO(kreeger): Verify that this works.
           const depsIncludePath = path.join(depsPath, 'include');
           if (!await exists(depsLibTensorFlowPath)) {
             // Verify that tensorflow.dll exists
