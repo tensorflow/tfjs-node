@@ -62,8 +62,25 @@
       [
         'OS=="mac"', {
           'libraries' : [
-            '<(module_root_dir)/deps/lib/libtensorflow.dylib',
-            '<(module_root_dir)/deps/lib/libtensorflow_framework.dylib',
+            '<(module_path)/libtensorflow.1.14.0.dylib',
+            '<(module_path)/libtensorflow_framework.1.14.0.dylib',
+          ],
+          'actions':[
+            {
+              'action_name': 'deps-stage',
+              'inputs': [
+                '<(module_root_dir)/scripts/deps-stage.js'
+              ],
+              'outputs': [
+                '<(module_path)/libtensorflow.so',
+              ],
+              'action':[
+                'node',
+                '<@(_inputs)',
+                '<@(tensorflow-library-action)',
+                '<(module_path)'
+              ]
+            }
           ],
           'postbuilds': [
             {
@@ -72,8 +89,8 @@
                 'install_name_tool',
                 "-change",
                 "@rpath/libtensorflow.1.dylib",
-                "@loader_path/../../deps/lib/libtensorflow.dylib",
-                "<@(PRODUCT_DIR)/tfjs_binding.node"
+                "<(module_path)/libtensorflow.dylib",
+                "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             },
             {
@@ -82,8 +99,8 @@
                 'install_name_tool',
                 "-change",
                 "@rpath/libtensorflow_framework.1.dylib",
-                "@loader_path/../../deps/lib/libtensorflow_framework.dylib",
-                "<@(PRODUCT_DIR)/tfjs_binding.node"
+                "<(module_path)/libtensorflow_framework.dylib",
+                "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             }
           ],
