@@ -37,6 +37,12 @@ if (targetDir != undefined && targetDir.endsWith('"')) {
   targetDir = targetDir.substr(0, targetDir.length - 1);
 }
 
+// const newLibName = libName.replace('.1.14.0', '');
+// const newFrameworkLibName = frameworkLibName.replace('.1.14.0', '');
+
+// const destFrameworkLibPath = path.join(targetDir, newFrameworkLibName);
+// const destLibPath = path.join(targetDir, newLibName);
+
 const destFrameworkLibPath = path.join(targetDir, frameworkLibName);
 const destLibPath = path.join(targetDir, libName);
 

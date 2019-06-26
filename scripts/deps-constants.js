@@ -26,8 +26,8 @@ if (os.platform() === 'win32') {
   libName += '.1.14.0.dylib';
   frameworkLibName += '.1.14.0.dylib';
 } else if (os.platform() === 'linux') {
-  libName += '.so.1.14.0';
-  frameworkLibName += '.so.1.14.0';
+  libName += '.so';
+  frameworkLibName += '.so';
 } else {
   throw Exception('Unsupported platform: ' + os.platform());
 }

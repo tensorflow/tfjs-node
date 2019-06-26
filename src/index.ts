@@ -30,8 +30,6 @@ const bindingPath =
     binary.find(path.resolve(path.join(__dirname, '/../package.json')));
 // tslint:disable-next-line:no-require-imports
 const bindings = require(bindingPath);
-// tslint:disable-next-line:no-require-imports
-// import bindings = require('bindings');
 
 // Merge version and io namespaces.
 export const version = {

@@ -39,24 +39,7 @@
             '-ltensorflow',
             '-ltensorflow_framework',
           ],
-          'library_dirs' : ['<(module_path)'],
-          'actions': [
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(module_path)/libtensorflow.so',
-              ],
-              'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(module_path)'
-              ]
-            }
-          ],
+          'library_dirs' : ['<(module_root_dir)/deps/lib'],
         }
       ],
       [
