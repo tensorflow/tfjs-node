@@ -30,13 +30,15 @@ const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
 
+const TF_VERSION = '1.14.0';
+
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
-const CPU_DARWIN = 'cpu-darwin-x86_64-1.14.0.tar.gz';
-const CPU_LINUX = 'cpu-linux-x86_64-1.14.0.tar.gz';
-const GPU_LINUX = 'gpu-linux-x86_64-1.14.0.tar.gz';
-const CPU_WINDOWS = 'cpu-windows-x86_64-1.14.0.zip';
-const GPU_WINDOWS = 'gpu-windows-x86_64-1.14.0.zip';
+const CPU_DARWIN = 'cpu-darwin-x86_64-' + TF_VERSION + '.tar.gz';
+const CPU_LINUX = 'cpu-linux-x86_64-' + TF_VERSION + '.tar.gz';
+const GPU_LINUX = 'gpu-linux-x86_64-' + TF_VERSION + '.tar.gz';
+const CPU_WINDOWS = 'cpu-windows-x86_64-' + TF_VERSION + '.zip';
+const GPU_WINDOWS = 'gpu-windows-x86_64-' + TF_VERSION + '.zip';
 
 // TODO(kreeger): Update to TensorFlow 1.13:
 // https://github.com/tensorflow/tfjs/issues/1369
