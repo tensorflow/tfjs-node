@@ -45,6 +45,7 @@
       [
         'OS=="mac"', {
           'libraries' : [
+<<<<<<< HEAD
             '<(module_path)/libtensorflow.1.14.0.dylib',
             '<(module_path)/libtensorflow_framework.1.14.0.dylib',
           ],
@@ -64,6 +65,10 @@
                 '<(module_path)'
               ]
             }
+=======
+            '<(module_root_dir)/deps/lib/libtensorflow.dylib',
+            '<(module_root_dir)/deps/lib/libtensorflow_framework.dylib',
+>>>>>>> 5a0ab50877996930d3b37cbe8f7d8e0a8b5cd53d
           ],
           'postbuilds': [
             {
@@ -93,7 +98,11 @@
         'OS=="win"', {
           'defines': ['COMPILER_MSVC'],
           'libraries': ['tensorflow'],
+<<<<<<< HEAD
           'library_dirs' : ['<(module_path)'],
+=======
+          'library_dirs' : ['<(module_root_dir)/deps/lib'],
+>>>>>>> 5a0ab50877996930d3b37cbe8f7d8e0a8b5cd53d
           'variables': {
             'tensorflow-library-target': 'windows'
           },
@@ -119,6 +128,7 @@
                 '<(module_path)'
               ]
             },
+<<<<<<< HEAD
             {
               'action_name': 'generate_def',
               'inputs': [
@@ -149,6 +159,8 @@
                 '/machine:<@(target_arch)'
               ]
             },
+=======
+>>>>>>> 5a0ab50877996930d3b37cbe8f7d8e0a8b5cd53d
           ],
         },
       ]

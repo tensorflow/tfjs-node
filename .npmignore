@@ -1,6 +1,11 @@
 .vscode/
 src/**/*_test.ts
 demo/
+<<<<<<< HEAD
+=======
+deps/lib/*
+deps/include/*
+>>>>>>> 5a0ab50877996930d3b37cbe8f7d8e0a8b5cd53d
 scripts/build-npm.sh
 scripts/make-version
 scripts/tag-version
