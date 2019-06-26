@@ -30,7 +30,7 @@ const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 const unlink = util.promisify(fs.unlink);
 
-const TF_VERSION = '1.14.0';
+const TF_VERSION = process.env['TF_VERSION'] || process.env['tf_version'] || '1.14.0';
 
 const BASE_URI =
     'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
@@ -109,7 +109,7 @@ async function downloadLibtensorflow(callback) {
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
 
-  console.warn('* Downloading libtensorflow');
+  console.warn('* Downloading libtensorflow (' + TF_VERSION + ')');
   resources.downloadAndUnpackResource(
       getPlatformLibtensorflowUri(), depsPath, async () => {
         if (platform === 'win32') {
