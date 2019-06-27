@@ -1,0 +1,1 @@
+cmd_/usr/local/google/home/kangyizhang/tensorflow/tfjs-node/lib/napi-v3/tfjs_binding.node := rm -rf "/usr/local/google/home/kangyizhang/tensorflow/tfjs-node/lib/napi-v3/tfjs_binding.node" && cp -af "Release/tfjs_binding.node" "/usr/local/google/home/kangyizhang/tensorflow/tfjs-node/lib/napi-v3/tfjs_binding.node"
