@@ -44,6 +44,7 @@ if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
   exit
 fi
 
+# build, compress and upload pre-built binary
 yarn build-npm upload
 ./scripts/make-version # This is for safety in case you forgot to do 2).
 
