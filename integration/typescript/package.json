@@ -8,6 +8,7 @@
     "test": "ts-node src/test.ts && tsc && node dist/test.js"
   },
   "dependencies": {
+    "node-pre-gyp": "0.13.0",
     "ts-node": "^8.0.3",
     "typescript": "3.3.3333",
     "yalc": "^1.0.0-pre.27"

@@ -56,7 +56,7 @@
                 "-change",
                 "@rpath/libtensorflow.1.dylib",
                 "@loader_path/../../deps/lib/libtensorflow.dylib",
-                "<@(PRODUCT_DIR)/tfjs_binding.node"
+                "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             },
             {
@@ -66,7 +66,7 @@
                 "-change",
                 "@rpath/libtensorflow_framework.1.dylib",
                 "@loader_path/../../deps/lib/libtensorflow_framework.dylib",
-                "<@(PRODUCT_DIR)/tfjs_binding.node"
+                "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             }
           ],
@@ -106,5 +106,21 @@
         },
       ]
     ],
-  }]
+  }
+  , {
+      "target_name": "action_after_build",
+      "type": "none",
+      "dependencies": [ "<(module_name)" ],
+      "copies": [
+        {
+          "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
+          "destination": "<(module_path)"
+          # "destination": "<(PRODUCT_DIR)"
+        }
+      ]
+    }
+    ],
+  "defines": [
+      "NAPI_VERSION=<(napi_build_version)"
+  ]
 }

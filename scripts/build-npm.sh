@@ -22,7 +22,10 @@ sed -i -e 's/symlink/move/' binding.gyp
 
 # Build CPU:
 rimraf dist/
-yarn
+rimraf deps/
+rimraf lib/
+# Build and upload pre-built binary
+yarn build-binary "$1"
 yarn prep
 tsc --sourceMap false
 # This produces a tarball that will later be used by `npm publish`.
