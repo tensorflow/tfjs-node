@@ -43,21 +43,10 @@ if (targetDir != undefined && targetDir.endsWith('"')) {
   targetDir = targetDir.substr(0, targetDir.length - 1);
 }
 
-<<<<<<< HEAD
-// const newLibName = libName.replace('.1.14.0', '');
-// const newFrameworkLibName = frameworkLibName.replace('.1.14.0', '');
-
-// const destFrameworkLibPath = path.join(targetDir, newFrameworkLibName);
-// const destLibPath = path.join(targetDir, newLibName);
-
-const destFrameworkLibPath = path.join(targetDir, frameworkLibName);
-const destLibPath = path.join(targetDir, libName);
-=======
 // Setup dest binary paths:
 const destLibTensorFlowPath = path.join(targetDir, destLibTensorFlowName);
 const destLibTensorFlowFrameworkPath =
     path.join(targetDir, destLibTensorFlowFrameworkName);
->>>>>>> 5a0ab50877996930d3b37cbe8f7d8e0a8b5cd53d
 
 /**
  * Symlinks the extracted libtensorflow library to the destination path. If the

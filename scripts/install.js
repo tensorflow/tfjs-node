@@ -1,19 +1,38 @@
-const editJsonFile = require("edit-json-file");
+/**
+ * @license
+ * Copyright 2019 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+const fs = require('fs');
+let path = require('path');
+const rimraf = require('rimraf');
+const util = require('util');
 const cp = require('child_process');
-<<<<<<< HEAD
+const os = require('os');
+const {
+  depsPath,
+  depsLibPath,
+  depsLibTensorFlowPath
+} =
+require('./deps-constants.js');
+const resources = require('./resources');
+const editJsonFile = require("edit-json-file");
 const {
   binaryName
 } = require('./get-binary-name.js');
 const package_name = require('../package.json').name;
 
-let INSTALL_FROM_SOURCE_COMMAND = 'node scripts/install-from-source.js';
-if (package_name.endsWith('-gpu')) {
-  INSTALL_FROM_SOURCE_COMMAND = INSTALL_FROM_SOURCE_COMMAND + ' gpu';
-=======
-const os = require('os');
-const {depsPath, depsLibPath, depsLibTensorFlowPath} =
-    require('./deps-constants.js');
-const resources = require('./resources');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -21,7 +40,7 @@ const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
 const BASE_URI =
-    'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
+  'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-';
 const CPU_DARWIN = 'cpu-darwin-x86_64-1.14.0.tar.gz';
 const CPU_LINUX = 'cpu-linux-x86_64-1.14.0.tar.gz';
 const GPU_LINUX = 'gpu-linux-x86_64-1.14.0.tar.gz';
@@ -31,11 +50,15 @@ const GPU_WINDOWS = 'gpu-windows-x86_64-1.14.0.zip';
 // TODO(kreeger): Update to TensorFlow 1.13:
 // https://github.com/tensorflow/tfjs/issues/1369
 const TF_WIN_HEADERS_URI =
-    'https://storage.googleapis.com/tf-builds/tensorflow-headers-1.14.zip';
+  'https://storage.googleapis.com/tf-builds/tensorflow-headers-1.14.zip';
 
 const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
+
+const file = editJsonFile(`${__dirname}/../package.json`);
+file.set('binary.package_name', binaryName);
+file.save();
 
 /**
  * Returns the libtensorflow hosted path of the current platform.
@@ -47,7 +70,7 @@ function getPlatformLibtensorflowUri() {
       // TODO(kreeger): Update to TensorFlow 1.14:
       // https://github.com/tensorflow/tfjs/issues/1370
       targetUri =
-          'https://storage.googleapis.com/tf-builds/libtensorflow_r1_12_linux_arm.tar.gz';
+        'https://storage.googleapis.com/tf-builds/libtensorflow_r1_12_linux_arm.tar.gz';
     } else {
       if (libType === 'gpu') {
         targetUri += GPU_LINUX;
@@ -68,18 +91,105 @@ function getPlatformLibtensorflowUri() {
   } else {
     throw new Error(`Unsupported platform: ${platform}`);
   }
+  console.log(111111111111111, targetUri);
   return targetUri;
->>>>>>> 5a0ab50877996930d3b37cbe8f7d8e0a8b5cd53d
 }
 
-const file = editJsonFile(`${__dirname}/../package.json`);
-
-file.set('binary.package_name', binaryName);
-file.save();
-cp.exec('node-pre-gyp install', (err) => {
-  if (err) {
-    console.log('node-pre-gyp rebuild failed with: ' + err);
-    console.log('Start building from source binary.');
-    cp.exec(INSTALL_FROM_SOURCE_COMMAND);
+/**
+ * Ensures a directory exists, creates as needed.
+ */
+async function ensureDir(dirPath) {
+  if (!await exists(dirPath)) {
+    await mkdir(dirPath);
   }
-});
+}
+
+/**
+ * Deletes the deps directory if it exists, and creates a fresh deps folder.
+ */
+async function cleanDeps() {
+  if (await exists(depsPath)) {
+    await rimrafPromise(depsPath);
+  }
+  await mkdir(depsPath);
+}
+
+/**
+ * Downloads libtensorflow and notifies via a callback when unpacked.
+ */
+async function downloadLibtensorflow(callback) {
+  // Ensure dependencies staged directory is available:
+  await ensureDir(depsPath);
+
+  console.warn('* Downloading libtensorflow');
+  resources.downloadAndUnpackResource(
+    getPlatformLibtensorflowUri(), depsPath, async () => {
+      if (platform === 'win32') {
+        // Some windows libtensorflow zip files are missing structure and the
+        // eager headers. Check, restructure, and download resources as
+        // needed.
+        const depsIncludePath = path.join(depsPath, 'include');
+        if (!await exists(depsLibTensorFlowPath)) {
+          // Verify that tensorflow.dll exists
+          const libtensorflowDll = path.join(depsPath, 'tensorflow.dll');
+          if (!await exists(libtensorflowDll)) {
+            throw new Error('Could not find libtensorflow.dll');
+          }
+
+          await ensureDir(depsLibPath);
+          await rename(libtensorflowDll, depsLibTensorFlowPath);
+        }
+
+        // The shipped headers for Windows libtensorflow are old - remove and
+        // download the latest:
+        if (await exists(depsIncludePath)) {
+          await rimrafPromise(depsIncludePath);
+        }
+
+        // Download the C headers only and unpack:
+        resources.downloadAndUnpackResource(
+          TF_WIN_HEADERS_URI, depsPath, () => {
+            if (callback !== undefined) {
+              callback();
+            }
+          });
+      } else {
+        // No other work is required on other platforms.
+        if (callback !== undefined) {
+          callback();
+        }
+      }
+    });
+}
+
+/**
+ * Calls node-gyp for Node.js Tensorflow binding after lib is downloaded.
+ */
+async function build() {
+  console.error('* Building TensorFlow Node.js bindings');
+
+  cp.exec('node-pre-gyp install', (err) => {
+    if (err) {
+      console.log('node-pre-gyp rebuild failed with: ' + err);
+      console.log('Start building from source binary.');
+      cp.exec('node-pre-gyp install --build-from-source');
+    }
+  });
+}
+
+/**
+ * Ensures libtensorflow requirements are met for building the binding.
+ */
+async function run() {
+  // First check if deps library exists:
+  if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
+    // Library has already been downloaded, then compile and simlink:
+    await build();
+  } else {
+    // Library has not been downloaded, download, then compile and symlink:
+    await cleanDeps();
+    await downloadLibtensorflow(build);
+  }
+}
+
+run();

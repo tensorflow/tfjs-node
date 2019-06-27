@@ -19,7 +19,6 @@
     "coverage": "nyc ts-node src/run_tests.ts",
     "enable-gpu": "yarn clean-deps && node scripts/install-from-source.js gpu download",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
-    "install-from-source": "node scripts/install-from-source.js",
     "install": "node scripts/install.js",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
@@ -67,6 +66,6 @@
       3,
       4
     ],
-    "package_name": "CPU-linux-1.2.2.tar.gz"
+    "package_name": "CPU-darwin-1.2.3.tar.gz"
   }
 }

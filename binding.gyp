@@ -45,30 +45,8 @@
       [
         'OS=="mac"', {
           'libraries' : [
-<<<<<<< HEAD
-            '<(module_path)/libtensorflow.1.14.0.dylib',
-            '<(module_path)/libtensorflow_framework.1.14.0.dylib',
-          ],
-          'actions':[
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(module_path)/libtensorflow.so',
-              ],
-              'action':[
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(module_path)'
-              ]
-            }
-=======
             '<(module_root_dir)/deps/lib/libtensorflow.dylib',
             '<(module_root_dir)/deps/lib/libtensorflow_framework.dylib',
->>>>>>> 5a0ab50877996930d3b37cbe8f7d8e0a8b5cd53d
           ],
           'postbuilds': [
             {
@@ -77,7 +55,7 @@
                 'install_name_tool',
                 "-change",
                 "@rpath/libtensorflow.1.dylib",
-                "<(module_path)/libtensorflow.dylib",
+                "@loader_path/../../deps/lib/libtensorflow.dylib",
                 "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             },
@@ -87,7 +65,7 @@
                 'install_name_tool',
                 "-change",
                 "@rpath/libtensorflow_framework.1.dylib",
-                "<(module_path)/libtensorflow_framework.dylib",
+                "@loader_path/../../deps/lib/libtensorflow_framework.dylib",
                 "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             }
@@ -98,11 +76,7 @@
         'OS=="win"', {
           'defines': ['COMPILER_MSVC'],
           'libraries': ['tensorflow'],
-<<<<<<< HEAD
-          'library_dirs' : ['<(module_path)'],
-=======
           'library_dirs' : ['<(module_root_dir)/deps/lib'],
->>>>>>> 5a0ab50877996930d3b37cbe8f7d8e0a8b5cd53d
           'variables': {
             'tensorflow-library-target': 'windows'
           },
@@ -128,39 +102,6 @@
                 '<(module_path)'
               ]
             },
-<<<<<<< HEAD
-            {
-              'action_name': 'generate_def',
-              'inputs': [
-                '<(module_root_dir)/scripts/generate_defs.js',
-                '<@(tensorflow_headers)',
-                "<(module_path)/tensorflow.dll"
-              ],
-              'outputs': [
-                '<(module_path)/tensorflow.def'
-              ],
-              'action': [
-                'cmd',
-                '/c node --max-old-space-size=4096 <@(_inputs) > <@(_outputs)'
-              ]
-            },
-            {
-              'action_name': 'build-tensorflow-lib',
-              'inputs': [
-                '<(module_path)/tensorflow.def'
-              ],
-              'outputs': [
-                '<(module_path)/tensorflow.lib'
-              ],
-              'action': [
-                'lib',
-                '/def:<@(_inputs)',
-                '/out:<@(_outputs)',
-                '/machine:<@(target_arch)'
-              ]
-            },
-=======
->>>>>>> 5a0ab50877996930d3b37cbe8f7d8e0a8b5cd53d
           ],
         },
       ]
