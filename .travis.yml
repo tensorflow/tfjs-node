@@ -32,3 +32,5 @@ deploy:
   acl: public-read
   local-dir: deps/include
   upload-dir: pre-built-binary/test
+  on:
+   tags: true
