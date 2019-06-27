@@ -31,7 +31,6 @@ const editJsonFile = require("edit-json-file");
 const {
   binaryName
 } = require('./get-binary-name.js');
-const package_name = require('../package.json').name;
 
 
 const exists = util.promisify(fs.exists);
@@ -56,6 +55,7 @@ const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
+// Set binary.package_name based on user's system
 const file = editJsonFile(`${__dirname}/../package.json`);
 file.set('binary.package_name', binaryName);
 file.save();
@@ -91,7 +91,6 @@ function getPlatformLibtensorflowUri() {
   } else {
     throw new Error(`Unsupported platform: ${platform}`);
   }
-  console.log(111111111111111, targetUri);
   return targetUri;
 }
 

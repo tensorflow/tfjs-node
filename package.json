@@ -17,8 +17,9 @@
     "build-npm-gpu": "./scripts/build-npm-gpu.sh",
     "clean-deps": "rm -rf deps && rm -rf lib && rm -rf build-tmp-napi-v3 && rm -rf build-tmp-napi-v4 ",
     "coverage": "nyc ts-node src/run_tests.ts",
-    "enable-gpu": "yarn clean-deps && node scripts/install-from-source.js gpu download",
+    "enable-gpu": "yarn clean-deps && node scripts/install.js gpu download",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
+    "install-from-source": "node-pre-gyp install --build-from-source",
     "install": "node scripts/install.js",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
@@ -66,6 +67,6 @@
       3,
       4
     ],
-    "package_name": "CPU-darwin-1.2.3.tar.gz"
+    "package_name": "CPU-linux-1.2.3.tar.gz"
   }
 }

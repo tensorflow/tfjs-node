@@ -18,7 +18,7 @@ set -e
 
 # Build GPU:
 sed -i -e 's/tfjs-node"/tfjs-node-gpu"/' package.json
-sed -i -e 's/install-from-source.js"/install-from-source.js gpu download"/' package.json
+sed -i -e 's/install.js"/install.js gpu download"/' package.json
 rimraf deps/
 rimraf dist/
 rimraf lib/
@@ -28,4 +28,4 @@ tsc --sourceMap false
 npm pack
 
 # Revert GPU changes:
-git checkout .
+# git checkout .
