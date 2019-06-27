@@ -19,7 +19,7 @@
     "coverage": "nyc ts-node src/run_tests.ts",
     "enable-gpu": "yarn clean-deps && node scripts/install.js gpu download",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
-    "install-from-source": "node-pre-gyp install --build-from-source",
+    "install-from-source": "yarn install && node-pre-gyp install --build-from-source",
     "install": "node scripts/install.js",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
