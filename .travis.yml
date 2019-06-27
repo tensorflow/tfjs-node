@@ -9,7 +9,6 @@ node_js:
   - "12"
 script:
   - ./scripts/test-ts-integration.sh
-  - ./scripts/build-and-upload-binary.sh
 cache: yarn
 git:
   depth: 5
@@ -21,9 +20,15 @@ notifications:
     on_failure: always
     on_pull_requests: false
 env:
-  global:
-    - GCS_ACCESS_KEY_ID: GOOGTN632LI2F6KAIFRLGS5W
-    - secret_access_key:
-        secure: oHnA6yybtImkV3NcEMxxkUTBxQIfXtjh7FHHe9W2pjFLBP4+1iFWi2aylvVyI9XSiNY3NpbmIoV+8BOkJQskbrN69SYDeBHlqeBS/v8x/wzKoUZr209JSuPueyOJ1bok4Ax5P6M0Dn7izMr00Z62O8amZoECCrZoUNatQ4I25jLMoeogIA9oojMPxTH6hJl5cvSEW+qtZEk+SIc8sYRTtaDyCXElG+VsXk6BjTZYUeIF9GuqfqpBM5ok3Obwyc6QrSxuF4UWlMvaRHSoky0VKMcLp6VNS2iIU6pie7jcP1JF/xRxPbsReO1yWO7pGc4N7g5qTFlK0/vuDN7Hr2kOyO+BjT50rkF4K9S2KqWJ4tpmmpaSmYq/Vye1houh6y6nku7KUH7gbehnkuGq597WIakrF/RQeZ9gzYIXtcb7wH42d6Bt6Y1Md3I6sY4BegjGigif60Avvsptx69CLFlD63ekdK++Fvk+tl4zWfh0GIN9d9HP8wdVnYPr7HdiWI9hrQGvi2bot0mUUItvkPs5tKLvbu06kkMHSf4XKC9LJXuRimnSBCfyFAdLvK2zJGqBuMg2PBFOReP8v1fvVxhDxcMmHl8p6baCpc1a33gfF5XucDY7LnQTqbZrEuKjMLtbrJOFzaV7yu5hJpsi/vTG6M3Edbz9y5VZ6O5lrElchc8=
   matrix:
     - YARN_GPG=no
+deploy:
+  provider: gcs
+  access_key_id: "GOOGTN632LI2F6KAIFRLGS5W"
+  secret_access_key:
+    secure: oHnA6yybtImkV3NcEMxxkUTBxQIfXtjh7FHHe9W2pjFLBP4+1iFWi2aylvVyI9XSiNY3NpbmIoV+8BOkJQskbrN69SYDeBHlqeBS/v8x/wzKoUZr209JSuPueyOJ1bok4Ax5P6M0Dn7izMr00Z62O8amZoECCrZoUNatQ4I25jLMoeogIA9oojMPxTH6hJl5cvSEW+qtZEk+SIc8sYRTtaDyCXElG+VsXk6BjTZYUeIF9GuqfqpBM5ok3Obwyc6QrSxuF4UWlMvaRHSoky0VKMcLp6VNS2iIU6pie7jcP1JF/xRxPbsReO1yWO7pGc4N7g5qTFlK0/vuDN7Hr2kOyO+BjT50rkF4K9S2KqWJ4tpmmpaSmYq/Vye1houh6y6nku7KUH7gbehnkuGq597WIakrF/RQeZ9gzYIXtcb7wH42d6Bt6Y1Md3I6sY4BegjGigif60Avvsptx69CLFlD63ekdK++Fvk+tl4zWfh0GIN9d9HP8wdVnYPr7HdiWI9hrQGvi2bot0mUUItvkPs5tKLvbu06kkMHSf4XKC9LJXuRimnSBCfyFAdLvK2zJGqBuMg2PBFOReP8v1fvVxhDxcMmHl8p6baCpc1a33gfF5XucDY7LnQTqbZrEuKjMLtbrJOFzaV7yu5hJpsi/vTG6M3Edbz9y5VZ6O5lrElchc8=
+  bucket: "tf-builds"
+  skip_cleanup: true
+  acl: public-read
+  local-dir: deps/include
+  upload-dir: pre-built-binary/test
