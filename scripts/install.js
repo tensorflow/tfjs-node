@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import {getLibTensorFlowMajorDotMinorVersion, LIBTENSORFLOW_VERSION} from './deps-constants';
-
 const fs = require('fs');
 let path = require('path');
 const rimraf = require('rimraf');
@@ -26,6 +24,9 @@ const os = require('os');
 const {depsPath, depsLibPath, depsLibTensorFlowPath} =
     require('./deps-constants.js');
 const resources = require('./resources');
+
+const {getLibTensorFlowMajorDotMinorVersion, LIBTENSORFLOW_VERSION} =
+    require('./deps-constants');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -38,6 +39,7 @@ const CPU_DARWIN = `cpu-darwin-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
 const CPU_LINUX = `cpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
 const GPU_LINUX = `gpu-linux-x86_64-${LIBTENSORFLOW_VERSION}.tar.gz`;
 const CPU_WINDOWS = `cpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
+
 const GPU_WINDOWS = `gpu-windows-x86_64-${LIBTENSORFLOW_VERSION}.zip`;
 
 // TODO(kreeger): Update to TensorFlow 1.13:

@@ -18,10 +18,10 @@ const os = require('os');
 const path = require('path');
 
 /** Version of the libtensorflow shared library to depend on. */
-export const LIBTENSORFLOW_VERSION = '1.14.0';
+const LIBTENSORFLOW_VERSION = '1.14.0';
 
 /** Get the MAJOR.MINOR-only version of libtensorflow. */
-export function getLibTensorFlowMajorDotMinorVersion() {
+function getLibTensorFlowMajorDotMinorVersion() {
   const items = LIBTENSORFLOW_VERSION.split('.');
   if (items.length < 3) {
     throw new Error(
@@ -74,5 +74,7 @@ module.exports = {
   depsLibTensorFlowName,
   depsLibTensorFlowPath,
   destLibTensorFlowFrameworkName,
-  destLibTensorFlowName
+  destLibTensorFlowName,
+  getLibTensorFlowMajorDotMinorVersion,
+  LIBTENSORFLOW_VERSION
 };
