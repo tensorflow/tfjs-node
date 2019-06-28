@@ -24,9 +24,10 @@ const os = require('os');
 const {
   depsPath,
   depsLibPath,
-  depsLibTensorFlowPath
+  depsLibTensorFlowPath,
+  modulePath
 } =
-require('./deps-constants.js');
+  require('./deps-constants.js');
 const resources = require('./resources');
 const editJsonFile = require("edit-json-file");
 const {
@@ -38,7 +39,7 @@ const {
   getLibTensorFlowMajorDotMinorVersion,
   LIBTENSORFLOW_VERSION
 } =
-require('./deps-constants');
+  require('./deps-constants');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -181,6 +182,9 @@ async function build() {
       console.log('node-pre-gyp rebuild failed with: ' + err);
       console.log('Start building from source binary.');
       cp.exec('node-pre-gyp install --build-from-source');
+    }
+    if (platform === 'win32') {
+      cp.exec('node scripts/deps-stage.js symlink ' + modulePath);
     }
   });
 }
