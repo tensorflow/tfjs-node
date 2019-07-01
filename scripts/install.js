@@ -67,8 +67,11 @@ let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 async function updateBinaryName() {
   const file = JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
   file['binary']['package_name'] = binaryName;
-  fs.writeFile((`${__dirname}/../package.json`), JSON.stringify(file), (err) => {
-    console.log('Faile to update binary name in package.json: ' + err);
+  const stringFile = JSON.stringify(file, null, 2)
+  fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
+    if (err) {
+      console.log('Faile to update binary name in package.json: ' + err);
+    }
   });
 }
 
@@ -129,7 +132,6 @@ async function cleanDeps() {
  * Downloads libtensorflow and notifies via a callback when unpacked.
  */
 async function downloadLibtensorflow(callback) {
-  await updateBinaryName();
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
 
@@ -196,6 +198,8 @@ async function build() {
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
+  // Update binary name in package.json file
+  await updateBinaryName();
   // First check if deps library exists:
   if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
     // Library has already been downloaded, then compile and simlink:
