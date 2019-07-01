@@ -27,9 +27,8 @@ const {
   depsLibTensorFlowPath,
   modulePath
 } =
-  require('./deps-constants.js');
+require('./deps-constants.js');
 const resources = require('./resources');
-const editJsonFile = require("edit-json-file");
 const {
   binaryName
 } = require('./get-binary-name.js');
@@ -39,7 +38,7 @@ const {
   getLibTensorFlowMajorDotMinorVersion,
   LIBTENSORFLOW_VERSION
 } =
-  require('./deps-constants');
+require('./deps-constants');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -65,10 +64,13 @@ const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
-// Set binary.package_name based on user's system
-const file = editJsonFile(`${__dirname}/../package.json`);
-file.set('binary.package_name', binaryName);
-file.save();
+async function updateBinaryName() {
+  const file = JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
+  file['binary']['package_name'] = binaryName;
+  fs.writeFile((`${__dirname}/../package.json`), JSON.stringify(file), (err) => {
+    console.log('Faile to update binary name in package.json: ' + err);
+  });
+}
 
 /**
  * Returns the libtensorflow hosted path of the current platform.
@@ -127,6 +129,7 @@ async function cleanDeps() {
  * Downloads libtensorflow and notifies via a callback when unpacked.
  */
 async function downloadLibtensorflow(callback) {
+  await updateBinaryName();
   // Ensure dependencies staged directory is available:
   await ensureDir(depsPath);
 

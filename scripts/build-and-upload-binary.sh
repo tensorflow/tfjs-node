@@ -29,7 +29,7 @@ rm -f $PACKAGE_NAME
 yarn install-from-source
 if [ "$1" = "upload" ]; then
   # build a new pre-built binary tarball
-  tar -czvf $PACKAGE_NAME -C lib napi-v$NAPI_VERSION
+  tar -czvf $PACKAGE_NAME -C lib napi-v$NAPI_VERSION/tfjs_binding.node
   # upload pre-built binary tarball to gcloud
   PACKAGE_HOST=`node -p "require('./package.json').binary.host.split('.com/')[1] + '/napi-v' + process.versions.napi + '/' + require('./package.json').version + '/'"`
   gsutil cp $PACKAGE_NAME gs://$PACKAGE_HOST
