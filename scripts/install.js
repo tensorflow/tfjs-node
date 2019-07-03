@@ -180,8 +180,10 @@ async function build() {
       console.log('node-pre-gyp install failed with: ' + err);
       console.log('Start building from source binary.');
       cp.exec('yarn node-pre-gyp install --build-from-source', (error) => {
-        console.log('node-pre-gyp install from source failed with error: ' +
-          error);
+        if (error) {
+          console.log('node-pre-gyp install from source failed with error: ' +
+            error);
+        }
       });
     }
     if (platform === 'win32') {
