@@ -35,11 +35,27 @@ if [ "$1" = "upload" ]; then
   gsutil cp $PACKAGE_NAME gs://$PACKAGE_HOST
 fi
 
-# Copy and past the following commands to Command Prompt to build and upload
-# addon from Windows system
+# Build and upload native node addon for Windows, do the following steps:
+# 1) Delete deps and lib folder
+# 2) run "yarn" to download libtensorflow c library and compile native node addon
+# 3) Copy and paste the following commands in cmd to compress and upload the
+#     addon to GCloud
 # -----------------------------------------------------------------------------
 # for /f %i in ('node scripts/get-addon-name.js') do set PACKAGE_NAME=%i
 # for /f %i in ('node -p "process.versions.napi"') do set NAPI_VERSION=%i
 # tar -czvf %PACKAGE_NAME% -C lib napi-v%NAPI_VERSION%/tfjs_binding.node
 # for /f %i in ('node scripts/print-full-package-host') do set PACKAGE_HOST=%i
 # gsutil cp %PACKAGE_NAME% gs://%PACKAGE_HOST%
+# ------------------------------------------------------------------------------
+#
+# 4) Change field "name" in package.json to "@tensorflow/tfjs-node-gpu"
+# 5) Copy and paste the following commands in cmd to compress and upload the
+#     GPU addon to GCloud
+# -----------------------------------------------------------------------------
+# node scripts/install.js gpu download && yarn && yarn build-from-source
+# for /f %i in ('node scripts/get-addon-name.js') do set PACKAGE_NAME=%i
+# for /f %i in ('node -p "process.versions.napi"') do set NAPI_VERSION=%i
+# tar -czvf %PACKAGE_NAME% -C lib napi-v%NAPI_VERSION%/tfjs_binding.node
+# for /f %i in ('node scripts/print-full-package-host') do set PACKAGE_HOST=%i
+# gsutil cp %PACKAGE_NAME% gs://%PACKAGE_HOST%
+# ------------------------------------------------------------------------------
