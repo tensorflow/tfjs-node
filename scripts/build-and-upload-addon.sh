@@ -34,3 +34,12 @@ if [ "$1" = "upload" ]; then
   PACKAGE_HOST=`node -p "require('./package.json').binary.host.split('.com/')[1] + '/napi-v' + process.versions.napi + '/' + require('./package.json').version + '/'"`
   gsutil cp $PACKAGE_NAME gs://$PACKAGE_HOST
 fi
+
+# Copy and past the following commands to Command Prompt to build and upload
+# addon from Windows system
+# -----------------------------------------------------------------------------
+# for /f %i in ('node scripts/get-addon-name.js') do set PACKAGE_NAME=%i
+# for /f %i in ('node -p "process.versions.napi"') do set NAPI_VERSION=%i
+# tar -czvf %PACKAGE_NAME% -C lib napi-v%NAPI_VERSION%/tfjs_binding.node
+# for /f %i in ('node scripts/print-full-package-host') do set PACKAGE_HOST=%i
+# gsutil cp %PACKAGE_NAME% gs://%PACKAGE_HOST%
