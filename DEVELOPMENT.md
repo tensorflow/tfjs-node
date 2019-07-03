@@ -26,7 +26,7 @@ This command clear local binary and addon resources, then download the TensorFlo
 yarn enable-gpu
 ```
 
-This command clear local binary and addon resources, then download then TensorFlow C library for GPU and compile native node addon from source binary.
+This command download then TensorFlow C library for GPU and compile native node addon from source binary.
 
 ## Build and test
 
