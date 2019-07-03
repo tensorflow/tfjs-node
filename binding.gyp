@@ -85,24 +85,7 @@
             # UDT 'TF_WhileParams' which is incompatible with C.
             # (in include/tensorflow/c/c_api.h)
             4190
-          ],
-          'actions': [
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/tensorflow.dll',
-              ],
-              'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
-              ]
-            },
-          ],
+          ]
         },
       ]
     ],
@@ -115,7 +98,6 @@
         {
           "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
           "destination": "<(module_path)"
-          # "destination": "<(PRODUCT_DIR)"
         }
       ]
     }

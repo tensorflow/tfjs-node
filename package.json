@@ -15,12 +15,12 @@
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "build-npm-gpu": "./scripts/build-npm-gpu.sh",
-    "clean-deps": "rm -rf deps",
+    "clean-deps": "rm -rf deps && rm -rf lib",
     "coverage": "nyc ts-node src/run_tests.ts",
-    "enable-gpu": "node scripts/install.js gpu download && node-pre-gyp install --build-from-source",
+    "enable-gpu": "yarn clean-deps && node scripts/install.js gpu download && yarn && node-pre-gyp install --build-from-source",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
-    "install-from-source": "yarn install && node-pre-gyp install --build-from-source",
     "install": "node scripts/install.js",
+    "install-from-source": "yarn clean-deps && yarn && node-pre-gyp install --build-from-source",
     "link-local": "yalc link",
     "lint": "tslint -p . -t verbose",
     "prep": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build",
@@ -28,10 +28,9 @@
     "test": "ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
-    "build-binary": "./scripts/build-and-upload-binary.sh"
+    "build-addon": "./scripts/build-and-upload-addon.sh"
   },
   "devDependencies": {
-    "@types/bindings": "~1.3.0",
     "@types/jasmine": "~2.8.6",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
@@ -49,8 +48,6 @@
   "dependencies": {
     "@tensorflow/tfjs": "~1.2.2",
     "adm-zip": "^0.4.11",
-    "bindings": "~1.3.0",
-    "edit-json-file": "^1.2.1",
     "https-proxy-agent": "^2.2.1",
     "node-pre-gyp": "0.13.0",
     "progress": "^2.0.0",

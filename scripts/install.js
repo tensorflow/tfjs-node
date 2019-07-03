@@ -23,14 +23,16 @@ const os = require('os');
 const {
   depsPath,
   depsLibPath,
-  depsLibTensorFlowPath
+  depsLibTensorFlowPath,
+  getLibTensorFlowMajorDotMinorVersion,
+  LIBTENSORFLOW_VERSION,
+  modulePath
 } =
 require('./deps-constants.js');
 const resources = require('./resources');
-const editJsonFile = require("edit-json-file");
 const {
-  binaryName
-} = require('./get-binary-name.js');
+  addonName
+} = require('./get-addon-name.js');
 
 const exists = util.promisify(fs.exists);
 const mkdir = util.promisify(fs.mkdir);
@@ -54,10 +56,16 @@ const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
-// Set binary.package_name based on user's system
-const file = editJsonFile(`${__dirname}/../package.json`);
-file.set('binary.package_name', binaryName);
-file.save();
+async function updateAddonName() {
+  const file = JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
+  file['binary']['package_name'] = addonName;
+  const stringFile = JSON.stringify(file, null, 2)
+  fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
+    if (err) {
+      console.log('Faile to update addon name in package.json: ' + err);
+    }
+  });
+}
 
 /**
  * Returns the libtensorflow hosted path of the current platform.
@@ -167,10 +175,16 @@ async function build() {
   console.error('* Building TensorFlow Node.js bindings');
   cp.exec('node-pre-gyp install', (err) => {
     if (err) {
+      console.log('node-pre-gyp install failed with: ' + err);
       console.log('Start building from source binary.');
-      cp.exec('node-pre-gyp install --build-from-source', (newError) => {
-        throw new Error('node-pre-gyp install failed with: ' + newError);
+      cp.exec('node-pre-gyp install --build-from-source', (error) => {
+        console.log('node-pre0gyp install from source failed with error: ' +
+          error);
       });
+    }
+    if (platform === 'win32') {
+      // Move libtensorflow to module path, where tfjs_binding.node locates.
+      cp.exec('node scripts/deps-stage.js symlink ' + modulePath);
     }
   });
 }
@@ -179,6 +193,8 @@ async function build() {
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
+  // Update addon name in package.json file
+  await updateAddonName();
   // First check if deps library exists:
   if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
     // Library has already been downloaded, then compile and simlink:
