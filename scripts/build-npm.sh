@@ -20,8 +20,8 @@ set -e
 rimraf deps/
 rimraf dist/
 rimraf lib/
-# Build and upload pre-built binary
-yarn build-binary "$1"
+# Build and upload pre-built addon
+yarn build-addon "$1"
 yarn prep
 tsc --sourceMap false
 # This produces a tarball that will later be used by `npm publish`.

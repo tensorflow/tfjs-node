@@ -22,7 +22,7 @@ sed -i -e 's/install.js"/install.js gpu download"/' package.json
 rimraf deps/
 rimraf dist/
 rimraf lib/
-yarn build-binary "$1"
+yarn build-addon "$1"
 yarn prep
 tsc --sourceMap false
 npm pack

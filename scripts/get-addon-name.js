@@ -15,24 +15,26 @@ const GPU_LINUX = `GPU-linux-${version}.tar.gz`;
 const CPU_WINDOWS = `CPU-windows-${version}.zip`;
 const GPU_WINDOWS = `GPU-windows-${version}.zip`;
 
-let binaryName;
+let addonName;
 
 if (isCPU) {
   if (platform === 'linux') {
-    binaryName = CPU_LINUX;
+    addonName = CPU_LINUX;
   } else if (platform === 'darwin') {
-    binaryName = CPU_DARWIN;
+    addonName = CPU_DARWIN;
   } else if (platform === 'win32') {
-    binaryName = CPU_WINDOWS;
+    addonName = CPU_WINDOWS;
   }
 } else {
   if (platform === 'linux') {
-    binaryName = GPU_LINUX;
+    addonName = GPU_LINUX;
   } else if (platform === 'win32') {
-    binaryName = GPU_WINDOWS;
+    addonName = GPU_WINDOWS;
   }
 }
 
-console.log(binaryName);
+console.log(addonName);
 
-module.exports = { binaryName };
+module.exports = {
+  addonName: addonName
+};

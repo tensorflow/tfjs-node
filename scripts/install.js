@@ -30,8 +30,8 @@ const {
 require('./deps-constants.js');
 const resources = require('./resources');
 const {
-  binaryName
-} = require('./get-binary-name.js');
+  addonName
+} = require('./get-addon-name.js/index.js');
 
 
 const {
@@ -64,13 +64,13 @@ const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
-async function updateBinaryName() {
+async function updateAddonName() {
   const file = JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
-  file['binary']['package_name'] = binaryName;
+  file['binary']['package_name'] = addonName;
   const stringFile = JSON.stringify(file, null, 2)
   fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
     if (err) {
-      console.log('Faile to update binary name in package.json: ' + err);
+      console.log('Faile to update addon name in package.json: ' + err);
     }
   });
 }
@@ -198,8 +198,8 @@ async function build() {
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
-  // Update binary name in package.json file
-  await updateBinaryName();
+  // Update addon name in package.json file
+  await updateAddonName();
   // First check if deps library exists:
   if (forceDownload !== 'download' && await exists(depsLibTensorFlowPath)) {
     // Library has already been downloaded, then compile and simlink:

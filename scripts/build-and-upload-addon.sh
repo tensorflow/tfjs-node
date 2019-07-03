@@ -14,21 +14,21 @@
 # =============================================================================
 
 # Before you run this script, do this:
-# 1) Remove the existing pre-built binary tarball.
+# 1) Remove the existing pre-built addon tarball.
 # 2) Run `yarn install-from-source` to build binding from source
-# 3) Compress and upload the pre-built binary tarball.
+# 3) Compress and upload the pre-built addon tarball.
 
 set -e
 
 # get package name based on os and processor
-PACKAGE_NAME=$(node scripts/get-binary-name.js)
+PACKAGE_NAME=$(node scripts/get-addon-name.js)
 # get NAPI version
 NAPI_VERSION=`node -p "process.versions.napi"`
-# remove the pre-built binary tarball if it already exist
+# remove the pre-built addon tarball if it already exist
 rm -f $PACKAGE_NAME
 yarn install-from-source
 if [ "$1" = "upload" ]; then
-  # build a new pre-built binary tarball
+  # build a new pre-built addon tarball
   tar -czvf $PACKAGE_NAME -C lib napi-v$NAPI_VERSION/tfjs_binding.node
   # upload pre-built binary tarball to gcloud
   PACKAGE_HOST=`node -p "require('./package.json').binary.host.split('.com/')[1] + '/napi-v' + process.versions.napi + '/' + require('./package.json').version + '/'"`
