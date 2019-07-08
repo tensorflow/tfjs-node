@@ -1,88 +1,105 @@
 # TensorFlow.js Node.js bindings development.
 
-The @tensorflow/tfjs-node repo support npm package @tensorflow/tfjs-node and @tensorflow/tfjs-node-gpu on Windows/Mac/Linux. This guide lists commands to development the tfjs-node package.
+The @tensorflow/tfjs-node repo supports npm package @tensorflow/tfjs-node and @tensorflow/tfjs-node-gpu on Windows/Mac/Linux. This guide lists commands to use hwn developing this package.
 
 ## Install
 
-#### Install dependencies and addon module
+#### Dependencies and addon module
 
 ```sh
-yarn
+$ yarn
 ```
 
-This command installs all dependencies and devDependencies listed in package.json. It also download the download the TensorFlow C library and native node addon.
+This command installs all dependencies and devDependencies listed in package.json. It also downloads the TensorFlow C library and native node addon.
 
-#### Compile native addon from source binary
+#### Compile native addon from source files
 
 ```sh
-yarn install-from-source
+$ yarn build-addon-from-source
 ```
 
-This command clear local binary and addon resources, then download the TensorFlow C library and compile native node addon from source binary.
+This command will compile a new native node addon from source files.
 
-#### Switch to developing GPU
+####
 
 ```sh
-yarn enable-gpu
+$ yarn install-from-source
 ```
 
-This command download then TensorFlow C library for GPU and compile native node addon from source binary.
+This command does the following:
+
+1. Clears local binary and addon resources
+2. Downloads the TensorFlow C library
+3. Compiles the native addon from source files (instead of downloading pre-compile addon)
+
+#### Switching local workflow to CUDA/GPU
+
+```sh
+$ yarn enable-gpu
+```
+
+This command is the same as `yarn install-from-source` except it uses the TensorFlow GPU library.
 
 ## Build and test
 
 #### Compile javascript files from typescript
 
 ```sh
-yarn build
+$ yarn build
 ```
 
-#### Publish local to test this package in another repo
+#### Publish locally through yalc to test this package in another repo
 
 ```sh
-yarn publish-local
+$ yarn publish-local
 ```
 
-This command pack the tfjs-node package and publish to other repos through yalc. Note this repo must have been installed through yalc in other repos.
+This command packs the `tfjs-node` package and publishes locally through [yalc](https://github.com/whitecolor/yalc).
+NOTE: Dependent packages must install this locally published package through yalc.
 
 #### Run tests
 
 ```sh
-yarn test
+$ yarn test
 ```
 
 ## Prepare and publish
 
+#### Prerequisite: install GCP command line tool
+
+Publishing this package requires uploading objects to GCP bucket. Developers need to install GCP command line tool [gsutil](https://cloud.google.com/storage/docs/gsutil_install) before publishing. Please ask TFJS developers for GCP project ID.
+
 #### Build and upload node addon to Google Cloud Platform
 
 ```sh
-yarn build-addon upload
+$ yarn build-addon upload
 ```
 
-This command compile a new node addon, then compress and upload it to GCP
+This command will compile, compress, and upload a new node addon to GCP bucket. Please read [build-and-upload-addon.sh](./scripts/build-and-upload-addon.sh) for details.
 
 #### Build NPM package
 
 ```sh
-yarn build-npm
+$ yarn build-npm
 ```
 
-This command clear existing resources and compile new node addon from source, then pack a npm package. NOTE: this command does not update the node addon in GCP.
+This command will build a new version of tfjs-node/tfjs-node-gpu NPM tarball. NOTE: this command does not update the pre-compiled node addon to GCP (see `yarn build-addon upload`).
 
 #### Build NPM package and upload node addon
 
 ```sh
-yarn build-npm upload
+$ yarn build-npm upload
 ```
 
-This command combines the above two commands
+This command combines the above two commands.
 
 #### Publish NPM package
 
 ```sh
-yarn publish-npm
+$ yarn publish-npm
 ```
 
-This command compile a new node addon, upload it to GCP, then build and publish a new npm package. Please read instruction in [publish-npm.sh](./scripts/publish.sh) before publishing.
+This command compiles a new node addon, upload it to GCP, then builds and publishs a new npm package. Please read instruction in [publish-npm.sh](./scripts/publish.sh) before publishing.
 
 #### Build and upload node addon in Windows
 

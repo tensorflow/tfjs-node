@@ -13,10 +13,11 @@
 # limitations under the License.
 # =============================================================================
 
-# Before you run this script, do this:
+# The following commands do these steps:
 # 1) Remove the existing pre-built addon tarball.
 # 2) Run `yarn install-from-source` to build binding from source
 # 3) Compress and upload the pre-built addon tarball.
+# Please read DEVELOPMENT.md before developing and publishing.
 
 set -e
 
@@ -35,12 +36,14 @@ if [ "$1" = "upload" ]; then
   gsutil cp $PACKAGE_NAME gs://$PACKAGE_HOST
 fi
 
+# TODO(kangyizhang): Make this work in a script
 # Build and upload native node addon for Windows, do the following steps:
-# 1) Delete deps and lib folder
-# 2) run "yarn" to download libtensorflow c library and compile native node addon
-# 3) Copy and paste the following commands in cmd to compress and upload the
-#     addon to GCloud
+# 1) Copy and paste the following commands in cmd to compress and upload the
+#     CPU node addon to GCloud
 # -----------------------------------------------------------------------------
+# if exist deps rmdir /s /q deps
+# if exist lib rmdir /s /q lib
+# yarn
 # for /f %i in ('node scripts/get-addon-name.js') do set PACKAGE_NAME=%i
 # for /f %i in ('node -p "process.versions.napi"') do set NAPI_VERSION=%i
 # tar -czvf %PACKAGE_NAME% -C lib napi-v%NAPI_VERSION%/tfjs_binding.node
@@ -48,9 +51,9 @@ fi
 # gsutil cp %PACKAGE_NAME% gs://%PACKAGE_HOST%
 # ------------------------------------------------------------------------------
 #
-# 4) Change field "name" in package.json to "@tensorflow/tfjs-node-gpu"
-# 5) Copy and paste the following commands in cmd to compress and upload the
-#     GPU addon to GCloud
+# 2) Change field "name" in package.json to "@tensorflow/tfjs-node-gpu"
+# 3) Copy and paste the following commands in cmd to compress and upload the
+#     GPU node addon to GCloud
 # -----------------------------------------------------------------------------
 # node scripts/install.js gpu download && yarn && yarn build-from-source
 # for /f %i in ('node scripts/get-addon-name.js') do set PACKAGE_NAME=%i

@@ -17,9 +17,7 @@
 const os = require('os');
 const name = require('../package.json').name;
 const version = require('../package.json').version;
-// const napiVersion = require('../package.json').binary.napi_versions[0];
 
-const isCPU = !name.includes('gpu');
 const platform = os.platform();
 
 const CPU_DARWIN = `CPU-darwin-${version}.tar.gz`;
@@ -30,7 +28,13 @@ const GPU_WINDOWS = `GPU-windows-${version}.zip`;
 
 let addonName;
 
-if (isCPU) {
+if (name.includes('gpu')) {
+  if (platform === 'linux') {
+    addonName = GPU_LINUX;
+  } else if (platform === 'win32') {
+    addonName = GPU_WINDOWS;
+  }
+} else {
   if (platform === 'linux') {
     addonName = CPU_LINUX;
   } else if (platform === 'darwin') {
@@ -38,14 +42,10 @@ if (isCPU) {
   } else if (platform === 'win32') {
     addonName = CPU_WINDOWS;
   }
-} else {
-  if (platform === 'linux') {
-    addonName = GPU_LINUX;
-  } else if (platform === 'win32') {
-    addonName = GPU_WINDOWS;
-  }
 }
 
+// Print out the addon tarball name so that it can be used in bash script when
+// uploading the tarball to GCP bucket.
 console.log(addonName);
 
 module.exports = {
