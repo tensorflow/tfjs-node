@@ -1,6 +1,6 @@
 # TensorFlow.js Node.js bindings development.
 
-The @tensorflow/tfjs-node repo supports npm package @tensorflow/tfjs-node and @tensorflow/tfjs-node-gpu on Windows/Mac/Linux. This guide lists commands to use hwn developing this package.
+The @tensorflow/tfjs-node repo supports npm package @tensorflow/tfjs-node and @tensorflow/tfjs-node-gpu on Windows/Mac/Linux. This guide lists commands to use when developing this package.
 
 ## Install
 
@@ -99,7 +99,7 @@ This command combines the above two commands.
 $ yarn publish-npm
 ```
 
-This command compiles a new node addon, upload it to GCP, then builds and publishs a new npm package. Please read instruction in [publish-npm.sh](./scripts/publish.sh) before publishing.
+This command compiles a new node addon, upload it to GCP, then builds and publishes a new npm package. Please read instruction in [publish-npm.sh](./scripts/publish.sh) before publishing.
 
 #### Build and upload node addon on Windows
 
