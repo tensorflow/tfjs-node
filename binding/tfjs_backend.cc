@@ -182,6 +182,40 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   return tfe_tensor_handle;
 }
 
+// TODO(kreeger): Doc me
+TFE_TensorHandle *CreateTFE_TensorHandleFromStringUtf8StringArray(
+    napi_env env, int64_t *shape, uint32_t shape_length, TF_DataType dtype,
+    napi_value array_value) {
+  napi_status nstatus;
+
+  uint32_t array_length;
+  nstatus = napi_get_array_length(env, array_value, &array_length);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  size_t offsets_size = array_length * sizeof(uint64_t);
+  size_t data_size = offsets_size;
+
+  for (uint32_t i = 0; i < array_length; ++i) {
+    napi_value cur_value;
+    nstatus = napi_get_element(env, array_value, i, &cur_value);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    ENSURE_VALUE_IS_TYPED_ARRAY_RETVAL(env, cur_value, nullptr);
+
+    // TODO - consider stashing pointer buffers here...
+    nstatus = napi_get_typedarray_info(
+        env, cur_value, &array_type, &array_length, nullptr, nullptr, nullptr);
+    ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+    // Get byte length?
+  }
+
+  TF_AutoStatus tf_status;
+  TF_AutoTensor tensor(
+      TF_AllocateTensor(TF_STRING, shape, shape_length, data_size));
+
+  return nullptr;
+}
+
 // Creates a TFE_TensorHandle from a JS array of string values.
 TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
     napi_env env, int64_t *shape, uint32_t shape_length, TF_DataType dtype,
@@ -272,8 +306,8 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromJSValues(napi_env env,
     return CreateTFE_TensorHandleFromTypedArray(env, shape, shape_length, dtype,
                                                 array_value);
   } else {
-    return CreateTFE_TensorHandleFromStringArray(env, shape, shape_length,
-                                                 dtype, array_value);
+    return CreateTFE_TensorHandleFromStringUtf8StringArray(
+        env, shape, shape_length, dtype, array_value);
   }
 }
 
