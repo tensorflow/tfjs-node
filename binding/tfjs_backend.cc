@@ -218,12 +218,18 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
       return nullptr;
     }
 
+    // TODO(kreeger): I'm not sure this is the right way to do this...
     data_size += TF_StringEncodedSize(cur_array_length);
   }
+
+  std::cerr << ">>>>>>>>>>>>>>>>>>>>>>\n";
+  std::cerr << "  data_size: " << data_size << std::endl;
 
   TF_AutoStatus tf_status;
   TF_AutoTensor tensor(
       TF_AllocateTensor(TF_STRING, shape, shape_length, data_size));
+
+  std::cerr << "  TF_TensorByteSize: " << TF_TensorByteSize(tensor.tensor) << std::endl;
 
   void *tensor_data = TF_TensorData(tensor.tensor);
   uint64_t *offsets = (uint64_t *)tensor_data;
@@ -248,6 +254,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
     cur_tensor_data += cur_array_length;
   }
 
+  std::cerr << ">>>>>>>>>>>>>>>>>>>>>>\n";
   TFE_TensorHandle *tfe_tensor_handle =
       TFE_NewTensorHandle(tensor.tensor, tf_status.status);
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
@@ -304,6 +311,9 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
     num_elements *= 2;
   }
 
+  std::cerr << "=======================================\n";
+  std::cerr << "---> Starting tensor data out" << std::endl;
+
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
 
   napi_value array_buffer_value;
@@ -317,7 +327,8 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   // current value to the newly allocated NAPI buffer.
   memcpy(array_buffer_data, TF_TensorData(tensor.tensor), byte_length);
 
-  std::cerr << "hi\n";
+  std::cerr << "  out: byte_length: " << byte_length << std::endl;
+  std::cerr << "=======================================\n";
 
   nstatus = napi_create_typedarray(env, array_type, num_elements,
                                    array_buffer_value, 0, result);
@@ -339,13 +350,18 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
     return;
   }
 
+  std::cerr << "=======================================\n";
+  std::cerr << "---> Starting tensor data out for TF_STRING" << std::endl;
+
   void *tensor_data = TF_TensorData(tensor.tensor);
   ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
 
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
   const char *limit = static_cast<const char *>(tensor_data) + byte_length;
+  std::cerr << "  byte_length: " << byte_length << std::endl;
 
   size_t num_elements = GetTensorNumElements(tensor.tensor);
+  std::cerr << "  num_elements: " << num_elements << std::endl;
 
   // String values are stored in offsets.
   const uint64_t *offsets = static_cast<const uint64_t *>(tensor_data);
@@ -385,6 +401,7 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
     nstatus = napi_set_element(env, *result, i, str_value);
     ENSURE_NAPI_OK(env, nstatus);
   }
+  std::cerr << "=======================================\n";
 }
 
 void CopyTFE_TensorHandleDataToResourceArray(
@@ -467,6 +484,7 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
       typed_array_type = napi_uint8_array;
       break;
     case TF_STRING:
+      typed_array_type = napi_uint8_array;
       is_string = true;
       break;
     case TF_RESOURCE:
@@ -481,11 +499,14 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
   }
 
   if (is_string) {
-    /* CopyTFE_TensorHandleDataToStringArray(env, tfe_context, tfe_tensor_handle, */
-    /*                                       result); */
-    CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle,
-                                         tensor_data_type, typed_array_type,
-                                         result);
+    //
+    // TODO(kreeger): Figure out this path
+    //
+    CopyTFE_TensorHandleDataToStringArray(env, tfe_context, tfe_tensor_handle,
+                                          result);
+    /* CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle, */
+    /*                                      tensor_data_type, typed_array_type, */
+    /*                                      result); */
   } else if (is_resource) {
     CopyTFE_TensorHandleDataToResourceArray(env, tfe_context, tfe_tensor_handle,
                                             result);
