@@ -23,11 +23,11 @@ import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
-
 import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
 import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+
 
 type TensorInfo = {
   shape: number[],
@@ -1595,6 +1595,58 @@ export class NodeJSKernelBackend extends KernelBackend {
     const outShape: [number, number, number] =
         [pixels.height, pixels.width, numChannels];
     return tensor3d(values, outShape, 'int32');
+  }
+
+  decodeJpeg(
+      contents: Uint8Array, channels: number, ratio: number,
+      fancyUpscaling: boolean, tryRecoverTruncated: boolean,
+      acceptableFraction: number, dctMethod: string): Tensor4D {
+    const opAttrs = [
+      {name: 'channels', type: this.binding.TF_ATTR_INT, value: channels},
+      {name: 'ratio', type: this.binding.TF_ATTR_INT, value: ratio}, {
+        name: 'fancy_upscaling',
+        type: this.binding.TF_ATTR_BOOL,
+        value: fancyUpscaling
+      },
+      {
+        name: 'try_recover_truncated',
+        type: this.binding.TF_ATTR_BOOL,
+        value: tryRecoverTruncated
+      },
+      {
+        name: 'acceptable_fraction',
+        type: this.binding.TF_ATTR_FLOAT,
+        value: acceptableFraction
+      },
+      {name: 'dct_method', type: this.binding.TF_ATTR_STRING, value: dctMethod}
+    ];
+    const inputArgs = [scalar(contents, 'string')];
+    return this.executeSingleOutput('DecodeJpeg', opAttrs, inputArgs) as
+        Tensor<Rank.R4>;
+  }
+
+  decodePng(contents: Uint8Array, channels: number /*, dtype: DataType */):
+      Tensor4D {
+    const opAttrs =
+        [{name: 'channels', type: this.binding.TF_ATTR_INT, value: channels}];
+    const inputArgs = [scalar(contents, 'string')];
+    // const inputArgs = [scalar(contents, 'string')];
+    return this.executeSingleOutput('DecodePng', opAttrs, inputArgs) as
+        Tensor<Rank.R4>;
+  }
+
+  // decodeBmp(contents: Uint8Array, channels: number): Tensor4D {
+  //   const opAttrs =
+  //       [{name: 'channels', type: this.binding.TF_ATTR_INT, value:
+  //       channels}];
+  //   const inputArgs = [scalar(contents, 'string')];
+  //   return this.executeSingleOutput('DecodeBmp', opAttrs, inputArgs) as
+  //       Tensor<Rank.R4>;
+  // }
+
+  decodeGif(contents: Uint8Array): Tensor4D {
+    const inputArgs = scalar(contents);
+    return this.executeSingleInput('DecodeGif', inputArgs) as Tensor<Rank.R4>;
   }
 
   // ------------------------------------------------------------
