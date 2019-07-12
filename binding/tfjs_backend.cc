@@ -22,8 +22,6 @@
 #include "tfe_auto_op.h"
 #include "utils.h"
 
-#include <iostream>  // TODO(kreeger): drop this
-
 #include <algorithm>
 #include <cstring>
 #include <memory>
@@ -184,7 +182,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
   return tfe_tensor_handle;
 }
 
-// TODO(kreeger): Doc me
+// Creates a TFE_TensorHandle from a JS array of Uint8Array values.
 TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
     napi_env env, int64_t *shape, uint32_t shape_length, TF_DataType dtype,
     napi_value array_value) {
@@ -196,6 +194,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
 
   size_t offsets_size = array_length * sizeof(uint64_t);
   size_t data_size = offsets_size;
+  size_t max_array_length = 0;
 
   for (uint32_t i = 0; i < array_length; ++i) {
     napi_value cur_value;
@@ -203,7 +202,6 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
     ENSURE_VALUE_IS_TYPED_ARRAY_RETVAL(env, cur_value, nullptr);
 
-    // TODO(kreeger): Consider stashing pointer buffers here...
     size_t cur_array_length;
     napi_typedarray_type array_type;
     nstatus =
@@ -218,54 +216,51 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
       return nullptr;
     }
 
-    // TODO(kreeger): I'm not sure this is the right way to do this...
-    /* data_size += TF_StringEncodedSize(cur_array_length); */
-    data_size += cur_array_length * sizeof(uint8_t);
+    data_size += TF_StringEncodedSize(cur_array_length);
+    max_array_length = std::max(max_array_length, cur_array_length);
   }
-
-  std::cerr << ">>>>>>>>>>>>>>>>>>>>>>\n";
-  std::cerr << "  data_size: " << data_size << std::endl;
 
   TF_AutoStatus tf_status;
   TF_AutoTensor tensor(
       TF_AllocateTensor(TF_STRING, shape, shape_length, data_size));
 
-  std::cerr << "  TF_TensorByteSize: " << TF_TensorByteSize(tensor.tensor)
-            << std::endl;
-
   void *tensor_data = TF_TensorData(tensor.tensor);
   uint64_t *offsets = (uint64_t *)tensor_data;
 
-  uint8_t *str_tensor_data_start =
-      static_cast<uint8_t *>(tensor_data) + offsets_size;
-  uint8_t *cur_tensor_data = str_tensor_data_start;
+  // Allocate some heap space to work with loading uint8_t buffers to encode
+  // with TensorFlow.
+  // TODO(kreeger): work with uint8_t only?
+  max_array_length++;
+  char *buffer = static_cast<char *>(malloc(sizeof(char *) * max_array_length));
+
+  char *str_data_start = (char *)tensor_data + offsets_size;
+  char *cur_str_data = str_data_start;
 
   for (uint32_t i = 0; i < array_length; ++i) {
     napi_value cur_value;
     nstatus = napi_get_element(env, array_value, i, &cur_value);
+    // TODO - manual cleanup
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-    ENSURE_VALUE_IS_TYPED_ARRAY_RETVAL(env, cur_value, nullptr);
 
     size_t cur_array_length;
     nstatus = napi_get_typedarray_info(
         env, cur_value, nullptr, &cur_array_length,
-        reinterpret_cast<void **>(&cur_tensor_data), nullptr, nullptr);
+        reinterpret_cast<void **>(&buffer), nullptr, nullptr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-    //
-    // TODO(kreeger): Might have to actually use TF_StringEncod here...
-    //
-
-    for (uint32_t j = 0; j < cur_array_length; j++) {
-      fprintf(stderr, "   - %d = %d\n", j, cur_tensor_data[j]);
+    size_t encoded_size = TF_StringEncode(
+        buffer, cur_array_length, cur_str_data, data_size, tf_status.status);
+    if (TF_GetCode(tf_status.status) != TF_OK) {
+      free(buffer);
+      ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
     }
 
-    offsets[i] = cur_tensor_data - str_tensor_data_start;
-    std::cerr << "  - offsets[" << i << "] = " << offsets[i] << std::endl;
-    cur_tensor_data += cur_array_length;
+    offsets[i] = cur_str_data - str_data_start;
+    cur_str_data += encoded_size;
   }
 
-  std::cerr << ">>>>>>>>>>>>>>>>>>>>>>\n";
+  free(buffer);
+
   TFE_TensorHandle *tfe_tensor_handle =
       TFE_NewTensorHandle(tensor.tensor, tf_status.status);
   ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
@@ -322,9 +317,6 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
     num_elements *= 2;
   }
 
-  std::cerr << "=======================================\n";
-  std::cerr << "---> Starting tensor data out" << std::endl;
-
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
 
   napi_value array_buffer_value;
@@ -337,9 +329,6 @@ void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
   // TFE_TensorHandleResolve can use a shared data pointer, memcpy() the
   // current value to the newly allocated NAPI buffer.
   memcpy(array_buffer_data, TF_TensorData(tensor.tensor), byte_length);
-
-  std::cerr << "  out: byte_length: " << byte_length << std::endl;
-  std::cerr << "=======================================\n";
 
   nstatus = napi_create_typedarray(env, array_type, num_elements,
                                    array_buffer_value, 0, result);
@@ -361,18 +350,13 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
     return;
   }
 
-  std::cerr << "=======================================\n";
-  std::cerr << "---> Starting tensor data out for TF_STRING" << std::endl;
-
   void *tensor_data = TF_TensorData(tensor.tensor);
   ENSURE_VALUE_IS_NOT_NULL(env, tensor_data);
 
   size_t byte_length = TF_TensorByteSize(tensor.tensor);
   const char *limit = static_cast<const char *>(tensor_data) + byte_length;
-  std::cerr << "  byte_length: " << byte_length << std::endl;
 
   size_t num_elements = GetTensorNumElements(tensor.tensor);
-  std::cerr << "  num_elements: " << num_elements << std::endl;
 
   // String values are stored in offsets.
   const uint64_t *offsets = static_cast<const uint64_t *>(tensor_data);
@@ -405,14 +389,25 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
     TF_StringDecode(start, limit - start, &str_ptr, &str_len, status.status);
     ENSURE_TF_OK(env, tf_status);
 
-    napi_value str_value;
-    nstatus = napi_create_string_utf8(env, str_ptr, str_len, &str_value);
+    napi_value array_buffer_value;
+    void *array_buffer_data;
+    nstatus = napi_create_arraybuffer(env, str_len, &array_buffer_data,
+                                      &array_buffer_value);
     ENSURE_NAPI_OK(env, nstatus);
 
-    nstatus = napi_set_element(env, *result, i, str_value);
+    // TF_StringDecode returns a const char pointer that can not be used
+    // directly because of const rules in napi_create_arraybuffer. Simply memcpy
+    // the buffers here.
+    memcpy(array_buffer_data, str_ptr, str_len);
+
+    napi_value typed_array_value;
+    nstatus = napi_create_typedarray(env, napi_uint8_array, str_len,
+                                     array_buffer_value, 0, &typed_array_value);
+    ENSURE_NAPI_OK(env, nstatus);
+
+    nstatus = napi_set_element(env, *result, i, typed_array_value);
     ENSURE_NAPI_OK(env, nstatus);
   }
-  std::cerr << "=======================================\n";
 }
 
 void CopyTFE_TensorHandleDataToResourceArray(
@@ -495,7 +490,6 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
       typed_array_type = napi_uint8_array;
       break;
     case TF_STRING:
-      typed_array_type = napi_uint8_array;
       is_string = true;
       break;
     case TF_RESOURCE:
@@ -510,16 +504,8 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
   }
 
   if (is_string) {
-    //
-    // TODO(kreeger): Figure out this path
-    //
     CopyTFE_TensorHandleDataToStringArray(env, tfe_context, tfe_tensor_handle,
                                           result);
-    /* CopyTFE_TensorHandleDataToTypedArray(env, tfe_context, tfe_tensor_handle,
-     */
-    /*                                      tensor_data_type, typed_array_type,
-     */
-    /*                                      result); */
   } else if (is_resource) {
     CopyTFE_TensorHandleDataToResourceArray(env, tfe_context, tfe_tensor_handle,
                                             result);

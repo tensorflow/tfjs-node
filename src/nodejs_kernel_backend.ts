@@ -123,8 +123,6 @@ export class NodeJSKernelBackend extends KernelBackend {
         if (info.values != null) {
           // Values were delayed to write into the TensorHandle. Do that before
           // Op execution and clear stored values.
-          console.log('data: ');
-          console.log(info.values);
           info.id =
               this.binding.createTensor(info.shape, info.dtype, info.values);
           info.values = null;
@@ -228,11 +226,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     const info = this.tensorMap.get(dataId);
     info.values = values;
     this.tensorMap.set(dataId, info);
-
-    // if (info.dtype === this.binding.TF_STRING) {
-    //   console.log('data: ');
-    //   console.log(info.values);
-    // }
   }
 
   register(dataId: object, shape: number[], dtype: DataType): void {
