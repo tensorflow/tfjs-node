@@ -196,7 +196,6 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
 
   size_t offsets_size = array_length * sizeof(uint64_t);
   size_t data_size = offsets_size;
-  size_t max_array_length = 0;
 
   for (uint32_t i = 0; i < array_length; ++i) {
     napi_value cur_value;
@@ -219,7 +218,6 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
     }
 
     data_size += TF_StringEncodedSize(cur_array_length);
-    max_array_length = std::max(max_array_length, cur_array_length);
   }
 
   TF_AutoStatus tf_status;
@@ -229,14 +227,6 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
   void *tensor_data = TF_TensorData(tensor.tensor);
   uint64_t *offsets = (uint64_t *)tensor_data;
 
-  // Allocate some heap space to work with loading uint8_t buffers to encode
-  // with TensorFlow.
-  // TODO(kreeger): work with uint8_t only?
-  /* max_array_length++; */
-  /* char *buffer = static_cast<char *>(malloc(sizeof(char *) * max_array_length)); */
-  char *buffer = (char *)malloc(sizeof(char *) * max_array_length);
-  std::cerr << "alloc'd: " << (sizeof(char*) * max_array_length) << std::endl;
-
   char *str_data_start = (char *)tensor_data + offsets_size;
   char *cur_str_data = str_data_start;
 
@@ -244,31 +234,23 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
   for (uint32_t i = 0; i < array_length; ++i) {
     napi_value cur_value;
     nstatus = napi_get_element(env, array_value, i, &cur_value);
-    // TODO - manual cleanup
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
     size_t cur_array_length;
+    void *buffer = nullptr;
     nstatus = napi_get_typedarray_info(
         env, cur_value, nullptr, &cur_array_length,
-        reinterpret_cast<void **>(&buffer), nullptr, nullptr);
+        &buffer, nullptr, nullptr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
     size_t encoded_size = TF_StringEncode(
-        buffer, cur_array_length, cur_str_data, data_size, tf_status.status);
-    if (TF_GetCode(tf_status.status) != TF_OK) {
-      fprintf(stderr, "UHOH\n");
-      free(buffer);
-      ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
-    }
+        reinterpret_cast<char*>(buffer), cur_array_length, cur_str_data, data_size, tf_status.status);
+    ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
     offsets[i] = cur_str_data - str_data_start;
     cur_str_data += encoded_size;
     idx += encoded_size;
-    std::cerr << "  idx: " << idx << std::endl;
   }
-
-  // This causes a double free?
-  free(buffer);
 
   TFE_TensorHandle *tfe_tensor_handle =
       TFE_NewTensorHandle(tensor.tensor, tf_status.status);
