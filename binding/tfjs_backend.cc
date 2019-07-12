@@ -22,8 +22,6 @@
 #include "tfe_auto_op.h"
 #include "utils.h"
 
-#include <iostream>
-
 #include <algorithm>
 #include <cstring>
 #include <memory>
@@ -230,7 +228,6 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
   char *str_data_start = (char *)tensor_data + offsets_size;
   char *cur_str_data = str_data_start;
 
-  size_t idx = offsets_size;
   for (uint32_t i = 0; i < array_length; ++i) {
     napi_value cur_value;
     nstatus = napi_get_element(env, array_value, i, &cur_value);
@@ -239,17 +236,16 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
     size_t cur_array_length;
     void *buffer = nullptr;
     nstatus = napi_get_typedarray_info(
-        env, cur_value, nullptr, &cur_array_length,
-        &buffer, nullptr, nullptr);
+        env, cur_value, nullptr, &cur_array_length, &buffer, nullptr, nullptr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-    size_t encoded_size = TF_StringEncode(
-        reinterpret_cast<char*>(buffer), cur_array_length, cur_str_data, data_size, tf_status.status);
+    size_t encoded_size =
+        TF_StringEncode(reinterpret_cast<char *>(buffer), cur_array_length,
+                        cur_str_data, data_size, tf_status.status);
     ENSURE_TF_OK_RETVAL(env, tf_status, nullptr);
 
     offsets[i] = cur_str_data - str_data_start;
     cur_str_data += encoded_size;
-    idx += encoded_size;
   }
 
   TFE_TensorHandle *tfe_tensor_handle =
