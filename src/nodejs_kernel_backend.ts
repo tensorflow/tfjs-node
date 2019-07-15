@@ -226,11 +226,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     const info = this.tensorMap.get(dataId);
     info.values = values;
     this.tensorMap.set(dataId, info);
-
-    // if (info.dtype === this.binding.TF_STRING) {
-    //   console.log('data: ');
-    //   console.log(info.values);
-    // }
   }
 
   register(dataId: object, shape: number[], dtype: DataType): void {
