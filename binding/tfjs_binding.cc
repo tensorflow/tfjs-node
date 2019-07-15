@@ -16,6 +16,7 @@
  */
 
 #include <node_api.h>
+
 #include "tfjs_backend.h"
 #include "utils.h"
 
@@ -168,6 +169,7 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   EXPORT_INT_PROPERTY(TF_COMPLEX64);
   EXPORT_INT_PROPERTY(TF_STRING);
   EXPORT_INT_PROPERTY(TF_RESOURCE);
+  EXPORT_INT_PROPERTY(TF_UINT8);
 
   // Op AttrType
   EXPORT_INT_PROPERTY(TF_ATTR_STRING);

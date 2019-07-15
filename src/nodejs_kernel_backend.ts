@@ -107,6 +107,11 @@ export class NodeJSKernelBackend extends KernelBackend {
         // as string of ubytes.
         dtype = 'string';
         break;
+      case this.binding.TF_UINT8:
+        // TensorFlow use UINT8 as dtype for image tensor. UINT8 is not
+        // supported in TFJS yet, cast it to int32.
+        dtype = 'int32';
+        break;
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
@@ -150,8 +155,9 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   private executeSingleInput(name: string, input: Tensor): Tensor {
-    const opAttrs = [createTypeOpAttr('T', input.dtype)];
-    return this.executeSingleOutput(name, opAttrs, [input]);
+    // const opAttrs = [createTypeOpAttr('T', input.dtype)];
+    return this.executeSingleOutput(name, [], [input]);
+    // return this.executeSingleOutput(name, opAttrs, [input]);
   }
 
   floatPrecision(): 16|32 {
@@ -1640,7 +1646,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   // }
 
   decodeGif(contents: Uint8Array): Tensor4D {
-    const inputArgs = scalar(contents);
+    const inputArgs = scalar(contents, 'string');
     return this.executeSingleInput('DecodeGif', inputArgs) as Tensor<Rank.R4>;
   }
 

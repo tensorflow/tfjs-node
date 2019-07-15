@@ -15,60 +15,77 @@
  * =============================================================================
  */
 
-
-import * as fs from 'fs';
-import {decodeJpeg, decodePng} from './decode_image';
+// import * as tf from '@tensorflow/tfjs';
+// import {tensor1d, tensor2d} from '@tensorflow/tfjs';
+import {decodeImage} from './decode_image';
 const {StringDecoder} = require('string_decoder');
-const decoder = new StringDecoder('hex');
+// const decoder = new StringDecoder('hex');
 
 describe('decode images', () => {
-  fit('decode png', done => {
-    const image = fs.readFileSync('src/tf_logo_test.png');
-    const buf = Buffer.from(image);
+  fit('decode png', () => {
+    // const image = fs.readFileSync('src/tf_logo_test.png');
+    // const buf = Buffer.from(image);
 
-    console.log(
-        buf[0] === 137 && buf[1] === 80 && buf[2] === 78 && buf[3] === 71 &&
-        buf[4] === 13 && buf[5] === 10 && buf[6] === 26 && buf[7] === 10);
+    // console.log(
+    //     buf[0] === 137 && buf[1] === 80 && buf[2] === 78 && buf[3] === 71 &&
+    //     buf[4] === 13 && buf[5] === 10 && buf[6] === 26 && buf[7] === 10);
 
-    // console.log(image.readUInt8(2));
-    console.log(buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
-    const uint8array = new Uint8Array(buf);
+    // // console.log(image.readUInt8(2));
+    // console.log(buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6],
+    // buf[7]); const uint8array = new Uint8Array(buf);
 
-    const imageTensor = decodePng(uint8array, 3);
+    // const imageTensor = decodePng(uint8array, 3);
+
+    const imageTensor = decodeImage('src/test1.png', 3);
     console.log('result: ', imageTensor);
     console.log(imageTensor.shape);
+    imageTensor.print();
+    // const cropped = tf.image.cropAndResize(
+    //     imageTensor.toFloat().expandDims(0),
+    //     tensor2d([0, 0, 1, 1], [1, 4]),
+    //     tensor1d([0], 'int32'),
+    //     [10, 20],
+    // );
+    // cropped.print();
   });
 
-  fit('decode jpg', done => {
-    const image = fs.readFileSync('src/download.jpeg');
-    const buf = Buffer.from(image);
+  fit('decode jpg', () => {
+    // const image = fs.readFileSync('src/download.jpeg');
+    // const buf = Buffer.from(image);
 
-    console.log(buf[0] === 255 && buf[1] === 216 && buf[2] === 255);
+    // console.log(buf[0] === 255 && buf[1] === 216 && buf[2] === 255);
 
-    // console.log(image.readUInt8(2));
-    console.log(buf[0], buf[1], buf[2]);
-    const uint8array = new Uint8Array(buf);
+    // // console.log(image.readUInt8(2));
+    // console.log(buf[0], buf[1], buf[2]);
+    // const uint8array = new Uint8Array(buf);
 
-    const imageTensor = decodeJpeg(uint8array, 3, 1, true, false, 1, '');
+    // const imageTensor = decodeJpeg(uint8array, 3, 1, true, false, 1, '');
+    const imageTensor = decodeImage('src/test1.jpeg');
     console.log('result: ', imageTensor);
     console.log(imageTensor.shape);
-    done();
+    imageTensor.print();
+    // const cropped = tf.image.cropAndResize(
+    //     imageTensor.toFloat().expandDims(0),
+    //     tensor2d([0, 0, 1, 1], [1, 4]),
+    //     tensor1d([0], 'int32'),
+    //     [10, 10],
+    // );
+    // cropped.print();
   });
 
-  fit('decode gif', done => {
-    const image = fs.readFileSync('src/test.gif');
-    const buf = Buffer.from(image);
+  fit('decode gif', () => {
+    // const image = fs.readFileSync('src/test.gif');
+    // const buf = Buffer.from(image);
 
-    console.log(
-        buf[0] === 71 && buf[1] === 73 && buf[2] === 70 && buf[3] === 56);
+    // console.log(
+    //     buf[0] === 71 && buf[1] === 73 && buf[2] === 70 && buf[3] === 56);
 
-    // console.log(image.readUInt8(2));
-    console.log(buf[0], buf[1], buf[2], buf[3]);
-    const uint8array = new Uint8Array(buf);
+    // // console.log(image.readUInt8(2));
+    // console.log(buf[0], buf[1], buf[2], buf[3]);
+    // const uint8array = new Uint8Array(buf);
 
-    const imageTensor = decodeJpeg(uint8array, 3, 1, true, false, 1, '');
+    const imageTensor = decodeImage('src/test.gif');
     console.log('result: ', imageTensor);
     console.log(imageTensor.shape);
-    done();
   });
 });

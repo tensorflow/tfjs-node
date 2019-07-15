@@ -55,6 +55,7 @@ export interface TFJSBinding {
   TF_COMPLEX64: number;
   TF_STRING: number;
   TF_RESOURCE: number;
+  TF_UINT8: number;
 
   // TF OpAttrTypes
   TF_ATTR_STRING: number;
