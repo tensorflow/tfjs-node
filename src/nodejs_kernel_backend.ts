@@ -155,9 +155,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   private executeSingleInput(name: string, input: Tensor): Tensor {
-    // const opAttrs = [createTypeOpAttr('T', input.dtype)];
-    return this.executeSingleOutput(name, [], [input]);
-    // return this.executeSingleOutput(name, opAttrs, [input]);
+    const opAttrs = [createTypeOpAttr('T', input.dtype)];
+    return this.executeSingleOutput(name, opAttrs, [input]);
   }
 
   floatPrecision(): 16|32 {
@@ -1646,8 +1645,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   // }
 
   decodeGif(contents: Uint8Array): Tensor4D {
-    const inputArgs = scalar(contents, 'string');
-    return this.executeSingleInput('DecodeGif', inputArgs) as Tensor<Rank.R4>;
+    const inputArgs = [scalar(contents, 'string')];
+    return this.executeSingleOutput('DecodeGif', [], inputArgs) as Tensor<Rank.R4>;
   }
 
   // ------------------------------------------------------------
