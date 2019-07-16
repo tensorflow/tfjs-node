@@ -28,8 +28,26 @@ describe('decode images', () => {
         [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
   });
 
+  fit('decode png 4 channels', async () => {
+    const imageTensor = decodeImage('src/image_png_4_channel_test.png', 4);
+    expect(imageTensor.dtype).toBe('int32');
+    expect(imageTensor.shape).toEqual([1, 2, 2, 4]);
+    test_util.expectArraysEqual(await imageTensor.data(), [
+      238, 101, 0, 255, 50, 50, 50, 255, 100, 50, 0, 255, 200, 100, 50, 255
+    ]);
+  });
+
   it('decode bmp', async () => {
-    const imageTensor = decodeImage('src/image_bmp_test.bmp');
+    const imageTensor = decodeImage('src/image_bmp_test.bmp', 3);
+    expect(imageTensor.dtype).toBe('int32');
+    expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
+    test_util.expectArraysEqual(
+        await imageTensor.data(),
+        [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
+  });
+
+  fit('decode bmp 4 channels', async () => {
+    const imageTensor = decodeImage('src/image_bmp_4_channel_test.bmp', 4);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
     test_util.expectArraysEqual(
