@@ -1630,19 +1630,18 @@ export class NodeJSKernelBackend extends KernelBackend {
     const opAttrs =
         [{name: 'channels', type: this.binding.TF_ATTR_INT, value: channels}];
     const inputArgs = [scalar(contents, 'string')];
-    // const inputArgs = [scalar(contents, 'string')];
     return this.executeSingleOutput('DecodePng', opAttrs, inputArgs) as
         Tensor<Rank.R4>;
   }
 
-  // decodeBmp(contents: Uint8Array, channels: number): Tensor4D {
-  //   const opAttrs =
-  //       [{name: 'channels', type: this.binding.TF_ATTR_INT, value:
-  //       channels}];
-  //   const inputArgs = [scalar(contents, 'string')];
-  //   return this.executeSingleOutput('DecodeBmp', opAttrs, inputArgs) as
-  //       Tensor<Rank.R4>;
-  // }
+  decodeBmp(contents: Uint8Array, channels: number): Tensor4D {
+    const opAttrs =
+        [{name: 'channels', type: this.binding.TF_ATTR_INT, value:
+        channels}];
+    const inputArgs = [scalar(contents, 'string')];
+    return this.executeSingleOutput('DecodeBmp', opAttrs, inputArgs) as
+        Tensor<Rank.R4>;
+  }
 
   decodeGif(contents: Uint8Array): Tensor4D {
     const inputArgs = [scalar(contents, 'string')];

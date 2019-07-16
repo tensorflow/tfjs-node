@@ -22,7 +22,7 @@ const {StringDecoder} = require('string_decoder');
 // const decoder = new StringDecoder('hex');
 
 describe('decode images', () => {
-  fit('decode png', () => {
+  it('decode png', () => {
     // const image = fs.readFileSync('src/tf_logo_test.png');
     // const buf = Buffer.from(image);
 
@@ -49,7 +49,14 @@ describe('decode images', () => {
     // cropped.print();
   });
 
-  fit('decode jpg', () => {
+  fit('decode bmp', () => {
+    const imageTensor = decodeImage('src/test2.bmp');
+    console.log('result: ', imageTensor);
+    console.log(imageTensor.shape);
+    // imageTensor.print();
+  });
+
+  it('decode jpg', () => {
     // const image = fs.readFileSync('src/download.jpeg');
     // const buf = Buffer.from(image);
 
@@ -73,7 +80,7 @@ describe('decode images', () => {
     // cropped.print();
   });
 
-  fit('decode gif', () => {
+  it('decode gif', () => {
     // const image = fs.readFileSync('src/test.gif');
     // const buf = Buffer.from(image);
 
