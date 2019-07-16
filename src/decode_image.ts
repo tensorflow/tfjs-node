@@ -18,7 +18,6 @@
 import {DataType, Tensor4D} from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
 import {nodeBackend} from './ops/op_utils';
-import {Z_BEST_COMPRESSION} from 'zlib';
 
 const JPEG = 'jpeg';
 const PNG = 'png';
@@ -54,60 +53,31 @@ export function decodeGif(contents: Uint8Array) {
 
 
 /**
- * Callback for logging to TensorBoard durnig training.
+ * Detects whether an image is a BMP, GIF, JPEG, or PNG, and performs the
+ * appropriate operation (decodePng, decodeJpeg, decodeBmp, decodeGif) to
+ * convert the provided file into a Tensor of int32.
  *
- * Writes the loss and metric values (if any) to the specified log directory
- * (`logdir`) which can be ingested and visualized by TensorBoard.
- * This callback is usually passed as a callback to `tf.Model.fit()` or
- * `tf.Model.fitDataset()` calls during model training. The frequency at which
- * the values are logged can be controlled with the `updateFreq` field of the
- * configuration object (2nd argument).
- *
- * Usage example:
- * ```js
- * // Constructor a toy multilayer-perceptron regressor for demo purpose.
- * const model = tf.sequential();
- * model.add(
- *     tf.layers.dense({units: 100, activation: 'relu', inputShape: [200]}));
- * model.add(tf.layers.dense({units: 1}));
- * model.compile({
- *   loss: 'meanSquaredError',
- *   optimizer: 'sgd',
- *   metrics: ['MAE']
- * });
- *
- * // Generate some random fake data for demo purpose.
- * const xs = tf.randomUniform([10000, 200]);
- * const ys = tf.randomUniform([10000, 1]);
- * const valXs = tf.randomUniform([1000, 200]);
- * const valYs = tf.randomUniform([1000, 1]);
- *
- * // Start model training process.
- * await model.fit(xs, ys, {
- *   epochs: 100,
- *   validationData: [valXs, valYs],
- *    // Add the tensorBoard callback here.
- *   callbacks: tf.node.tensorBoard('/tmp/fit_logs_1')
- * });
- * ```
- *
- * Then you can use the following commands to point tensorboard
- * to the logdir:
- *
- * ```sh
- * pip install tensorboard  # Unless you've already installed it.
- * tensorboard --logdir /tmp/fit_logs_1
- * ```
- *
- * @param path Directory to which the logs will be written.
- * @param channels Optional configuration arguments.
- * @param ratio Directory to which the logs will be written.
- * @param fancyUpscaling Optional configuration arguments.
- * @param tryRecoverTruncated Optional configuration arguments.
- * @param acceptableFraction Directory to which the logs will be written.
- * @param dctMethod Optional configuration arguments.
- * @returns An instance of `TensorBoardCallback`, which is a subclass of
- *   `tf.CustomCallback`.
+ * @param path Path to the encoded image.
+ * @param channels An optional int. Defaults to 3. Number of color channels for
+ *     the decoded image. It is used when image is type Png, Bmp, or Jpeg.
+ * @param ratio An optional int. Defaults to 1. Downscaling ratio. It is used
+ *     when image is type Jpeg.
+ * @param fancyUpscaling An optional bool. Defaults to True. If true use a
+ *     slower but nicer upscaling of the chroma planes. It is used when image is
+ *     type Jpeg.
+ * @param tryRecoverTruncated An optional bool. Defaults to False. If true try
+ *     to recover an image from truncated input. It is used when image is type
+ *     Jpeg.
+ * @param acceptableFraction An optional float. Defaults to 1. The minimum
+ *     required fraction of lines before a truncated input is accepted. It is
+ *     used when image is type Jpeg.
+ * @param dctMethod An optional string. Defaults to "". string specifying a hint
+ *     about the algorithm used for decompression. Defaults to "" which maps to
+ *     a system-specific default. Currently valid values are ["INTEGER_FAST",
+ *     "INTEGER_ACCURATE"]. The hint may be ignored (e.g., the internal jpeg
+ *     library changes to a version that does not have that specific option.) It
+ *     is used when image is type Jpeg.
+ * @returns A Tensor of type int32.
  */
 /**
  * @doc {heading: 'Node.js', namespace: 'node'}
@@ -139,9 +109,9 @@ export function decodeImage(
       return backend.decodePng(uint8array, channels).toInt().expandDims(0);
     case GIF:
       return backend.decodeGif(uint8array).toInt();
-      case BMP:
-        return backend.decodeBmp(uint8array, channels).toInt().expandDims(0);
-      default:
+    case BMP:
+      return backend.decodeBmp(uint8array, channels).toInt().expandDims(0);
+    default:
       return null;
   }
 }
@@ -167,7 +137,7 @@ function getImageType(buf: Buffer): string {
     // PNG byte chunk starts with `\211 P N G \r \n \032 \n (89 50 4E 47 0D 0A
     // 1A 0A)`
     return PNG;
-  } else if (buf.length>3 && buf[0]===66 && buf[1]==77) {
+  } else if (buf.length > 3 && buf[0] === 66 && buf[1] == 77) {
     // BMP byte chunk starts with `42 4d`
     return BMP;
   } else {

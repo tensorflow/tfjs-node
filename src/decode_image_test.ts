@@ -28,7 +28,7 @@ describe('decode images', () => {
         [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
   });
 
-  fit('decode png 4 channels', async () => {
+  it('decode png 4 channels', async () => {
     const imageTensor = decodeImage('src/image_png_4_channel_test.png', 4);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([1, 2, 2, 4]);
@@ -46,14 +46,15 @@ describe('decode images', () => {
         [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
   });
 
-  fit('decode bmp 4 channels', async () => {
-    const imageTensor = decodeImage('src/image_bmp_4_channel_test.bmp', 4);
-    expect(imageTensor.dtype).toBe('int32');
-    expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
-    test_util.expectArraysEqual(
-        await imageTensor.data(),
-        [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
-  });
+  it('decode bmp 0 channels, use the number of channels in the BMP-encoded image',
+     async () => {
+       const imageTensor = decodeImage('src/image_bmp_test.bmp', 0);
+       expect(imageTensor.dtype).toBe('int32');
+       expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
+       test_util.expectArraysEqual(
+           await imageTensor.data(),
+           [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
+     });
 
   it('decode jpg', async () => {
     const imageTensor = decodeImage('src/image_jpeg_test.jpeg');
@@ -64,10 +65,25 @@ describe('decode images', () => {
         [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
   });
 
+  it('decode jpg with 0 channels, use the number of channels in the JPEG-encoded image',
+     async () => {
+       const imageTensor = decodeImage('src/image_jpeg_test.jpeg', 0);
+       expect(imageTensor.dtype).toBe('int32');
+       expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
+       test_util.expectArraysEqual(
+           await imageTensor.data(),
+           [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
+     });
+
+  it('decode jpg with downscale', async () => {
+    const imageTensor = decodeImage('src/image_jpeg_test.jpeg', 0, 2);
+    expect(imageTensor.dtype).toBe('int32');
+    expect(imageTensor.shape).toEqual([1, 1, 1, 3]);
+    test_util.expectArraysEqual(await imageTensor.data(), [147, 75, 25]);
+  });
+
   it('decode gif', async () => {
     const imageTensor = decodeImage('src/gif_test.gif');
-    console.log('result: ', imageTensor);
-    console.log(imageTensor.shape);
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 2, 3]);
     test_util.expectArraysEqual(await imageTensor.data(), [
