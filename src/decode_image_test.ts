@@ -15,84 +15,46 @@
  * =============================================================================
  */
 
-// import * as tf from '@tensorflow/tfjs';
-// import {tensor1d, tensor2d} from '@tensorflow/tfjs';
+import {test_util} from '@tensorflow/tfjs-core';
 import {decodeImage} from './decode_image';
-const {StringDecoder} = require('string_decoder');
-// const decoder = new StringDecoder('hex');
 
 describe('decode images', () => {
-  it('decode png', () => {
-    // const image = fs.readFileSync('src/tf_logo_test.png');
-    // const buf = Buffer.from(image);
-
-    // console.log(
-    //     buf[0] === 137 && buf[1] === 80 && buf[2] === 78 && buf[3] === 71 &&
-    //     buf[4] === 13 && buf[5] === 10 && buf[6] === 26 && buf[7] === 10);
-
-    // // console.log(image.readUInt8(2));
-    // console.log(buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6],
-    // buf[7]); const uint8array = new Uint8Array(buf);
-
-    // const imageTensor = decodePng(uint8array, 3);
-
-    const imageTensor = decodeImage('src/test1.png', 3);
-    console.log('result: ', imageTensor);
-    console.log(imageTensor.shape);
-    imageTensor.print();
-    // const cropped = tf.image.cropAndResize(
-    //     imageTensor.toFloat().expandDims(0),
-    //     tensor2d([0, 0, 1, 1], [1, 4]),
-    //     tensor1d([0], 'int32'),
-    //     [10, 20],
-    // );
-    // cropped.print();
+  it('decode png', async () => {
+    const imageTensor = decodeImage('src/image_png_test.png', 3);
+    expect(imageTensor.dtype).toBe('int32');
+    expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
+    test_util.expectArraysEqual(
+        await imageTensor.data(),
+        [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
   });
 
-  fit('decode bmp', () => {
-    const imageTensor = decodeImage('src/test2.bmp');
-    console.log('result: ', imageTensor);
-    console.log(imageTensor.shape);
-    // imageTensor.print();
+  it('decode bmp', async () => {
+    const imageTensor = decodeImage('src/image_bmp_test.bmp');
+    expect(imageTensor.dtype).toBe('int32');
+    expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
+    test_util.expectArraysEqual(
+        await imageTensor.data(),
+        [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
   });
 
-  it('decode jpg', () => {
-    // const image = fs.readFileSync('src/download.jpeg');
-    // const buf = Buffer.from(image);
-
-    // console.log(buf[0] === 255 && buf[1] === 216 && buf[2] === 255);
-
-    // // console.log(image.readUInt8(2));
-    // console.log(buf[0], buf[1], buf[2]);
-    // const uint8array = new Uint8Array(buf);
-
-    // const imageTensor = decodeJpeg(uint8array, 3, 1, true, false, 1, '');
-    const imageTensor = decodeImage('src/test1.jpeg');
-    console.log('result: ', imageTensor);
-    console.log(imageTensor.shape);
-    imageTensor.print();
-    // const cropped = tf.image.cropAndResize(
-    //     imageTensor.toFloat().expandDims(0),
-    //     tensor2d([0, 0, 1, 1], [1, 4]),
-    //     tensor1d([0], 'int32'),
-    //     [10, 10],
-    // );
-    // cropped.print();
+  it('decode jpg', async () => {
+    const imageTensor = decodeImage('src/image_jpeg_test.jpeg');
+    expect(imageTensor.dtype).toBe('int32');
+    expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
+    test_util.expectArraysEqual(
+        await imageTensor.data(),
+        [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
   });
 
-  it('decode gif', () => {
-    // const image = fs.readFileSync('src/test.gif');
-    // const buf = Buffer.from(image);
-
-    // console.log(
-    //     buf[0] === 71 && buf[1] === 73 && buf[2] === 70 && buf[3] === 56);
-
-    // // console.log(image.readUInt8(2));
-    // console.log(buf[0], buf[1], buf[2], buf[3]);
-    // const uint8array = new Uint8Array(buf);
-
-    const imageTensor = decodeImage('src/test.gif');
+  it('decode gif', async () => {
+    const imageTensor = decodeImage('src/gif_test.gif');
     console.log('result: ', imageTensor);
     console.log(imageTensor.shape);
+    expect(imageTensor.dtype).toBe('int32');
+    expect(imageTensor.shape).toEqual([2, 2, 2, 3]);
+    test_util.expectArraysEqual(await imageTensor.data(), [
+      238, 101, 0,  50, 50, 50,  100, 50, 0,   200, 100, 50,
+      200, 100, 50, 34, 68, 102, 170, 0,  102, 255, 255, 255
+    ]);
   });
 });
