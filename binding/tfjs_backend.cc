@@ -183,7 +183,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromTypedArray(napi_env env,
 }
 
 // Creates a TFE_TensorHandle from a JS array of Uint8Array values.
-TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
+TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
     napi_env env, int64_t *shape, uint32_t shape_length, TF_DataType dtype,
     napi_value array_value) {
   napi_status nstatus;
@@ -211,7 +211,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromUtf8StringArray(
     // Only Uint8 typed arrays are supported.
     if (array_type != napi_uint8_array) {
       NAPI_THROW_ERROR(env,
-                       "Unsupported array type - expecting Uint8 typed array");
+                       "Unsupported array type - expecting Uint8Array");
       return nullptr;
     }
 
@@ -266,7 +266,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromJSValues(napi_env env,
     return CreateTFE_TensorHandleFromTypedArray(env, shape, shape_length, dtype,
                                                 array_value);
   } else {
-    return CreateTFE_TensorHandleFromUtf8StringArray(env, shape, shape_length,
+    return CreateTFE_TensorHandleFromStringArray(env, shape, shape_length,
                                                      dtype, array_value);
   }
 }
