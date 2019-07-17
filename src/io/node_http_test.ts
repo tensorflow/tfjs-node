@@ -52,7 +52,7 @@ const modelTopology1: {} = {
       'activation': 'linear',
       'trainable': true,
       'kernel_regularizer': null,
-      'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+      'bias_initializer': { 'class_name': 'Zeros', 'config': {} },
       'units': 1,
       'batch_input_shape': [null, 3],
       'use_bias': true,
@@ -65,7 +65,7 @@ const modelTopology1: {} = {
 describe('nodeHTTPRequest-load', () => {
   let requestInits: RequestInit[];
   const setupFakeWeightFiles = (fileBufferMap: {
-    [filename: string]: string|Float32Array|Int32Array|ArrayBuffer|Uint8Array|
+    [filename: string]: string | Float32Array | Int32Array | ArrayBuffer | Uint8Array |
     Uint16Array
   }) => {
     spyOn(tfc.util, 'fetch').and.callFake((path: string, init: RequestInit) => {
@@ -74,14 +74,14 @@ describe('nodeHTTPRequest-load', () => {
         if (path.endsWith('model.json')) {
           contentType = JSON_TYPE;
         } else if (
-            path.endsWith('weightfile0') || path.endsWith('weightfile1')) {
+          path.endsWith('weightfile0') || path.endsWith('weightfile1')) {
           contentType = OCTET_STREAM_TYPE;
         } else {
           reject(new Error(`Invalid path: ${path}`));
         }
         requestInits.push(init);
         resolve(new fetch.Response(
-            fileBufferMap[path], {'headers': {'Content-Type': contentType}}));
+          fileBufferMap[path], { 'headers': { 'Content-Type': contentType } }));
       });
     });
   };
@@ -116,22 +116,23 @@ describe('nodeHTTPRequest-load', () => {
     const floatData = new Float32Array([1, 3, 3, 7]);
     setupFakeWeightFiles({
       'http://localhost/model.json': JSON.stringify(
-          {modelTopology: modelTopology1, weightsManifest: weightManifest1}),
+        { modelTopology: modelTopology1, weightsManifest: weightManifest1 }),
       'http://localhost/weightfile0': floatData,
     });
 
     const handler = tfn.io.nodeHTTPRequest(
-        'http://localhost/model.json',
-        {credentials: 'include', cache: 'no-cache'});
+      'http://localhost/model.json',
+      { credentials: 'include', cache: 'no-cache' });
     const modelArtifacts = await handler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
     expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
 
     expect(requestInits).toEqual([
-      {credentials: 'include', cache: 'no-cache'}, {
+      { credentials: 'include', cache: 'no-cache' }, {
         credentials: 'include',
         cache: 'no-cache',
+        headers: { responseType: 'arraybuffer' }
       }
     ]);
   });
@@ -155,7 +156,7 @@ describe('nodeHTTPRequest-load', () => {
     const floatData = new Float32Array([1, 3, 3, 7]);
     setupFakeWeightFiles({
       'https://localhost/model.json': JSON.stringify(
-          {modelTopology: modelTopology1, weightsManifest: weightManifest1}),
+        { modelTopology: modelTopology1, weightsManifest: weightManifest1 }),
       'https://localhost/weightfile0': floatData,
     });
 
