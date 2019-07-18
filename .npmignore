@@ -1,9 +1,5 @@
 .vscode/
 src/**/*_test.ts
-src/**/*_test.jpeg
-src/**/*_test.bmp
-src/**/*_test.png
-src/**/*_test.gif
 demo/
 deps/lib/*
 deps/include/*
@@ -14,6 +10,7 @@ scripts/publish-npm.sh
 build/
 integration/
 node_modules/
+test_images/
 *.tgz
 .travis.yml
 .npmignore

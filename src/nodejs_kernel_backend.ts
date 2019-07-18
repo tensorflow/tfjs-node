@@ -23,7 +23,6 @@ import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
-
 import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
 import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
@@ -108,7 +107,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         dtype = 'string';
         break;
       case this.binding.TF_UINT8:
-        // TensorFlow use UINT8 as dtype for image tensor. UINT8 is not
+        // TensorFlow uses UINT8 as dtype for image tensor. UINT8 is not
         // supported in TFJS yet, cast it to int32.
         dtype = 'int32';
         break;
@@ -1600,7 +1599,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   decodeJpeg(
       contents: Uint8Array, channels: number, ratio: number,
       fancyUpscaling: boolean, tryRecoverTruncated: boolean,
-      acceptableFraction: number, dctMethod: string): Tensor4D {
+      acceptableFraction: number, dctMethod: string): Tensor3D {
     const opAttrs = [
       {name: 'channels', type: this.binding.TF_ATTR_INT, value: channels},
       {name: 'ratio', type: this.binding.TF_ATTR_INT, value: ratio}, {
@@ -1622,23 +1621,23 @@ export class NodeJSKernelBackend extends KernelBackend {
     ];
     const inputArgs = [scalar(contents, 'string')];
     return this.executeSingleOutput('DecodeJpeg', opAttrs, inputArgs) as
-        Tensor<Rank.R4>;
+        Tensor<Rank.R3>;
   }
 
-  decodePng(contents: Uint8Array, channels: number): Tensor4D {
+  decodePng(contents: Uint8Array, channels: number): Tensor3D {
     const opAttrs =
         [{name: 'channels', type: this.binding.TF_ATTR_INT, value: channels}];
     const inputArgs = [scalar(contents, 'string')];
     return this.executeSingleOutput('DecodePng', opAttrs, inputArgs) as
-        Tensor<Rank.R4>;
+        Tensor<Rank.R3>;
   }
 
-  decodeBmp(contents: Uint8Array, channels: number): Tensor4D {
+  decodeBmp(contents: Uint8Array, channels: number): Tensor3D {
     const opAttrs =
         [{name: 'channels', type: this.binding.TF_ATTR_INT, value: channels}];
     const inputArgs = [scalar(contents, 'string')];
     return this.executeSingleOutput('DecodeBmp', opAttrs, inputArgs) as
-        Tensor<Rank.R4>;
+        Tensor<Rank.R3>;
   }
 
   decodeGif(contents: Uint8Array): Tensor4D {
