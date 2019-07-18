@@ -25,17 +25,17 @@ const GIF = 'gif';
 const BMP = 'BMP';
 
 export function decodeJpeg(
-    contents: Uint8Array, channels: number = 3, ratio: number = 1,
-    fancyUpscaling: boolean = true, tryRecoverTruncated: boolean = false,
-    acceptableFraction: number = 1, dctMethod: string = '') {
+  contents: Uint8Array, channels: number = 3, ratio: number = 1,
+  fancyUpscaling: boolean = true, tryRecoverTruncated: boolean = false,
+  acceptableFraction: number = 1, dctMethod: string = '') {
   const backend = nodeBackend();
   return backend.decodeJpeg(
-      contents, channels, ratio, fancyUpscaling, tryRecoverTruncated,
-      acceptableFraction, dctMethod);
+    contents, channels, ratio, fancyUpscaling, tryRecoverTruncated,
+    acceptableFraction, dctMethod);
 }
 
 export function decodePng(
-    contents: Uint8Array, channels: number = 3, dtype?: DataType) {
+  contents: Uint8Array, channels: number = 3, dtype?: DataType) {
   const backend = nodeBackend();
   return backend.decodePng(contents, channels /*, dtype */);
 }
@@ -83,9 +83,9 @@ export function decodeGif(contents: Uint8Array) {
  * @doc {heading: 'Node.js', namespace: 'node'}
  */
 export function decodeImage(
-    path: string, channels: number = 3, ratio: number = 1,
-    fancyUpscaling: boolean = true, tryRecoverTruncated: boolean = false,
-    acceptableFraction: number = 1, dctMethod: string = ''): Tensor4D {
+  path: string, channels: number = 3, ratio: number = 1,
+  fancyUpscaling: boolean = true, tryRecoverTruncated: boolean = false,
+  acceptableFraction: number = 1, dctMethod: string = ''): Tensor4D {
   const image = fs.readFileSync(path);
   const buf = Buffer.from(image);
   const imageType = getImageType(buf);
@@ -94,17 +94,17 @@ export function decodeImage(
 
   // The return tensor has dtype uint8, which is not supported in TensorFlow.js,
   // casting it to int32 which is the default dtype for image tensor. If the
-  // image is JPEG or PNG type, expanding the tensors shape so it becomes
+  // image is BMP, JPEG or PNG type, expanding the tensors shape so it becomes
   // Tensor4D, which is the default tensor shape for image
   // ([batch,imageHeight,imageWidth, depth]).
   switch (imageType) {
     case JPEG:
       return backend
-          .decodeJpeg(
-              uint8array, channels, ratio, fancyUpscaling, tryRecoverTruncated,
-              acceptableFraction, dctMethod)
-          .toInt()
-          .expandDims(0);
+        .decodeJpeg(
+          uint8array, channels, ratio, fancyUpscaling, tryRecoverTruncated,
+          acceptableFraction, dctMethod)
+        .toInt()
+        .expandDims(0);
     case PNG:
       return backend.decodePng(uint8array, channels).toInt().expandDims(0);
     case GIF:
@@ -126,14 +126,14 @@ function getImageType(buf: Buffer): string {
     // JPEG byte chunk starts with `ff d8 ff`
     return JPEG;
   } else if (
-      buf.length > 4 && buf[0] === 71 && buf[1] === 73 && buf[2] === 70 &&
-      buf[3] === 56) {
+    buf.length > 4 && buf[0] === 71 && buf[1] === 73 && buf[2] === 70 &&
+    buf[3] === 56) {
     // GIF byte chunk starts with `47 49 46 38`
     return GIF;
   } else if (
-      buf.length > 8 && buf[0] === 137 && buf[1] === 80 && buf[2] === 78 &&
-      buf[3] === 71 && buf[4] === 13 && buf[5] === 10 && buf[6] === 26 &&
-      buf[7] === 10) {
+    buf.length > 8 && buf[0] === 137 && buf[1] === 80 && buf[2] === 78 &&
+    buf[3] === 71 && buf[4] === 13 && buf[5] === 10 && buf[6] === 26 &&
+    buf[7] === 10) {
     // PNG byte chunk starts with `\211 P N G \r \n \032 \n (89 50 4E 47 0D 0A
     // 1A 0A)`
     return PNG;
@@ -142,6 +142,6 @@ function getImageType(buf: Buffer): string {
     return BMP;
   } else {
     throw new Error(
-        'Expected image (JPEG, PNG, or GIF), but got unsupported image type');
+      'Expected image (JPEG, PNG, or GIF), but got unsupported image type');
   }
 }
