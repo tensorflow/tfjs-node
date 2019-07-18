@@ -20,7 +20,6 @@ import {isArray, isNullOrUndefined} from 'util';
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 import {TFEOpAttr} from '../tfjs_binding';
 
-
 let gBackend: NodeJSKernelBackend = null;
 
 /** Returns an instance of the Node.js backend. */
@@ -108,6 +107,6 @@ export function ensureTensorflowBackend() {
   }
   tfc.util.assert(
       tfc.getBackend() === 'tensorflow',
-      () => 'Expect the current backend to be tensorflow, but got ' +
-          tfc.getBackend());
+      () => `Expect the current backend to be tensorflow, but got ${
+          tfc.getBackend()}`);
 }

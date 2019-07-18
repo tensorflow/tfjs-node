@@ -64,12 +64,13 @@ export function decodeJpeg(
     tryRecoverTruncated = false, acceptableFraction = 1,
     dctMethod = ''): Tensor3D {
   ensureTensorflowBackend();
-  return tidy(
-      () => {return nodeBackend()
-                 .decodeJpeg(
-                     contents, channels, ratio, fancyUpscaling,
-                     tryRecoverTruncated, acceptableFraction, dctMethod)
-                 .toInt()});
+  return tidy(() => {
+    return nodeBackend()
+        .decodeJpeg(
+            contents, channels, ratio, fancyUpscaling, tryRecoverTruncated,
+            acceptableFraction, dctMethod)
+        .toInt();
+  });
 }
 
 /**
@@ -88,8 +89,9 @@ export function decodeJpeg(
  */
 export function decodePng(contents: Uint8Array, channels = 0): Tensor3D {
   ensureTensorflowBackend();
-  return tidy(
-      () => {return nodeBackend().decodePng(contents, channels).toInt()});
+  return tidy(() => {
+    return nodeBackend().decodePng(contents, channels).toInt();
+  });
 }
 
 /**
@@ -108,8 +110,9 @@ export function decodePng(contents: Uint8Array, channels = 0): Tensor3D {
  */
 export function decodeBmp(contents: Uint8Array, channels = 0): Tensor3D {
   ensureTensorflowBackend();
-  return tidy(
-      () => {return nodeBackend().decodeBmp(contents, channels).toInt()});
+  return tidy(() => {
+    return nodeBackend().decodeBmp(contents, channels).toInt();
+  });
 }
 
 /**
@@ -124,7 +127,9 @@ export function decodeBmp(contents: Uint8Array, channels = 0): Tensor3D {
  */
 export function decodeGif(contents: Uint8Array): Tensor4D {
   ensureTensorflowBackend();
-  return tidy(() => {return nodeBackend().decodeGif(contents).toInt()});
+  return tidy(() => {
+    return nodeBackend().decodeGif(contents).toInt();
+  });
 }
 
 /**

@@ -20,8 +20,6 @@ import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 // tslint:disable-next-line:max-line-length
 import {createTensorsTypeOpAttr, createTypeOpAttr, ensureTensorflowBackend, getTFDType, nodeBackend} from './op_utils';
 
-
-
 describe('Exposes Backend for internal Op execution.', () => {
   it('Provides the Node backend over a function', () => {
     const backend = nodeBackend();
@@ -35,7 +33,7 @@ describe('Exposes Backend for internal Op execution.', () => {
   it('throw error if backend is not tensorflow', async done => {
     try {
       tfc.setBackend('cpu');
-      ensureTensorflowBackend()
+      ensureTensorflowBackend();
       done.fail();
     } catch (err) {
       expect(err.message)
