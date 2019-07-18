@@ -114,10 +114,7 @@ export function decodeImage(
 
 /** Helper function to get image type based on starting bytes of the file. */
 function getImageType(buf: Buffer): string {
-  // Classify the contents of a file based on starting bytes (aka magic number:
-  // https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files)
-  // C code of classifying file type:
-  // https://github.com/tensorflow/tensorflow/blob/4213d5c1bd921f8d5b7b2dc4bbf1eea78d0b5258/tensorflow/core/kernels/decode_image_op.cc#L44
+  // Classify the contents of a file based on starting bytes (aka magic number)
   if (buf.length > 3 && buf[0] === 255 && buf[1] === 216 && buf[2] === 255) {
     // JPEG byte chunk starts with `ff d8 ff`
     return JPEG;
@@ -133,7 +130,7 @@ function getImageType(buf: Buffer): string {
     // PNG byte chunk starts with `\211 P N G \r \n \032 \n (89 50 4E 47 0D 0A
     // 1A 0A)`
     return PNG;
-  } else if (buf.length > 3 && buf[0] === 66 && buf[1] == 77) {
+  } else if (buf.length > 3 && buf[0] === 66 && buf[1] === 77) {
     // BMP byte chunk starts with `42 4d`
     return BMP;
   } else {

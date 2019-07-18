@@ -1647,7 +1647,6 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor<Rank.R4>;
   }
 
-
   // ------------------------------------------------------------
   // TensorBoard-related (tfjs-node-specific) backend kernels.
 

@@ -46,7 +46,8 @@ describe('decode images', () => {
         [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
   });
 
-  it('decode bmp 0 channels, use the number of channels in the BMP-encoded image',
+  it('decode bmp 0 channels, use the number of channels in the BMP-encoded ' +
+         'image',
      async () => {
        const imageTensor = decodeImage('src/image_bmp_test.bmp', 0);
        expect(imageTensor.dtype).toBe('int32');
@@ -65,7 +66,8 @@ describe('decode images', () => {
         [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
   });
 
-  it('decode jpg with 0 channels, use the number of channels in the JPEG-encoded image',
+  it('decode jpg with 0 channels, use the number of channels in the ' +
+         'JPEG-encoded image',
      async () => {
        const imageTensor = decodeImage('src/image_jpeg_test.jpeg', 0);
        expect(imageTensor.dtype).toBe('int32');
