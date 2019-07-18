@@ -1,5 +1,9 @@
 .vscode/
 src/**/*_test.ts
+src/**/*_test.jpeg
+src/**/*_test.bmp
+src/**/*_test.png
+src/**/*_test.gif
 demo/
 deps/lib/*
 deps/include/*

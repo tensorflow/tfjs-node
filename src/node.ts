@@ -20,9 +20,11 @@
  */
 
 import {tensorBoard} from './callbacks';
+import {decodeImage} from './decode_image';
 import {summaryFileWriter} from './tensorboard';
 
 export const node = {
+  decodeImage,
   summaryFileWriter,
   tensorBoard
 };
