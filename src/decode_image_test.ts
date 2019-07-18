@@ -24,8 +24,8 @@ describe('decode images', () => {
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
     test_util.expectArraysEqual(
-      await imageTensor.data(),
-      [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
+        await imageTensor.data(),
+        [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
   });
 
   it('decode png 4 channels', async () => {
@@ -42,38 +42,38 @@ describe('decode images', () => {
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
     test_util.expectArraysEqual(
-      await imageTensor.data(),
-      [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
+        await imageTensor.data(),
+        [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
   });
 
   it('decode bmp 0 channels, use the number of channels in the BMP-encoded image',
-    async () => {
-      const imageTensor = decodeImage('src/image_bmp_test.bmp', 0);
-      expect(imageTensor.dtype).toBe('int32');
-      expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
-      test_util.expectArraysEqual(
-        await imageTensor.data(),
-        [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
-    });
+     async () => {
+       const imageTensor = decodeImage('src/image_bmp_test.bmp', 0);
+       expect(imageTensor.dtype).toBe('int32');
+       expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
+       test_util.expectArraysEqual(
+           await imageTensor.data(),
+           [238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]);
+     });
 
   it('decode jpg', async () => {
     const imageTensor = decodeImage('src/image_jpeg_test.jpeg');
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
     test_util.expectArraysEqual(
-      await imageTensor.data(),
-      [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
+        await imageTensor.data(),
+        [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
   });
 
   it('decode jpg with 0 channels, use the number of channels in the JPEG-encoded image',
-    async () => {
-      const imageTensor = decodeImage('src/image_jpeg_test.jpeg', 0);
-      expect(imageTensor.dtype).toBe('int32');
-      expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
-      test_util.expectArraysEqual(
-        await imageTensor.data(),
-        [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
-    });
+     async () => {
+       const imageTensor = decodeImage('src/image_jpeg_test.jpeg', 0);
+       expect(imageTensor.dtype).toBe('int32');
+       expect(imageTensor.shape).toEqual([1, 2, 2, 3]);
+       test_util.expectArraysEqual(
+           await imageTensor.data(),
+           [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]);
+     });
 
   it('decode jpg with downscale', async () => {
     const imageTensor = decodeImage('src/image_jpeg_test.jpeg', 0, 2);
@@ -87,8 +87,8 @@ describe('decode images', () => {
     expect(imageTensor.dtype).toBe('int32');
     expect(imageTensor.shape).toEqual([2, 2, 2, 3]);
     test_util.expectArraysEqual(await imageTensor.data(), [
-      238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50,
-      200, 100, 50, 34, 68, 102, 170, 0, 102, 255, 255, 255
+      238, 101, 0,  50, 50, 50,  100, 50, 0,   200, 100, 50,
+      200, 100, 50, 34, 68, 102, 170, 0,  102, 255, 255, 255
     ]);
   });
 });
