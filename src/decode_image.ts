@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, Tensor4D} from '@tensorflow/tfjs-core';
+import {Tensor4D} from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
 import {nodeBackend} from './ops/op_utils';
 
@@ -25,9 +25,9 @@ const GIF = 'gif';
 const BMP = 'BMP';
 
 export function decodeJpeg(
-  contents: Uint8Array, channels: number = 3, ratio: number = 1,
-  fancyUpscaling: boolean = true, tryRecoverTruncated: boolean = false,
-  acceptableFraction: number = 1, dctMethod: string = '') {
+  contents: Uint8Array, channels = 3, ratio = 1,
+  fancyUpscaling = true, tryRecoverTruncated = false,
+  acceptableFraction = 1, dctMethod = '') {
   const backend = nodeBackend();
   return backend.decodeJpeg(
     contents, channels, ratio, fancyUpscaling, tryRecoverTruncated,
@@ -35,9 +35,9 @@ export function decodeJpeg(
 }
 
 export function decodePng(
-  contents: Uint8Array, channels: number = 3, dtype?: DataType) {
+  contents: Uint8Array, channels = 3) {
   const backend = nodeBackend();
-  return backend.decodePng(contents, channels /*, dtype */);
+  return backend.decodePng(contents, channels);
 }
 
 export function decodeBmp(contents: Uint8Array, channels?: number) {
@@ -49,8 +49,6 @@ export function decodeGif(contents: Uint8Array) {
   const backend = nodeBackend();
   return backend.decodeGif(contents);
 }
-
-
 
 /**
  * Detects whether an image is a BMP, GIF, JPEG, or PNG, and performs the
@@ -83,9 +81,9 @@ export function decodeGif(contents: Uint8Array) {
  * @doc {heading: 'Node.js', namespace: 'node'}
  */
 export function decodeImage(
-  path: string, channels: number = 3, ratio: number = 1,
-  fancyUpscaling: boolean = true, tryRecoverTruncated: boolean = false,
-  acceptableFraction: number = 1, dctMethod: string = ''): Tensor4D {
+  path: string, channels = 3, ratio = 1, fancyUpscaling = true,
+  tryRecoverTruncated = false, acceptableFraction = 1,
+  dctMethod = ''): Tensor4D {
   const image = fs.readFileSync(path);
   const buf = Buffer.from(image);
   const imageType = getImageType(buf);
@@ -118,7 +116,7 @@ export function decodeImage(
 
 /** Helper function to get image type based on starting bytes of the file. */
 function getImageType(buf: Buffer): string {
-  // Classify the contents of a file based on starting bytes (the magic number:
+  // Classify the contents of a file based on starting bytes (aka magic number:
   // https://en.wikipedia.org/wiki/Magic_number_(programming)#Magic_numbers_in_files)
   // C code of classifying file type:
   // https://github.com/tensorflow/tensorflow/blob/4213d5c1bd921f8d5b7b2dc4bbf1eea78d0b5258/tensorflow/core/kernels/decode_image_op.cc#L44
