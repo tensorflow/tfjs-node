@@ -78,8 +78,8 @@ export function decodeJpeg(
  *      1: output a grayscale image.
  *      3: output an RGB image.
  *      4: output an RGBA image.
- * @param dtype The desired DType of the returned Tensor. Now it could only be
- *     `int32`.
+ * @param dtype The data type of the result. Only `int32` is supported at this
+ *     time.
  * @returns A 3D Tensor of dtype `int32` with shape [height, width, 1/3/4].
  */
 /**
@@ -135,15 +135,15 @@ export function decodeGif(contents: Uint8Array): Tensor4D {
 }
 
 /**
- * Decode an image file in provided path to a 3D or 4D Tensor of dtype `int32`.
- * It can take bmp, gif, jpeg or png file format.
+ * Given the encoded bytes of an image, it returns a 3D or 4D tensor of the
+ * decoded image. Supports BMP, GIF, JPEG and PNG formats.
  *
  * @param content The encoded image in an Uint8Array.
  * @param channels An optional int. Defaults to 0, use the number of channels in
  *     the image. Number of color channels for the decoded image. It is used
  *     when image is type Png, Bmp, or Jpeg.
- * @param dtype The desired DType of the returned Tensor. Now it could only be
- *     `int32`.
+ * @param dtype The data type of the result. Only `int32` is supported at this
+ *     time.
  * @param expandAnimations A boolean which controls the shape of the returned
  *     op's output. If True, the returned op will produce a 3-D tensor for PNG,
  *     JPEG, and BMP files; and a 4-D tensor for all GIFs, whether animated or
@@ -180,16 +180,11 @@ export function decodeImage(
       if (expandAnimations) {
         return decodeGif(content);
       } else {
-        // If not to expand animations, take first fram of the gif and return as
-        // a 3D tensor.
+        // If not to expand animations, take first frame of the gif and return
+        // as a 3D tensor.
         return tidy(() => {
-          const gifTensor = decodeGif(content);
-          // deepcopy the gif tensor shape and get each frame's shape
-          const shape: number[] = [...gifTensor.shape];
-          shape.shift();
-          const newShape: [number, number, number] =
-              shape as [number, number, number];
-          return gifTensor.slice(0, 1).reshape(newShape) as Tensor3D;
+          const img = decodeGif(content);
+          return expandAnimations ? img : img.slice(0, 1).squeeze([0]);
         });
       }
     case ImageType.BMP:
