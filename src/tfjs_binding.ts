@@ -29,6 +29,10 @@ export declare class TFEOpAttr {
   value: boolean|number|object|string|number[];
 }
 
+export declare class Graph {
+  metaGraphDef: string;
+}
+
 export interface TFJSBinding {
   TensorMetadata: typeof TensorMetadata;
   TFEOpAttr: typeof TFEOpAttr;
@@ -46,6 +50,9 @@ export interface TFJSBinding {
   executeOp(
       opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
       numOutputs: number): TensorMetadata[];
+
+  // load a SavedModel from a path:
+  loadSessionFromSavedModel(exportDir: string): Graph;
 
   // TF Types
   TF_FLOAT: number;

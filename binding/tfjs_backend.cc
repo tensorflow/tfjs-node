@@ -17,16 +17,16 @@
 
 #include "tfjs_backend.h"
 
-#include "napi_auto_ref.h"
-#include "tf_auto_tensor.h"
-#include "tfe_auto_op.h"
-#include "utils.h"
-
 #include <algorithm>
 #include <cstring>
 #include <memory>
 #include <set>
 #include <string>
+
+#include "napi_auto_ref.h"
+#include "tf_auto_tensor.h"
+#include "tfe_auto_op.h"
+#include "utils.h"
 
 namespace tfnodejs {
 
@@ -210,8 +210,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
 
     // Only Uint8 typed arrays are supported.
     if (array_type != napi_uint8_array) {
-      NAPI_THROW_ERROR(env,
-                       "Unsupported array type - expecting Uint8Array");
+      NAPI_THROW_ERROR(env, "Unsupported array type - expecting Uint8Array");
       return nullptr;
     }
 
@@ -267,7 +266,7 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromJSValues(napi_env env,
                                                 array_value);
   } else {
     return CreateTFE_TensorHandleFromStringArray(env, shape, shape_length,
-                                                     dtype, array_value);
+                                                 dtype, array_value);
   }
 }
 
@@ -946,6 +945,26 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   }
 
   return output_tensor_infos;
+}
+
+napi_value TFJSBackend::LoadSessionFromSavedModel(napi_env env,
+                                                  napi_value export_dir) {
+  int32_t tensor_id;
+  ENSURE_NAPI_OK_RETVAL(
+      env, napi_get_value_int32(env, tensor_id_value, &tensor_id), nullptr);
+
+  auto tensor_entry = tfe_handle_map_.find(tensor_id);
+  if (tensor_entry == tfe_handle_map_.end()) {
+    NAPI_THROW_ERROR(
+        env, "Get data called on a Tensor not referenced (tensor_id: %d)",
+        tensor_id);
+    return nullptr;
+  }
+
+  napi_value js_value;
+  CopyTFE_TensorHandleDataToJSData(env, tfe_context_, tensor_entry->second,
+                                   &js_value);
+  return js_value;
 }
 
 }  // namespace tfnodejs

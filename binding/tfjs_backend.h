@@ -19,9 +19,11 @@
 #define TF_NODEJS_TFJS_BACKEND_H_
 
 #include <node_api.h>
+
 #include <map>
 #include <memory>
 #include <string>
+
 #include "tensorflow/c/eager/c_api.h"
 
 namespace tfnodejs {
@@ -58,6 +60,10 @@ class TFJSBackend {
   napi_value ExecuteOp(napi_env env, napi_value op_name_value,
                        napi_value op_attr_inputs, napi_value input_tensor_ids,
                        napi_value num_output_values);
+
+  // load a SavedModel from a path:
+  // - export_dir (string)
+  napi_value LoadSessionFromSavedModel(napi_env env, napi_value export_dir);
 
  private:
   TFJSBackend(napi_env env);
