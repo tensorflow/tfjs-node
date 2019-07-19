@@ -177,16 +177,12 @@ export function decodeImage(
     case ImageType.PNG:
       return decodePng(content, channels);
     case ImageType.GIF:
-      if (expandAnimations) {
-        return decodeGif(content);
-      } else {
-        // If not to expand animations, take first frame of the gif and return
-        // as a 3D tensor.
-        return tidy(() => {
-          const img = decodeGif(content);
-          return expandAnimations ? img : img.slice(0, 1).squeeze([0]);
-        });
-      }
+      // If not to expand animations, take first frame of the gif and return
+      // as a 3D tensor.
+      return tidy(() => {
+        const img = decodeGif(content);
+        return expandAnimations ? img : img.slice(0, 1).squeeze([0]);
+      });
     case ImageType.BMP:
       return decodeBmp(content, channels);
     default:
