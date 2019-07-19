@@ -37,7 +37,7 @@ describe('Exposes Backend for internal Op execution.', () => {
       done.fail();
     } catch (err) {
       expect(err.message)
-          .toBe('Expect the current backend to be tensorflow, but got cpu');
+          .toBe('Expect the current backend to be "tensorflow", but got "cpu"');
       tfc.setBackend('tensorflow');
       done();
     }

@@ -107,6 +107,6 @@ export function ensureTensorflowBackend() {
   }
   tfc.util.assert(
       tfc.getBackend() === 'tensorflow',
-      () => `Expect the current backend to be tensorflow, but got ${
-          tfc.getBackend()}`);
+      () => `Expect the current backend to be "tensorflow", but got "${
+          tfc.getBackend()}"`);
 }
