@@ -949,28 +949,31 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
 
 napi_value TFJSBackend::LoadSessionFromSavedModel(napi_env env,
                                                   napi_value export_dir_value) {
-  TF_SessionOptions session_options;
-  TF_Buffer run_options;
+  TF_SessionOptions *session_options = TF_NewSessionOptions();
+  TF_Buffer *run_options = TF_NewBufferFromString("", 0);
 
   napi_status nstatus;
 
-  std::string export_dir;
-  nstatus = GetStringParam(env, export_dir_value, export_dir);
+  std::string export_dir_string;
+  nstatus = GetStringParam(env, export_dir_value, export_dir_string);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  const char *export_dir = export_dir_string.c_str();
 
   constexpr char kSavedModelTagServe[] = "serve";
-  const char *tags[] = [kSavedModelTagServe];
+  const char *tags[] = {kSavedModelTagServe};
   int tags_leng = 1;
 
-  TF_Graph graph = TF_NewGraph();
+  TF_Graph *graph = TF_NewGraph();
 
-  TF_Buffer metaGraphDef = nullptr;
+  TF_Buffer *metagraph = TF_NewBuffer();
+
+  // TF_Buffer metaGraphDef = nullptr;
 
   TF_AutoStatus tf_status;
 
-  TF_LoadSessionFromSavedModel(session_options, run_options, export_dir, tags,
-                               tags_leng, graph, metaGraphDef,
-                               tf_status.status);
+  TF_Session *session = TF_LoadSessionFromSavedModel(
+      session_options, run_options, export_dir, tags, tags_leng, graph,
+      metagraph, tf_status.status);
 
   // int32_t tensor_id;
   // ENSURE_NAPI_OK_RETVAL(
@@ -987,7 +990,7 @@ napi_value TFJSBackend::LoadSessionFromSavedModel(napi_env env,
   // napi_value js_value;
   // CopyTFE_TensorHandleDataToJSData(env, tfe_context_, tensor_entry->second,
   //                                  &js_value);
-  return js_value;
+  return nullptr;
 }
 
 }  // namespace tfnodejs
