@@ -948,22 +948,45 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
 }
 
 napi_value TFJSBackend::LoadSessionFromSavedModel(napi_env env,
-                                                  napi_value export_dir) {
-  int32_t tensor_id;
-  ENSURE_NAPI_OK_RETVAL(
-      env, napi_get_value_int32(env, tensor_id_value, &tensor_id), nullptr);
+                                                  napi_value export_dir_value) {
+  TF_SessionOptions session_options;
+  TF_Buffer run_options;
 
-  auto tensor_entry = tfe_handle_map_.find(tensor_id);
-  if (tensor_entry == tfe_handle_map_.end()) {
-    NAPI_THROW_ERROR(
-        env, "Get data called on a Tensor not referenced (tensor_id: %d)",
-        tensor_id);
-    return nullptr;
-  }
+  napi_status nstatus;
 
-  napi_value js_value;
-  CopyTFE_TensorHandleDataToJSData(env, tfe_context_, tensor_entry->second,
-                                   &js_value);
+  std::string export_dir;
+  nstatus = GetStringParam(env, export_dir_value, export_dir);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  constexpr char kSavedModelTagServe[] = "serve";
+  const char *tags[] = [kSavedModelTagServe];
+  int tags_leng = 1;
+
+  TF_Graph graph = TF_NewGraph();
+
+  TF_Buffer metaGraphDef = nullptr;
+
+  TF_AutoStatus tf_status;
+
+  TF_LoadSessionFromSavedModel(session_options, run_options, export_dir, tags,
+                               tags_leng, graph, metaGraphDef,
+                               tf_status.status);
+
+  // int32_t tensor_id;
+  // ENSURE_NAPI_OK_RETVAL(
+  //     env, napi_get_value_int32(env, tensor_id_value, &tensor_id), nullptr);
+
+  // auto tensor_entry = tfe_handle_map_.find(tensor_id);
+  // if (tensor_entry == tfe_handle_map_.end()) {
+  //   NAPI_THROW_ERROR(
+  //       env, "Get data called on a Tensor not referenced (tensor_id: %d)",
+  //       tensor_id);
+  //   return nullptr;
+  // }
+
+  // napi_value js_value;
+  // CopyTFE_TensorHandleDataToJSData(env, tfe_context_, tensor_entry->second,
+  //                                  &js_value);
   return js_value;
 }
 
