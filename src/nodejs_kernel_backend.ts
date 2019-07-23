@@ -21,9 +21,8 @@ import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
-import {upcastType} from '@tensorflow/tfjs-core/dist/types';
+import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
-
 import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
 import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
@@ -32,7 +31,7 @@ import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 type TensorInfo = {
   shape: number[],
   dtype: number,
-  values: Float32Array|Int32Array|Uint8Array,
+  values: BackendValues,
   id: number
 };
 
@@ -106,6 +105,11 @@ export class NodeJSKernelBackend extends KernelBackend {
         // NOTE(cais): We currently represent resource-type Tensors
         // as string of ubytes.
         dtype = 'string';
+        break;
+      case this.binding.TF_UINT8:
+        // TensorFlow uses UINT8 as dtype for image tensor. UINT8 is not
+        // supported in TFJS yet, cast it to int32.
+        dtype = 'int32';
         break;
       default:
         throw new Error(`Unknown dtype enum ${metadata.dtype}`);
@@ -194,11 +198,11 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   dispose(): void {}
 
-  async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
+  async read(dataId: object): Promise<BackendValues> {
     return this.readSync(dataId);
   }
 
-  readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
+  readSync(dataId: object): BackendValues {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -218,7 +222,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     this.tensorMap.delete(dataId);
   }
 
-  write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
+  write(dataId: object, values: BackendValues): void {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -1590,6 +1594,56 @@ export class NodeJSKernelBackend extends KernelBackend {
     const outShape: [number, number, number] =
         [pixels.height, pixels.width, numChannels];
     return tensor3d(values, outShape, 'int32');
+  }
+
+  decodeJpeg(
+      contents: Uint8Array, channels: number, ratio: number,
+      fancyUpscaling: boolean, tryRecoverTruncated: boolean,
+      acceptableFraction: number, dctMethod: string): Tensor3D {
+    const opAttrs = [
+      {name: 'channels', type: this.binding.TF_ATTR_INT, value: channels},
+      {name: 'ratio', type: this.binding.TF_ATTR_INT, value: ratio}, {
+        name: 'fancy_upscaling',
+        type: this.binding.TF_ATTR_BOOL,
+        value: fancyUpscaling
+      },
+      {
+        name: 'try_recover_truncated',
+        type: this.binding.TF_ATTR_BOOL,
+        value: tryRecoverTruncated
+      },
+      {
+        name: 'acceptable_fraction',
+        type: this.binding.TF_ATTR_FLOAT,
+        value: acceptableFraction
+      },
+      {name: 'dct_method', type: this.binding.TF_ATTR_STRING, value: dctMethod}
+    ];
+    const inputArgs = [scalar(contents, 'string')];
+    return this.executeSingleOutput('DecodeJpeg', opAttrs, inputArgs) as
+        Tensor<Rank.R3>;
+  }
+
+  decodePng(contents: Uint8Array, channels: number): Tensor3D {
+    const opAttrs =
+        [{name: 'channels', type: this.binding.TF_ATTR_INT, value: channels}];
+    const inputArgs = [scalar(contents, 'string')];
+    return this.executeSingleOutput('DecodePng', opAttrs, inputArgs) as
+        Tensor<Rank.R3>;
+  }
+
+  decodeBmp(contents: Uint8Array, channels: number): Tensor3D {
+    const opAttrs =
+        [{name: 'channels', type: this.binding.TF_ATTR_INT, value: channels}];
+    const inputArgs = [scalar(contents, 'string')];
+    return this.executeSingleOutput('DecodeBmp', opAttrs, inputArgs) as
+        Tensor<Rank.R3>;
+  }
+
+  decodeGif(contents: Uint8Array): Tensor4D {
+    const inputArgs = [scalar(contents, 'string')];
+    return this.executeSingleOutput('DecodeGif', [], inputArgs) as
+        Tensor<Rank.R4>;
   }
 
   // ------------------------------------------------------------
