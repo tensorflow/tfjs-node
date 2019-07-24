@@ -17,12 +17,11 @@
 
 // tslint:disable-next-line:max-line-length
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
-// tslint:disable-next-line:no-imports-from-dist
-import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
+import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core';
-import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
-import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
-import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
+import {Activation} from '@tensorflow/tfjs-core';
+import {Tensor5D} from '@tensorflow/tfjs-core';
+import {BackendValues, upcastType} from '@tensorflow/tfjs-core';
 import {isNullOrUndefined} from 'util';
 import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length

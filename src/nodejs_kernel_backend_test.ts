@@ -16,11 +16,11 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
+import {Tensor5D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:max-line-length
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
+import {test_util} from '@tensorflow/tfjs-core';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
-
+const {expectArraysClose} = test_util;
 describe('delayed upload', () => {
   it('should handle data before op execution', async () => {
     const t = tf.tensor1d([1, 2, 3]);
