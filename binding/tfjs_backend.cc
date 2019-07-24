@@ -17,6 +17,10 @@
 
 #include "tfjs_backend.h"
 
+#include <limits.h>
+#include <stdio.h>
+#include <unistd.h>
+
 #include <algorithm>
 #include <cstring>
 #include <memory>
@@ -950,11 +954,11 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
 napi_value TFJSBackend::LoadSessionFromSavedModel(napi_env env,
                                                   napi_value export_dir_value) {
   TF_SessionOptions *session_options = TF_NewSessionOptions();
+
   TF_Buffer *run_options = TF_NewBufferFromString("", 0);
 
-  napi_status nstatus;
-
   std::string export_dir_string;
+  napi_status nstatus;
   nstatus = GetStringParam(env, export_dir_value, export_dir_string);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
   const char *export_dir = export_dir_string.c_str();
@@ -975,22 +979,68 @@ napi_value TFJSBackend::LoadSessionFromSavedModel(napi_env env,
       session_options, run_options, export_dir, tags, tags_leng, graph,
       metagraph, tf_status.status);
 
-  // int32_t tensor_id;
-  // ENSURE_NAPI_OK_RETVAL(
-  //     env, napi_get_value_int32(env, tensor_id_value, &tensor_id), nullptr);
+  if (TF_GetCode(tf_status.status) != TF_OK) {
+    printf("status not ok");
+    printf("%s", TF_Message(tf_status.status));
+  } else {
+    printf("status ok");
+    printf("%s", TF_Message(tf_status.status));
+  }
 
-  // auto tensor_entry = tfe_handle_map_.find(tensor_id);
-  // if (tensor_entry == tfe_handle_map_.end()) {
-  //   NAPI_THROW_ERROR(
-  //       env, "Get data called on a Tensor not referenced (tensor_id: %d)",
-  //       tensor_id);
-  //   return nullptr;
-  // }
+  // TF_DeleteBuffer(run_options);
+  // TF_DeleteSessionOptions(session_options);
+  // tensorflow::MetaGraphDef metagraph_def;
+  // metagraph_def.ParseFromArray(metagraph->data, metagraph->length);
+  // TF_DeleteBuffer(metagraph);
 
-  // napi_value js_value;
-  // CopyTFE_TensorHandleDataToJSData(env, tfe_context_, tensor_entry->second,
-  //                                  &js_value);
-  return nullptr;
+
+  TF_Buffer *run_metadata = TF_NewBuffer();
+  TF_AutoStatus run_status;
+  TF_SessionRun(session, run_options,
+  nullptr, nullptr, 0,
+  nullptr, nullptr, 0,
+  nullptr, 0, run_metadata, run_status.status);
+  // printf("%s", TF_GetCode(run_status.status));
+  printf("%s", TF_Message(run_status.status));
+
+
+  // napi_value output_session_id;
+  // nstatus = napi_create_int32(env, InsertHandle(tfe_handle), &output_session_id);
+  // ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  return 123; //output_session_id;
+}
+
+
+
+napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
+    napi_value tensor_id_value) {
+  int32_t tensor_id;
+  ENSURE_NAPI_OK(env, napi_get_value_int32(env, tensor_id_value, &tensor_id));
+
+  auto tensor_entry = tfe_handle_map_.find(tensor_id);
+  if (tensor_entry == tfe_handle_map_.end()) {
+    NAPI_THROW_ERROR(env,
+                     "Delete called on a Tensor not referenced (tensor_id: %d)",
+                     tensor_id);
+    return;
+  }
+
+  int32_t session_id;
+  ENSURE_NAPI_OK(env, napi_get_value_int32(env, session_id_value, &session_id));
+
+  auto session_entry = tfe_handle_map_.find(session_id);
+  if (session_entry == tfe_handle_map_.end()) {
+    NAPI_THROW_ERROR(env,
+                     "No session found (session_id: %d)",
+                     session_id);
+    return;
+  }
+
+  napi_value output_session_id;
+  nstatus = napi_create_int32(env, InsertHandle(tfe_handle), &output_session_id);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  return output_session_id;
 }
 
 }  // namespace tfnodejs

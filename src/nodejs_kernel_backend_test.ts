@@ -20,6 +20,7 @@ import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 // tslint:disable-next-line:max-line-length
 import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
+import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
 
 describe('delayed upload', () => {
   it('should handle data before op execution', async () => {
@@ -62,5 +63,13 @@ describe('conv3d dilations', () => {
       const filter = tf.ones([1, 1, 1, 1, 1]) as Tensor5D;
       tf.conv3d(input, filter, 1, 'same', 'NDHWC', [2, 2, 2]);
     }
+  });
+});
+
+describe('SavedModel', () => {
+  fit('load saved model', () => {
+    ensureTensorflowBackend();
+    nodeBackend().loadSavedModel(
+        '/usr/local/google/home/kangyizhang/tensorflow/tfjs-node/123');
   });
 });

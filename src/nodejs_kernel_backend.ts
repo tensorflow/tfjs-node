@@ -1714,6 +1714,11 @@ export class NodeJSKernelBackend extends KernelBackend {
   // ~ TensorBoard-related (tfjs-node-specific) backend kernels.
   // ------------------------------------------------------------
 
+  loadSavedModel(path: string) {
+    // const inputArgs = [scalar(path, 'string')];
+    return this.binding.loadSessionFromSavedModel(path);
+  }
+
   memory() {
     // Due to automatic garbage collection, the numbers are unreliable.
     // TODO(kreeger): Since there is finalization in C, count the true

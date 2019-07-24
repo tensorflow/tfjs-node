@@ -16,6 +16,7 @@
  */
 
 #include <node_api.h>
+
 #include "tfjs_backend.h"
 #include "utils.h"
 
@@ -130,6 +131,28 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
   return gBackend->ExecuteOp(env, args[0], args[1], args[2], args[3]);
 }
 
+static napi_value LoadSessionFromSavedModel(napi_env env,
+                                            napi_callback_info info) {
+  napi_status nstatus;
+
+  // Load saved model takes 1 params: export_dir:
+  size_t argc = 1;
+  napi_value args[1];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  if (argc < 1) {
+    NAPI_THROW_ERROR(
+        env, "Invalid number of args passed to LoadSessionFromSavedModel()");
+    return nullptr;
+  }
+
+  ENSURE_VALUE_IS_STRING_RETVAL(env, args[0], nullptr);
+
+  return gBackend->LoadSessionFromSavedModel(env, args[0]);
+}
+
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_status nstatus;
 
@@ -151,6 +174,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
        napi_default, nullptr},
       {"executeOp", nullptr, ExecuteOp, nullptr, nullptr, nullptr, napi_default,
        nullptr},
+      {"loadSessionFromSavedModel", nullptr, LoadSessionFromSavedModel, nullptr,
+       nullptr, nullptr, napi_default, nullptr},
       {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version,
        napi_default, nullptr},
   };

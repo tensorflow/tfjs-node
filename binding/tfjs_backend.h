@@ -70,9 +70,11 @@ class TFJSBackend {
   ~TFJSBackend();
 
   int32_t InsertHandle(TFE_TensorHandle* tfe_handle);
+  // int32_t InsertSession(TFE_TensorHandle* tfe_handle);
 
   TFE_Context* tfe_context_;
   std::map<int32_t, TFE_TensorHandle*> tfe_handle_map_;
+  // std::map<int32_t, TFE_TensorHandle*> tfe_session_map_;
   int32_t next_tensor_id_;
   std::string device_name;
 };
