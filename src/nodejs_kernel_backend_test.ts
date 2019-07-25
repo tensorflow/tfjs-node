@@ -69,7 +69,6 @@ describe('conv3d dilations', () => {
 describe('SavedModel', () => {
   fit('load saved model', () => {
     ensureTensorflowBackend();
-    nodeBackend().loadSavedModel(
-        '/usr/local/google/home/kangyizhang/tensorflow/tfjs-node/123');
+    nodeBackend().loadSavedModel(__dirname.slice(0, -3) + '123');
   });
 });

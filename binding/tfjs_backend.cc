@@ -993,54 +993,64 @@ napi_value TFJSBackend::LoadSessionFromSavedModel(napi_env env,
   // metagraph_def.ParseFromArray(metagraph->data, metagraph->length);
   // TF_DeleteBuffer(metagraph);
 
-
   TF_Buffer *run_metadata = TF_NewBuffer();
   TF_AutoStatus run_status;
-  TF_SessionRun(session, run_options,
-  nullptr, nullptr, 0,
-  nullptr, nullptr, 0,
-  nullptr, 0, run_metadata, run_status.status);
+  TF_Graph *pgraph = TF_NewGraph();
+
+  const float X = 3.0f, Y = 7.0f;
+  TF_Operation *x = Placeholder(pgraph, run_status, "x", TF_FLOAT);
+  ENSURE_TF_OK_RETVAL(env, run_status, nullptr);
+  TF_Operation *y = Placeholder(pgraph, run_status, "y", TF_FLOAT);
+  ENSURE_TF_OK_RETVAL(env, run_status, nullptr);
+
+  TF_Output feeds[] = {{x, 0}};
+  TF_Tensor *feedValues[] = {FloatTensor(X)};
+
+  TF_Output dxy_dx;
+  TF_Output fetches[] = {dxy_dx};
+  TF_Tensor *fetchValues[] = {nullptr};
+  TF_SessionRun(session, run_options, feeds, feedValues, 1, fetches,
+                fetchValues, 1, nullptr, 0, run_metadata, run_status.status);
   // printf("%s", TF_GetCode(run_status.status));
   printf("%s", TF_Message(run_status.status));
 
-
   // napi_value output_session_id;
-  // nstatus = napi_create_int32(env, InsertHandle(tfe_handle), &output_session_id);
-  // ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  // nstatus = napi_create_int32(env, InsertHandle(tfe_handle),
+  // &output_session_id); ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  return 123; //output_session_id;
+  return nullptr;  // output_session_id;
 }
 
+// napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
+//     napi_value tensor_id_value) {
+//   int32_t tensor_id;
+//   ENSURE_NAPI_OK(env, napi_get_value_int32(env, tensor_id_value,
+//   &tensor_id));
 
+//   auto tensor_entry = tfe_handle_map_.find(tensor_id);
+//   if (tensor_entry == tfe_handle_map_.end()) {
+//     NAPI_THROW_ERROR(env,
+//                      "Delete called on a Tensor not referenced (tensor_id:
+//                      %d)", tensor_id);
+//     return;
+//   }
 
-napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
-    napi_value tensor_id_value) {
-  int32_t tensor_id;
-  ENSURE_NAPI_OK(env, napi_get_value_int32(env, tensor_id_value, &tensor_id));
+//   int32_t session_id;
+//   ENSURE_NAPI_OK(env, napi_get_value_int32(env, session_id_value,
+//   &session_id));
 
-  auto tensor_entry = tfe_handle_map_.find(tensor_id);
-  if (tensor_entry == tfe_handle_map_.end()) {
-    NAPI_THROW_ERROR(env,
-                     "Delete called on a Tensor not referenced (tensor_id: %d)",
-                     tensor_id);
-    return;
-  }
+//   auto session_entry = tfe_handle_map_.find(session_id);
+//   if (session_entry == tfe_handle_map_.end()) {
+//     NAPI_THROW_ERROR(env,
+//                      "No session found (session_id: %d)",
+//                      session_id);
+//     return;
+//   }
 
-  int32_t session_id;
-  ENSURE_NAPI_OK(env, napi_get_value_int32(env, session_id_value, &session_id));
-
-  auto session_entry = tfe_handle_map_.find(session_id);
-  if (session_entry == tfe_handle_map_.end()) {
-    NAPI_THROW_ERROR(env,
-                     "No session found (session_id: %d)",
-                     session_id);
-    return;
-  }
-
-  napi_value output_session_id;
-  nstatus = napi_create_int32(env, InsertHandle(tfe_handle), &output_session_id);
-  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-  return output_session_id;
-}
+//   napi_value output_session_id;
+//   nstatus = napi_create_int32(env, InsertHandle(tfe_handle),
+//   &output_session_id); ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr); return
+//   output_session_id;
+// }
 
 }  // namespace tfnodejs
