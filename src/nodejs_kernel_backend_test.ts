@@ -17,17 +17,16 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {Tensor5D} from '@tensorflow/tfjs-core';
-// tslint:disable-next-line:max-line-length
 import {test_util} from '@tensorflow/tfjs-core';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
-const {expectArraysClose} = test_util;
+
 describe('delayed upload', () => {
   it('should handle data before op execution', async () => {
     const t = tf.tensor1d([1, 2, 3]);
-    expectArraysClose(await t.data(), [1, 2, 3]);
+    test_util.expectArraysClose(await t.data(), [1, 2, 3]);
 
     const r = t.add(tf.tensor1d([4, 5, 6]));
-    expectArraysClose(await r.data(), [5, 7, 9]);
+    test_util.expectArraysClose(await r.data(), [5, 7, 9]);
   });
 
   it('Should not cache tensors in the tensor map for device support. ', () => {
