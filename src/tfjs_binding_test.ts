@@ -16,6 +16,7 @@
  */
 
 import * as path from 'path';
+import {ensureTensorflowBackend} from './ops/op_utils';
 import {TFEOpAttr, TFJSBinding} from './tfjs_binding';
 // tslint:disable-next-line:no-require-imports
 const binary = require('node-pre-gyp');
@@ -77,6 +78,11 @@ describe('tensor management', () => {
     expect(id).toBeDefined();
 
     binding.deleteTensor(id);
+  });
+  fit('Creates a tensor', () => {
+    const values = new Int32Array([1]);
+    const id = binding.createTensor([1], binding.TF_INT32, values);
+    console.log('got id:::', id);
   });
   it('throws exception when shape does not match data', () => {
     expect(() => {
@@ -293,5 +299,15 @@ describe('executeOp', () => {
     expect(binding.tensorDataSync(output[0].id)).toEqual(new Float32Array([
       8, 5, 20, 13
     ]));
+  });
+});
+
+describe('SavedModel', () => {
+  fit('load saved model', () => {
+    ensureTensorflowBackend();
+    binding.loadSessionFromSavedModel(__dirname.slice(0, -3) + '123');
+    const values = new Int32Array([1]);
+    const inputId = binding.createTensor([1], binding.TF_INT32, values);
+    binding.runSession(123, inputId);
   });
 });

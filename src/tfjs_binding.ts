@@ -52,7 +52,7 @@ export interface TFJSBinding {
       numOutputs: number): TensorMetadata[];
 
   // load a SavedModel from a path:
-  loadSessionFromSavedModel(exportDir: string): string;
+  loadSessionFromSavedModel(exportDir: string): number;
 
   // run a SavedModel:
   runSession(sessionId: number, tensorId: number): number;

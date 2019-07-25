@@ -83,6 +83,7 @@ class TFJSBackend {
   std::string device_name;
 
   TF_Session *saved_model_session;
+  TF_Buffer *session_run_options;
 };
 
 }  // namespace tfnodejs
