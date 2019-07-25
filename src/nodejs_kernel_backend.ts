@@ -787,7 +787,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.select(nans, x, stepNoNans) as T;
   }
 
-  // tslint:disable-next-line:max-line-length
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
@@ -813,7 +812,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Conv2D', opAttrs, [x, filter]) as Tensor4D;
   }
 
-  // tslint:disable-next-line:max-line-length
   conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
@@ -842,7 +840,6 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor4D;
   }
 
-  // tslint:disable-next-line:max-line-length
   conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
@@ -870,7 +867,6 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor4D;
   }
 
-  // tslint:disable-next-line:max-line-length
   depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
