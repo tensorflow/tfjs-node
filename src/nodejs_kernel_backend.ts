@@ -18,7 +18,7 @@
 // tslint:disable-next-line:max-line-length
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core';
-import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 import {Activation} from '@tensorflow/tfjs-core';
 import {Tensor5D} from '@tensorflow/tfjs-core';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core';
@@ -27,6 +27,8 @@ import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
 import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_utils';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+
+type Conv2DInfo = backend_util.Conv2DInfo;
 
 type TensorInfo = {
   shape: number[],
@@ -785,6 +787,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.select(nans, x, stepNoNans) as T;
   }
 
+  // tslint:disable-next-line:max-line-length
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
@@ -810,6 +813,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.executeSingleOutput('Conv2D', opAttrs, [x, filter]) as Tensor4D;
   }
 
+  // tslint:disable-next-line:max-line-length
   conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
@@ -838,6 +842,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor4D;
   }
 
+  // tslint:disable-next-line:max-line-length
   conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
@@ -865,6 +870,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         Tensor4D;
   }
 
+  // tslint:disable-next-line:max-line-length
   depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
