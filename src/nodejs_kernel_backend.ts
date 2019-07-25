@@ -17,11 +17,9 @@
 
 // tslint:disable-next-line:max-line-length
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
-import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core';
 import {backend_util} from '@tensorflow/tfjs-core';
-import {Activation} from '@tensorflow/tfjs-core';
 import {Tensor5D} from '@tensorflow/tfjs-core';
-import {BackendValues, upcastType} from '@tensorflow/tfjs-core';
+import {BackendValues} from '@tensorflow/tfjs-core';
 import {isNullOrUndefined} from 'util';
 import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
@@ -38,6 +36,8 @@ type TensorInfo = {
 };
 
 interface DataId {}
+
+const {upcastType} = backend_util;
 
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
@@ -165,7 +165,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   epsilon(): number {
-    return EPSILON_FLOAT32;
+    return backend_util.EPSILON_FLOAT32;
   }
 
   /**
@@ -348,7 +348,7 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   fusedBatchMatMul(
       a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
-      bias?: Tensor, activation?: Activation): Tensor3D {
+      bias?: Tensor, activation?: backend_util.Activation): Tensor3D {
     // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
     // achieve the same results:
     let result = this.batchMatMul(a, b, transposeA, transposeB);
