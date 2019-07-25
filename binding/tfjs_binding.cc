@@ -153,6 +153,28 @@ static napi_value LoadSessionFromSavedModel(napi_env env,
   return gBackend->LoadSessionFromSavedModel(env, args[0]);
 }
 
+static napi_value RunSession(napi_env env, napi_callback_info info) {
+  napi_status nstatus;
+
+  // Load saved model takes 2 params: session_id, tensor_id:
+  size_t argc = 2;
+  napi_value args[2];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  if (argc < 2) {
+    NAPI_THROW_ERROR(
+        env, "Invalid number of args passed to LoadSessionFromSavedModel()");
+    return nullptr;
+  }
+
+  ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], nullptr);
+  ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[1], nullptr);
+
+  return gBackend->RunSession(env, args[0], args[1]);
+}
+
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_status nstatus;
 
@@ -175,6 +197,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       {"executeOp", nullptr, ExecuteOp, nullptr, nullptr, nullptr, napi_default,
        nullptr},
       {"loadSessionFromSavedModel", nullptr, LoadSessionFromSavedModel, nullptr,
+       nullptr, nullptr, napi_default, nullptr},
+      {"runSession", nullptr, RunSession, nullptr,
        nullptr, nullptr, napi_default, nullptr},
       {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version,
        napi_default, nullptr},

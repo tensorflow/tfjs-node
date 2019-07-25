@@ -25,6 +25,7 @@
 #include <string>
 
 #include "tensorflow/c/eager/c_api.h"
+#include "tensorflow/c/c_api.h"
 
 namespace tfnodejs {
 
@@ -65,6 +66,9 @@ class TFJSBackend {
   // - export_dir (string)
   napi_value LoadSessionFromSavedModel(napi_env env, napi_value export_dir);
 
+  napi_value RunSession(napi_env env, napi_value session_id_value,
+    napi_value tensor_id_value);
+
  private:
   TFJSBackend(napi_env env);
   ~TFJSBackend();
@@ -77,6 +81,8 @@ class TFJSBackend {
   // std::map<int32_t, TFE_TensorHandle*> tfe_session_map_;
   int32_t next_tensor_id_;
   std::string device_name;
+
+  TF_Session *saved_model_session;
 };
 
 }  // namespace tfnodejs

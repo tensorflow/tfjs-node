@@ -1719,6 +1719,11 @@ export class NodeJSKernelBackend extends KernelBackend {
     return this.binding.loadSessionFromSavedModel(path);
   }
 
+  runSession<R extends Rank>(x: Tensor<R>): number {
+    // const inputArgs = [scalar(path, 'string')];
+    return this.binding.runSession(null, this.getInputTensorIds([x])[0]);
+  }
+
   memory() {
     // Due to automatic garbage collection, the numbers are unreliable.
     // TODO(kreeger): Since there is finalization in C, count the true

@@ -70,5 +70,7 @@ describe('SavedModel', () => {
   fit('load saved model', () => {
     ensureTensorflowBackend();
     nodeBackend().loadSavedModel(__dirname.slice(0, -3) + '123');
+    const input = tf.tensor1d([1], 'float32');
+    nodeBackend().runSession(input);
   });
 });

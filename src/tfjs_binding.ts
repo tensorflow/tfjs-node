@@ -54,6 +54,9 @@ export interface TFJSBinding {
   // load a SavedModel from a path:
   loadSessionFromSavedModel(exportDir: string): string;
 
+  // run a SavedModel:
+  runSession(sessionId: number, tensorId: number): number;
+
   // TF Types
   TF_FLOAT: number;
   TF_INT32: number;
