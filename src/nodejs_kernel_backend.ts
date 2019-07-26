@@ -38,6 +38,7 @@ type TensorInfo = {
 interface DataId {}
 
 const {upcastType} = backend_util;
+const EPSILON_FLOAT32 = 1e-7;
 
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
@@ -165,7 +166,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   epsilon(): number {
-    return backend_util.EPSILON_FLOAT32;
+    return EPSILON_FLOAT32;
   }
 
   /**
