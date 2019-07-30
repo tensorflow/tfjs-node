@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <vector>
+#include <memory.h>
 #include "tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
 
@@ -304,6 +305,91 @@ inline size_t GetTensorNumElements(TF_Tensor* tensor) {
   }
   return ret;
 }
+
+static void Int32Deallocator(void* data, size_t, void* arg) {
+  delete[] static_cast<int32_t*>(data);
+}
+
+inline TF_Tensor* Int32Tensor(const int64_t* dims, int num_dims,
+                       const int32_t* values) {
+  int64_t num_values = 1;
+  for (int i = 0; i < num_dims; ++i) {
+    num_values *= dims[i];
+  }
+  TF_Tensor* t =
+      TF_AllocateTensor(TF_INT32, dims, num_dims, sizeof(int32_t) * num_values);
+  memcpy(TF_TensorData(t), values, sizeof(int32_t) * num_values);
+  return t;
+}
+
+inline TF_Tensor* Int32Tensor(const std::vector<int32_t>& values) {
+  int64_t dims = values.size();
+  return Int32Tensor(&dims, 1, values.data());
+}
+
+inline TF_Tensor* Int32Tensor(int32_t v) {
+  const int num_bytes = sizeof(int32_t);
+  int32_t* values = new int32_t[1];
+  values[0] = v;
+  return TF_NewTensor(TF_INT32, nullptr, 0, values, num_bytes,
+                      &Int32Deallocator, nullptr);
+}
+
+static void Float32Deallocator(void* data, size_t, void* arg) {
+  delete[] static_cast<u_int32_t*>(data);
+}
+
+// inline TF_Tensor* Float32Tensor(const int64_t* dims, int num_dims,
+//                        const float32_t* values) {
+//   int64_t num_values = 1;
+//   for (int i = 0; i < num_dims; ++i) {
+//     num_values *= dims[i];
+//   }
+//   TF_Tensor* t =
+//       TF_AllocateTensor(TF_FLOAT, dims, num_dims, sizeof(float32_t) * num_values);
+//   memcpy(TF_TensorData(t), values, sizeof(float32_t) * num_values);
+//   return t;
+// }
+
+// inline TF_Tensor* Float32Tensor(const std::vector<float32_t>& values) {
+//   int64_t dims = values.size();
+//   return Float32Tensor(&dims, 1, values.data());
+// }
+
+// inline TF_Tensor* Float32Tensor(float32_t v) {
+//   const int num_bytes = sizeof(float32_t);
+//   float32_t* values = new float32_t[1];
+//   values[0] = v;
+//   return TF_NewTensor(TF_FLOAT, nullptr, 0, values, num_bytes,
+//                       &Float32Deallocator, nullptr);
+// }
+
+
+// All the *Helper methods are used as a workaround for the restrictions that
+// one cannot call ASSERT_* methods in non-void-returning functions (when
+// exceptions are disabled during compilation)
+inline void PlaceholderHelper(TF_Graph* graph, TF_Status* s, const char* name,
+                       TF_DataType dtype, const std::vector<int64_t>& dims,
+                       TF_Operation** op) {
+  TF_OperationDescription* desc = TF_NewOperation(graph, "Placeholder", name);
+  TF_SetAttrType(desc, "dtype", dtype);
+  if (!dims.empty()) {
+    TF_SetAttrShape(desc, "shape", dims.data(), dims.size());
+  }
+  *op = TF_FinishOperation(desc, s);
+}
+
+inline TF_Operation* Placeholder(TF_Graph* graph, TF_Status* s, const char* name,
+                          TF_DataType dtype, const std::vector<int64_t>& dims) {
+  TF_Operation* op;
+  PlaceholderHelper(graph, s, name, dtype, dims, &op);
+  return op;
+}
+
+// inline static void Deallocator(void* data, size_t length, void* arg) {
+//         free(data);
+// }
+
 
 }  // namespace tfnodejs
 

@@ -1721,7 +1721,9 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   runSession<R extends Rank>(x: Tensor<R>): number {
     // const inputArgs = [scalar(path, 'string')];
-    return this.binding.runSession(123123, this.getInputTensorIds([x])[0]);
+    const id = this.binding.runSession(123123, this.getInputTensorIds([x])[0]);
+    console.log('lalalalala', this.binding.tensorDataSync(id));
+    return id;
   }
 
   memory() {
