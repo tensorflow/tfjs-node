@@ -21,6 +21,7 @@
 #include <node_api.h>
 
 #include <map>
+#include <utility>
 #include <memory>
 #include <string>
 
@@ -66,24 +67,22 @@ class TFJSBackend {
   // - export_dir (string)
   napi_value LoadSessionFromSavedModel(napi_env env, napi_value export_dir);
 
-  napi_value RunSession(napi_env env, napi_value session_id_value,
-    napi_value tensor_id_value);
+  napi_value RunSession(napi_env env, napi_value session_id,
+    napi_value input_tensor_ids);
 
  private:
   TFJSBackend(napi_env env);
   ~TFJSBackend();
 
   int32_t InsertHandle(TFE_TensorHandle* tfe_handle);
-  // int32_t InsertSession(TFE_TensorHandle* tfe_handle);
+  int32_t InsertSession(TF_Session* tf_session, TF_Graph* tf_graph);
 
   TFE_Context* tfe_context_;
   std::map<int32_t, TFE_TensorHandle*> tfe_handle_map_;
-  // std::map<int32_t, TF_Session*> tf_session_map_;
+  std::map<int32_t, std::pair<TF_Session*, TF_Graph*>> tf_session_map_;
   int32_t next_tensor_id_;
+  int32_t next_session_id_;
   std::string device_name;
-
-  TF_Session *saved_model_session;
-  TF_Buffer *session_run_options;
 };
 
 }  // namespace tfnodejs

@@ -170,7 +170,7 @@ static napi_value RunSession(napi_env env, napi_callback_info info) {
   }
 
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], nullptr);
-  ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[1], nullptr);
+  ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[1], nullptr);
 
   return gBackend->RunSession(env, args[0], args[1]);
 }

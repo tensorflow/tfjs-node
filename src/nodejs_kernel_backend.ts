@@ -35,12 +35,27 @@ type TensorInfo = {
   id: number
 };
 
+class SavedModel {
+  private id: number;
+  private backend: NodeJSKernelBackend;
+
+  constructor(id: number, backend: NodeJSKernelBackend) {
+    this.id = id;
+    this.backend = backend;
+  }
+
+  run(inputTensorIds: Tensor<Rank>[]): Tensor<Rank> {
+    return this.backend.runSession(this.id, inputTensorIds);
+  }
+}
+
 interface DataId {}
 
 export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
+  private sessionMap = new WeakMap<DataId, SavedModel>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
@@ -1715,15 +1730,19 @@ export class NodeJSKernelBackend extends KernelBackend {
   // ------------------------------------------------------------
 
   loadSavedModel(path: string) {
-    // const inputArgs = [scalar(path, 'string')];
-    return this.binding.loadSessionFromSavedModel(path);
+    const newId = {};
+    const id = this.binding.loadSessionFromSavedModel(path);
+    const session = new SavedModel(id, this);
+    this.sessionMap.set(newId, session);
+    return session;
   }
 
-  runSession<R extends Rank>(x: Tensor<R>): number {
+  runSession(sessionId: number, inputTensors: Tensor[]): Tensor {
     // const inputArgs = [scalar(path, 'string')];
-    const id = this.binding.runSession(123123, this.getInputTensorIds([x])[0]);
-    console.log('lalalalala', this.binding.tensorDataSync(id));
-    return id;
+    const outputMetadata = this.binding.runSession(
+        sessionId, this.getInputTensorIds(inputTensors));
+    // console.log('lalalalala', this.binding.tensorDataSync(id));
+    return this.createOutputTensor(outputMetadata[0]);
   }
 
   memory() {

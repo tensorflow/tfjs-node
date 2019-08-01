@@ -69,10 +69,12 @@ describe('conv3d dilations', () => {
 describe('SavedModel', () => {
   fit('load saved model', () => {
     ensureTensorflowBackend();
-    nodeBackend().loadSavedModel(
+    const session = nodeBackend().loadSavedModel(
         __dirname.slice(0, -3) + 'module_no_signatures');
-    // const values = new Int32Array([1]);
-    // const inputId = binding.createTensor([1], binding.TF_INT32, values);
+    console.log('session', session);
+    const input = tf.tensor1d([111], 'int32');
+    const output = session.run([input]);
+    output.print();
     // const input = tf.tensor1d([1]);
     // nodeBackend().runSession(input);
   });
