@@ -19,7 +19,6 @@
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {backend_util} from '@tensorflow/tfjs-core';
 import {Tensor5D} from '@tensorflow/tfjs-core';
-import {BackendValues} from '@tensorflow/tfjs-core';
 import {isNullOrUndefined} from 'util';
 import {Int64Scalar} from './int64_tensors';
 // tslint:disable-next-line:max-line-length
@@ -27,6 +26,7 @@ import {createTensorsTypeOpAttr, createTypeOpAttr, getTFDType} from './ops/op_ut
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type Conv2DInfo = backend_util.Conv2DInfo;
+type BackendValues = backend_util.BackendValues;
 
 type TensorInfo = {
   shape: number[],
