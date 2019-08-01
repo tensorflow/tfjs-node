@@ -44,8 +44,8 @@ class SavedModel {
     this.backend = backend;
   }
 
-  run(inputTensorIds: Tensor<Rank>[]): Tensor<Rank> {
-    return this.backend.runSession(this.id, inputTensorIds);
+  run(inputTensors: Array<Tensor<Rank>>): Tensor<Rank> {
+    return this.backend.runSession(this.id, inputTensors);
   }
 }
 
