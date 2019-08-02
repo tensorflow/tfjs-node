@@ -55,7 +55,9 @@ export interface TFJSBinding {
   loadSessionFromSavedModel(exportDir: string): number;
 
   // run a SavedModel:
-  runSession(sessionId: number, inputTensorIds: number[]): TensorMetadata[];
+  runSession(
+      sessionId: number, inputTensorIds: number[], inputOpName: string,
+      outputOpName: string): TensorMetadata[];
 
   // TF Types
   TF_FLOAT: number;

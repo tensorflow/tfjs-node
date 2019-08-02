@@ -1161,7 +1161,8 @@ napi_value TFJSBackend::LoadSessionFromSavedModel(napi_env env,
 }
 
 napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
-    napi_value input_tensor_ids) {
+    napi_value input_tensor_ids, napi_value input_op_name_value,
+    napi_value output_op_name_value) {
   napi_status nstatus;
   TF_AutoStatus tf_status;
 
@@ -1172,7 +1173,7 @@ napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
   auto session_entry = tf_session_map_.find(session_id);
   if (session_entry == tf_session_map_.end()) {
     NAPI_THROW_ERROR(env,
-                     "No session found (session_id: %d)",
+                     "Session ID not referenced (session_id: %d)",
                      session_id);
     return nullptr;
   }
@@ -1180,8 +1181,6 @@ napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
   uint32_t num_input_ids;
   nstatus = napi_get_array_length(env, input_tensor_ids, &num_input_ids);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-
-  printf(":::::: %d", num_input_ids);
 
   std::vector<TF_Tensor*> input_values;
 
@@ -1222,32 +1221,16 @@ napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
     input_values.push_back(inputTensor);
   }
 
-  // auto tensor_entry = tfe_handle_map_.find(tensor_id);
-  // if (tensor_entry == tfe_handle_map_.end()) {
-  //   NAPI_THROW_ERROR(env,
-  //                    "Delete called on a Tensor not referenced (tensor_id: %d)",
-  //                    tensor_id);
-  //   return nullptr;
-  // }
-
-  // TF_AutoStatus tf_status;
-  // TF_Tensor * inputTensor =TFE_TensorHandleResolve(tensor_entry->second, tf_status.status);
-  // TF_Tensor* const* inputValues = &inputTensor;
-
-// void *tensor_data = TF_TensorData(inputTensor);
-//   int32_t *offsets = (int32_t *)tensor_data;
-// size_t offsets_size = sizeof(int32_t);
-//   char *str_data_start = (char *)tensor_data + offsets_size;
-// printf(str_data_start);
-
-// int32_t* output_contents = static_cast<int32_t*>(TF_TensorData(inputTensor));
-
-  /////////////////////////////
+  std::string input_op_name;
+  nstatus = GetStringParam(env, input_op_name_value, input_op_name);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  std::string output_op_name;
+  nstatus = GetStringParam(env, output_op_name_value, output_op_name);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   auto deallocator = [](void* data, size_t len, void* arg) {};
 
-  // std::vector<TF_Tensor*> input_values;
-  TF_Operation* input_op = TF_GraphOperationByName(session_entry->second.second, "serving_default_x");
+  TF_Operation* input_op = TF_GraphOperationByName(session_entry->second.second, input_op_name.c_str());
 
   NapiAutoRef *auto_ref = new NapiAutoRef();
 
@@ -1268,7 +1251,7 @@ napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
   //  TF_Tensor* input = TF_NewTensor(TF_STRING, nullptr, 0, &encoded[0],
   //                                     sizeof(encoded), deallocator, nullptr);
   // input_values.push_back(inputTensor);
-  TF_Operation* output_op = TF_GraphOperationByName(session_entry->second.second, "StatefulPartitionedCall");
+  TF_Operation* output_op = TF_GraphOperationByName(session_entry->second.second, output_op_name.c_str());
 
   TF_Output outputs = {output_op, 0};
   std::vector<TF_Tensor*> output_values(1, nullptr);

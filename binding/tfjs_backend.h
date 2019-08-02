@@ -68,7 +68,8 @@ class TFJSBackend {
   napi_value LoadSessionFromSavedModel(napi_env env, napi_value export_dir);
 
   napi_value RunSession(napi_env env, napi_value session_id,
-    napi_value input_tensor_ids);
+                        napi_value input_tensor_ids, napi_value input_op_name,
+                        napi_value output_op_name);
 
  private:
   TFJSBackend(napi_env env);

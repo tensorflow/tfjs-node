@@ -73,7 +73,8 @@ describe('SavedModel', () => {
         __dirname.slice(0, -3) + 'module_no_signatures');
     console.log('session', session);
     const input = tf.tensor1d([111], 'int32');
-    const output = session.run([input]);
+    const output =
+        session.run([input], 'serving_default_x', 'StatefulPartitionedCall');
     output.print();
     // const input = tf.tensor1d([1]);
     // nodeBackend().runSession(input);

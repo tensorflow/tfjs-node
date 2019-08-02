@@ -156,9 +156,9 @@ static napi_value LoadSessionFromSavedModel(napi_env env,
 static napi_value RunSession(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
-  // Load saved model takes 2 params: session_id, tensor_id:
-  size_t argc = 2;
-  napi_value args[2];
+  // Load saved model takes 4 params: session_id, tensor_id, input_op_name, output_op_name:
+  size_t argc = 4;
+  napi_value args[4];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
@@ -171,8 +171,10 @@ static napi_value RunSession(napi_env env, napi_callback_info info) {
 
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], nullptr);
   ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[1], nullptr);
+  ENSURE_VALUE_IS_STRING_RETVAL(env, args[2], nullptr);
+  ENSURE_VALUE_IS_STRING_RETVAL(env, args[3], nullptr);
 
-  return gBackend->RunSession(env, args[0], args[1]);
+  return gBackend->RunSession(env, args[0], args[1], args[2], args[3]);
 }
 
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {

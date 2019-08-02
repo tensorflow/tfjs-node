@@ -44,8 +44,10 @@ class SavedModel {
     this.backend = backend;
   }
 
-  run(inputTensors: Array<Tensor<Rank>>): Tensor<Rank> {
-    return this.backend.runSession(this.id, inputTensors);
+  run(inputTensors: Array<Tensor<Rank>>, inputOpName: string,
+      outputOpName: string): Tensor<Rank> {
+    return this.backend.runSession(
+        this.id, inputTensors, inputOpName, outputOpName);
   }
 }
 
@@ -1737,10 +1739,13 @@ export class NodeJSKernelBackend extends KernelBackend {
     return session;
   }
 
-  runSession(sessionId: number, inputTensors: Tensor[]): Tensor {
+  runSession(
+      sessionId: number, inputTensors: Tensor[], inputOpName: string,
+      outputOpName: string): Tensor {
     // const inputArgs = [scalar(path, 'string')];
     const outputMetadata = this.binding.runSession(
-        sessionId, this.getInputTensorIds(inputTensors));
+        sessionId, this.getInputTensorIds(inputTensors), inputOpName,
+        outputOpName);
     // console.log('lalalalala', this.binding.tensorDataSync(id));
     return this.createOutputTensor(outputMetadata[0]);
   }
