@@ -21,7 +21,8 @@ import * as tfl from '@tensorflow/tfjs-layers';
 import * as tfn from '../index';
 
 // We still need node-fetch so that we can mock the core tfc.ENV.platform.fetch
-// call and return a valid response. tslint:disable-next-line:no-require-imports
+// call and return a valid response.
+// tslint:disable-next-line:no-require-imports
 const fetch = require('node-fetch');
 
 const OCTET_STREAM_TYPE = 'application/octet-stream';
