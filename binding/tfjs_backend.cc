@@ -1231,6 +1231,9 @@ napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
   auto deallocator = [](void* data, size_t len, void* arg) {};
 
   TF_Operation* input_op = TF_GraphOperationByName(session_entry->second.second, input_op_name.c_str());
+  if (input_op == nullptr) {
+    NAPI_THROW_ERROR(env, "Input op name can not be found in the graph.");
+  }
 
   NapiAutoRef *auto_ref = new NapiAutoRef();
 
@@ -1252,6 +1255,9 @@ napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
   //                                     sizeof(encoded), deallocator, nullptr);
   // input_values.push_back(inputTensor);
   TF_Operation* output_op = TF_GraphOperationByName(session_entry->second.second, output_op_name.c_str());
+  if (output_op == nullptr) {
+    NAPI_THROW_ERROR(env, "Output op name can not be found in the graph.");
+  }
 
   TF_Output outputs = {output_op, 0};
   std::vector<TF_Tensor*> output_values(1, nullptr);
