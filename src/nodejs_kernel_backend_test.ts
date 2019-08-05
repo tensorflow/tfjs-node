@@ -67,16 +67,14 @@ describe('conv3d dilations', () => {
 });
 
 describe('SavedModel', () => {
-  fit('load saved model', () => {
+  fit('load saved model', async () => {
     ensureTensorflowBackend();
     const session = nodeBackend().loadSavedModel(
         __dirname.slice(0, -3) + 'module_no_signatures');
     console.log('session', session);
-    const input = tf.tensor1d([111], 'int32');
+    const input = tf.tensor1d([123], 'int32');
     const output =
         session.run([input], 'serving_default_x', 'StatefulPartitionedCall');
-    output.print();
-    // const input = tf.tensor1d([1]);
-    // nodeBackend().runSession(input);
+    tf.test_util.expectArraysEqual(await output.data(), [246]);
   });
 });
