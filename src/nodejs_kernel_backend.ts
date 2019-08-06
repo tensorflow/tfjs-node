@@ -348,11 +348,11 @@ export class NodeJSKernelBackend extends KernelBackend {
       x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo, bias?: Tensor4D,
       activation?: Activation, preluActivationWeights?: Tensor): Tensor4D {
     let result = this.conv2d(x, filter, convInfo);
-    if (bias) {
+    if (bias != null) {
       result = this.add(result, bias) as Tensor4D;
     }
 
-    if (activation) {
+    if (activation != null) {
       if (activation === 'linear') {
         // No-op
       } else if (activation === 'relu') {
@@ -375,10 +375,10 @@ export class NodeJSKernelBackend extends KernelBackend {
     // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
     // achieve the same results:
     let result = this.batchMatMul(a, b, transposeA, transposeB);
-    if (bias) {
+    if (bias != null) {
       result = this.add(result, bias) as Tensor3D;
     }
-    if (activation) {
+    if (activation != null) {
       if (activation === 'linear') {
         // No-op
       } else if (activation === 'relu') {
