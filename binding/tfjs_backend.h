@@ -71,6 +71,8 @@ class TFJSBackend {
                         napi_value input_tensor_ids, napi_value input_op_name,
                         napi_value output_op_name);
 
+  void DeleteSession(napi_env env, napi_value session_id);
+
  private:
   TFJSBackend(napi_env env);
   ~TFJSBackend();

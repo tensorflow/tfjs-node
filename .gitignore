@@ -18,3 +18,4 @@ build-tmp-napi-v3/
 build-tmp-napi-v4/
 *.tar.gz
 *.zip
+A.*

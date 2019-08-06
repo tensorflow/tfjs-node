@@ -66,15 +66,27 @@ describe('conv3d dilations', () => {
   });
 });
 
-describe('SavedModel', () => {
-  fit('load saved model', async () => {
-    ensureTensorflowBackend();
-    const session = nodeBackend().loadSavedModel(
-        __dirname.slice(0, -3) + 'module_no_signatures');
-    console.log('session', session);
-    const input = tf.tensor1d([123], 'int32');
-    const output =
-        session.run([input], 'serving_default_x', 'StatefulPartitionedCall');
-    tf.test_util.expectArraysEqual(await output.data(), [246]);
-  });
-});
+// describe('SavedModel', () => {
+//   it('load saved model int', async () => {
+//     ensureTensorflowBackend();
+//     const session =
+//         nodeBackend().loadSavedModel(__dirname.slice(0, -3) +
+//         'times_two_int');
+//     console.log('session', session);
+//     const input = tf.tensor1d([123], 'int32');
+//     const output =
+//         session.run([input], 'serving_default_x', 'StatefulPartitionedCall');
+//     tf.test_util.expectArraysEqual(await output.data(), [246]);
+//   });
+
+//   it('load saved model float', async () => {
+//     ensureTensorflowBackend();
+//     const session = nodeBackend().loadSavedModel(
+//         __dirname.slice(0, -3) + 'times_three_float');
+//     console.log('session', session);
+//     const input = tf.tensor1d([123.4], 'float32');
+//     const output =
+//         session.run([input], 'serving_default_x', 'StatefulPartitionedCall');
+//     tf.test_util.expectArraysClose(await output.data(), [370.2]);
+//   });
+// });

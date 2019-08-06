@@ -177,6 +177,27 @@ static napi_value RunSession(napi_env env, napi_callback_info info) {
   return gBackend->RunSession(env, args[0], args[1], args[2], args[3]);
 }
 
+static napi_value DeleteSession(napi_env env, napi_callback_info info) {
+  napi_status nstatus;
+
+  // Delete session takes 1 param: session ID;
+  size_t argc = 1;
+  napi_value args[1];
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
+
+  if (argc < 1) {
+    NAPI_THROW_ERROR(env, "Invalid number of args passed to deleteSession()");
+    return js_this;
+  }
+
+  ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], js_this);
+
+  gBackend->DeleteSession(env, args[0]);
+  return js_this;
+}
+
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_status nstatus;
 
@@ -201,6 +222,8 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
       {"loadSessionFromSavedModel", nullptr, LoadSessionFromSavedModel, nullptr,
        nullptr, nullptr, napi_default, nullptr},
       {"runSession", nullptr, RunSession, nullptr,
+       nullptr, nullptr, napi_default, nullptr},
+      {"deleteSession", nullptr, DeleteSession, nullptr,
        nullptr, nullptr, napi_default, nullptr},
       {"TF_Version", nullptr, nullptr, nullptr, nullptr, tf_version,
        napi_default, nullptr},

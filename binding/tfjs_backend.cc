@@ -1289,6 +1289,9 @@ napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
   if (TF_GetCode(tf_status.status) != TF_OK) {
     printf("create tfe handle from tf_tensor status not ok");
     printf("%s", TF_Message(tf_status.status));
+    NAPI_THROW_ERROR(env, "Fail to create tfe_handle from tf_tensor: %s",
+                     TF_Message(tf_status.status));
+    return nullptr;
   }
 
   napi_value output_tensor_infos;
@@ -1336,56 +1339,28 @@ napi_value TFJSBackend::RunSession(napi_env env, napi_value session_id_value,
   }
 
   return output_tensor_infos;
-  /////////////////////////////////////////////////////////////////////
-  // int* out_vals_2 = static_cast<int*>(TF_TensorData(output_values[0]));
-  // printf("\n");
-  // printf("%d", out_vals_2);
+}
 
-  // napi_value output_session_id;
-  // nstatus = napi_create_int32(env, 123456, &output_session_id);
-  // ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-  // return output_session_id;
+void TFJSBackend::DeleteSession(napi_env env, napi_value session_id_value) {
+  int32_t session_id;
+  ENSURE_NAPI_OK(env, napi_get_value_int32(env, session_id_value, &session_id));
 
-  //////////////////////////////////////////////////////////////////
-  // TF_Buffer *run_options = TF_NewBufferFromString("", 0);
+  auto session_entry = tf_session_map_.find(session_id);
+  if (session_entry == tf_session_map_.end()) {
+    NAPI_THROW_ERROR(env,
+                     "Delete called on a Session not referenced (session_id: %d)",
+                     session_id);
+    return;
+  }
 
-  // TF_Buffer *run_metadata = TF_NewBuffer();
-
-  // TF_AutoStatus run_status;
-
-  // TF_Output* input = new TF_Output[1];
-
-  // printf(":::::::::::::5");
-
-  // // TF_Tensor *inputValues[] = {TF_NewTensor(TF_FLOAT, nullptr, 0, values,
-  // //                                   num_bytes, DeallocTensor,
-  // &deallocator_called)};
-
-  // printf(":::::::::::::6");
-
-  // TF_Output* output = new TF_Output[1];
-  // TF_Tensor *outputValues[] = {nullptr};
-
-  // printf(":::::::::::::7");
-  // printf("start to run session");
-  // TF_SessionRun(session_entry->second, run_options, input,
-  //   inputValues, 1, output,
-  //               outputValues, 1, nullptr, 0, run_metadata,
-  //               run_status.status);
-
-  // printf(":::::::::::::8");
-
-  // // printf("%s", TF_GetCode(run_status.status));
-  // printf("%s", TF_Message(run_status.status));
-
-  // // napi_value output_tensor_id;
-  // // nstatus = napi_create_int32(env, 123456, &output_tensor_id);
-  // // ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-
-  // napi_value output_tensor_id;
-  // nstatus = napi_create_int32(env, tensor_id, &output_tensor_id);
-  // ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-  // return output_tensor_id;
+  TF_AutoStatus tf_status;
+  TF_DeleteSession(session_entry->second.first, tf_status.status);
+  if (TF_GetCode(tf_status.status) != TF_OK) {
+    NAPI_THROW_ERROR(env, "Fail to delete session: %s",
+                     TF_Message(tf_status.status));
+  }
+  TF_DeleteGraph(session_entry->second.second);
+  tf_session_map_.erase(session_entry);
 }
 
 }  // namespace tfnodejs

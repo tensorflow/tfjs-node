@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,23 +15,18 @@
  * =============================================================================
  */
 
+import {Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
+
 /**
- * Public API symbols under the tf.node.* namespace.
+ * Decode a JPEG-encoded image to a 3D Tensor of dtype `int32`.
+ *
+ * @param path The path of the exported SavedModel
  */
-
-import {tensorBoard} from './callbacks';
-// tslint:disable-next-line:max-line-length
-import {decodeBmp, decodeGif, decodeImage, decodeJpeg, decodePng} from './decode_image';
-import {loadSavedModel} from './saved_model';
-import {summaryFileWriter} from './tensorboard';
-
-export const node = {
-  decodeImage,
-  decodeBmp,
-  decodeGif,
-  decodePng,
-  decodeJpeg,
-  loadSavedModel,
-  summaryFileWriter,
-  tensorBoard
-};
+/**
+ * @doc {heading: 'SavedModel', namespace: 'node'}
+ */
+export function loadSavedModel(path: string): SavedModelSession {
+  ensureTensorflowBackend();
+  return nodeBackend().loadSavedModel(path);
+}

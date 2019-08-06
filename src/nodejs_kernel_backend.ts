@@ -35,19 +35,39 @@ type TensorInfo = {
   id: number
 };
 
-class SavedModel {
+class SavedModelSession {
   private id: number;
   private backend: NodeJSKernelBackend;
+  private deleted: boolean;
 
   constructor(id: number, backend: NodeJSKernelBackend) {
     this.id = id;
     this.backend = backend;
+    this.deleted = false;
   }
 
+  /**
+   * Executes a TensorFlow session.
+   * @param inputTensors The array contains input tensors.
+   * @param inputOpName The input op name in the graph.
+   * @param outputOpName The output op name in the graph.
+   * @return A resulting Tensor from session execution.
+   */
   run(inputTensors: Array<Tensor<Rank>>, inputOpName: string,
       outputOpName: string): Tensor<Rank> {
+    if (this.deleted) {
+      throw new Error('This session has been deleted!');
+    }
+
     return this.backend.runSession(
         this.id, inputTensors, inputOpName, outputOpName);
+  }
+
+  delete() {
+    if (!this.deleted) {
+      this.deleted = true;
+      this.backend.deleteSession(this.id);
+    }
   }
 }
 
@@ -57,7 +77,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   binding: TFJSBinding;
   isGPUPackage: boolean;
   private tensorMap = new WeakMap<DataId, TensorInfo>();
-  private sessionMap = new WeakMap<DataId, SavedModel>();
+  private sessionMap = new WeakMap<DataId, SavedModelSession>();
 
   constructor(binding: TFJSBinding, packageName: string) {
     super();
@@ -1734,7 +1754,7 @@ export class NodeJSKernelBackend extends KernelBackend {
   loadSavedModel(path: string) {
     const newId = {};
     const id = this.binding.loadSessionFromSavedModel(path);
-    const session = new SavedModel(id, this);
+    const session = new SavedModelSession(id, this);
     this.sessionMap.set(newId, session);
     return session;
   }
@@ -1748,6 +1768,10 @@ export class NodeJSKernelBackend extends KernelBackend {
         outputOpName);
     // console.log('lalalalala', this.binding.tensorDataSync(id));
     return this.createOutputTensor(outputMetadata[0]);
+  }
+
+  deleteSession(sessionId: number): void {
+    this.binding.deleteSession(sessionId);
   }
 
   memory() {

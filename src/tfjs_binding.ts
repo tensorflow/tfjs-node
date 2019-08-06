@@ -59,6 +59,9 @@ export interface TFJSBinding {
       sessionId: number, inputTensorIds: number[], inputOpName: string,
       outputOpName: string): TensorMetadata[];
 
+  // delete a SavedModel:
+  deleteSession(sessionId: number): void;
+
   // TF Types
   TF_FLOAT: number;
   TF_INT32: number;
