@@ -13,7 +13,7 @@ TensorFlow.js for Node currently supports the following platforms:
 - Windows CPU (Win 7 or higher)
 - Windows GPU (Win 7 or higher and Cuda 10.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#windows_setup))
 
-For GPU support, tfjs-node-gpu@1.2.4 or later version requires the following NVIDIA® software installed on your system:
+For GPU support, tfjs-node-gpu@1.2.4 or later requires the following NVIDIA® software installed on your system:
 
 | Name | Version |
 | ------------- | ------------- |
