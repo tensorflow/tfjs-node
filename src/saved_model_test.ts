@@ -49,12 +49,20 @@ describe('SavedModel', () => {
     tf.test_util.expectArraysClose(await output.data(), [123.4 * 3]);
   });
 
-  fit('load saved model with signature', async () => {
+  it('load saved model with signature', async () => {
     const session = tf.node.loadSavedModel(
         __dirname.slice(0, -3) + 'module_with_signature');
     const input = tensor1d([123.4], 'float32');
     const output =
         session.run([input], 'serving_default_x', 'StatefulPartitionedCall');
     tf.test_util.expectArraysClose(await output.data(), [123.4 * 3]);
+  });
+
+  fit('load saved model with signature', async () => {
+    const session =
+        tf.node.loadSavedModel(__dirname.slice(0, -3) + 'half_plus_two');
+    const input = tensor1d([123.4], 'float32');
+    const output = session.run([input], 'x', 'y');
+    tf.test_util.expectArraysClose(await output.data(), [123.4 / 2 + 2]);
   });
 });
