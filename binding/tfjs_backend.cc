@@ -991,8 +991,6 @@ napi_value TFJSBackend::LoadSessionFromSavedModel(napi_env env,
 
   TF_Buffer *metagraph = TF_NewBuffer();
 
-  // TF_Buffer metaGraphDef = nullptr;
-
   TF_AutoStatus tf_status;
 
   TF_Session *session = TF_LoadSessionFromSavedModel(

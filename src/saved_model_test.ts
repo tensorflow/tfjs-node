@@ -21,7 +21,7 @@ import {promisify} from 'util';
 import * as tf from './index';
 
 describe('SavedModel', () => {
-  fit('load saved model int', async () => {
+  it('load saved model int', async () => {
     const session =
         tf.node.loadSavedModel(__dirname.slice(0, -3) + 'times_two_int');
     const input = tensor1d([123], 'int32');
@@ -31,9 +31,27 @@ describe('SavedModel', () => {
     session.delete();
   });
 
-  fit('load saved model float', async () => {
+  it('load saved model float', async () => {
     const session =
         tf.node.loadSavedModel(__dirname.slice(0, -3) + 'times_three_float');
+    const input = tensor1d([123.4], 'float32');
+    const output =
+        session.run([input], 'serving_default_x', 'StatefulPartitionedCall');
+    tf.test_util.expectArraysClose(await output.data(), [123.4 * 3]);
+  });
+
+  fit('load saved model no signature', async () => {
+    const session =
+        tf.node.loadSavedModel(__dirname.slice(0, -3) + 'module_no_signatures');
+    const input = tensor1d([123.4], 'float32');
+    const output =
+        session.run([input], 'serving_default_x', 'StatefulPartitionedCall');
+    tf.test_util.expectArraysClose(await output.data(), [123.4 * 3]);
+  });
+
+  fit('load saved model with signature', async () => {
+    const session = tf.node.loadSavedModel(
+        __dirname.slice(0, -3) + 'module_with_signature');
     const input = tensor1d([123.4], 'float32');
     const output =
         session.run([input], 'serving_default_x', 'StatefulPartitionedCall');
