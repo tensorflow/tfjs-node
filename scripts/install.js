@@ -58,10 +58,25 @@ const platform = os.platform();
 let libType = process.argv[2] === undefined ? 'cpu' : process.argv[2];
 let forceDownload = process.argv[3] === undefined ? undefined : process.argv[3];
 
+let packageJsonFile;
+
+async function setPackageJsonFile() {
+  packageJsonFile = JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
+}
+
 async function updateAddonName() {
-  const file = JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
-  file['binary']['package_name'] = addonName;
-  const stringFile = JSON.stringify(file, null, 2)
+  packageJsonFile['binary']['package_name'] = addonName;
+  const stringFile = JSON.stringify(packageJsonFile, null, 2);
+  fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
+    if (err) {
+      console.log('Faile to update addon name in package.json: ' + err);
+    }
+  });
+}
+
+async function revertAddonName() {
+  delete packageJsonFile['binary']['package_name'];
+  const stringFile = JSON.stringify(packageJsonFile, null, 2);
   fs.writeFile((`${__dirname}/../package.json`), stringFile, err => {
     if (err) {
       console.log('Faile to update addon name in package.json: ' + err);
@@ -76,10 +91,9 @@ function getPlatformLibtensorflowUri() {
   let targetUri = BASE_URI;
   if (platform === 'linux') {
     if (os.arch() === 'arm') {
-      // TODO(kreeger): Update to TensorFlow 1.14:
-      // https://github.com/tensorflow/tfjs/issues/1370
+      // TODO(kreeger): Handle arm64 as well:
       targetUri =
-        'https://storage.googleapis.com/tf-builds/libtensorflow_r1_12_linux_arm.tar.gz';
+        'https://storage.googleapis.com/tf-builds/libtensorflow_r1_14_linux_arm.tar.gz';
     } else {
       if (libType === 'gpu') {
         targetUri += GPU_LINUX;
@@ -190,6 +204,8 @@ async function build() {
  * Ensures libtensorflow requirements are met for building the binding.
  */
 async function run() {
+  // Load package.json file
+  setPackageJsonFile();
   // Update addon name in package.json file
   await updateAddonName();
   // First check if deps library exists:
@@ -201,6 +217,7 @@ async function run() {
     await cleanDeps();
     await downloadLibtensorflow(build);
   }
+  revertAddonName();
 }
 
 run();
