@@ -20,8 +20,8 @@ import * as tfl from '@tensorflow/tfjs-layers';
 
 import * as tfn from '../index';
 
-import {fetchWrapper} from './node_http';
-
+// We still need node-fetch so that we can mock the core tfc.ENV.platform.fetch
+// call and return a valid response.
 // tslint:disable-next-line:no-require-imports
 const fetch = require('node-fetch');
 
@@ -68,7 +68,7 @@ describe('nodeHTTPRequest-load', () => {
     [filename: string]: string|Float32Array|Int32Array|ArrayBuffer|Uint8Array|
     Uint16Array
   }) => {
-    spyOn(fetchWrapper, 'fetch')
+    spyOn(tfc.ENV.platform, 'fetch')
         .and.callFake((path: string, init: RequestInit) => {
           return new Promise((resolve, reject) => {
             let contentType = '';
@@ -131,10 +131,8 @@ describe('nodeHTTPRequest-load', () => {
     expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
 
     expect(requestInits).toEqual([
-      {credentials: 'include', cache: 'no-cache'}, {
-        credentials: 'include',
-        cache: 'no-cache',
-      }
+      {credentials: 'include', cache: 'no-cache'},
+      {credentials: 'include', cache: 'no-cache'}
     ]);
   });
 

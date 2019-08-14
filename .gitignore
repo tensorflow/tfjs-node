@@ -11,3 +11,10 @@ demo/train-*
 .nyc_output/
 coverage/
 .DS_Store
+tensorflow-tfjs-node*.tgz
+lib/
+.vscode/ipch/
+build-tmp-napi-v3/
+build-tmp-napi-v4/
+*.tar.gz
+*.zip
