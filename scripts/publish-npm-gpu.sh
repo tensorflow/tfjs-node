@@ -14,11 +14,6 @@
 # limitations under the License.
 # =============================================================================
 
-################################################################################
-# NOTE: This does *not* publish the GPU package. Please run
-# ./scripts/publish-npm-gpu.sh separately to publish the GPU package.
-################################################################################
-
 # Before you run this script, do this:
 # 1) Update the version in package.json
 # 2) Run ./scripts/make-version from the base dir of the project.
@@ -27,7 +22,7 @@
 
 # Then:
 # 5) Checkout the master branch of this repo.
-# 6) Run this script as `./scripts/publish-npm.sh` from the project base dir.
+# 6) Run this script as `./scripts/publish-npm-gpu.sh` from the project base dir.
 
 set -e
 
@@ -44,16 +39,21 @@ if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
   exit
 fi
 
-# build, compress and upload pre-built addon
-yarn build-npm upload
 ./scripts/make-version # This is for safety in case you forgot to do 2).
+yarn build-npm-gpu upload
 
-# Publish the CPU package
-npm publish
-./scripts/tag-version
-echo 'Yay! Published the tfjs-node package to npm.'
+GPU_TARBALLS=$(ls tensorflow-tfjs-node-gpu*.tgz)
+GPU_TARBALL_COUNT=$(echo $GPU_TARBALLS | wc -w | xargs)
+if [ "$GPU_TARBALL_COUNT" != "1" ]; then
+  echo "Error: Please make sure there is exactly one GPU tarball, found:"
+  echo $GPU_TARBALLS
+  exit
+fi
 
-echo '#########################################################################'
-echo '# NOTE: This does *not* publish the GPU package. Please run'
-echo '# ./scripts/publish-npm-gpu.sh separately to publish the GPU package.'
-echo '#########################################################################'
+# Publish the GPU package
+npm publish $GPU_TARBALLS
+
+# Cleanup
+git checkout .
+
+echo 'Yay! Published the tfjs-node-gpu package to npm.'

@@ -35,51 +35,38 @@
       [
         'OS=="linux"', {
           'libraries' : [
-            '-Wl,-rpath,\$$ORIGIN',
+            '-Wl,-rpath,\$$ORIGIN/../../deps/lib',
             '-ltensorflow',
             '-ltensorflow_framework',
           ],
-          'library_dirs' : ['<(PRODUCT_DIR)'],
-          'actions': [
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/libtensorflow.so',
-              ],
-              'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
-              ]
-            }
-          ],
+          'library_dirs' : ['<(module_root_dir)/deps/lib'],
         }
       ],
       [
         'OS=="mac"', {
           'libraries' : [
-            '-Wl,-rpath,@loader_path',
-            '-ltensorflow',
+            '<(module_root_dir)/deps/lib/libtensorflow.dylib',
+            '<(module_root_dir)/deps/lib/libtensorflow_framework.dylib',
           ],
-          'library_dirs' : ['<(PRODUCT_DIR)'],
-          'actions': [
+          'postbuilds': [
             {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/libtensorflow.so',
-              ],
+              'postbuild_name': 'Adjust libtensorflow load path',
               'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
+                'install_name_tool',
+                "-change",
+                "@rpath/libtensorflow.1.dylib",
+                "@loader_path/../../deps/lib/libtensorflow.dylib",
+                "<(PRODUCT_DIR)/tfjs_binding.node"
+              ]
+            },
+            {
+              'postbuild_name': 'Adjust libtensorflow_framework load path',
+              'action': [
+                'install_name_tool',
+                "-change",
+                "@rpath/libtensorflow_framework.1.dylib",
+                "@loader_path/../../deps/lib/libtensorflow_framework.dylib",
+                "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             }
           ],
@@ -89,7 +76,7 @@
         'OS=="win"', {
           'defines': ['COMPILER_MSVC'],
           'libraries': ['tensorflow'],
-          'library_dirs' : ['<(INTERMEDIATE_DIR)'],
+          'library_dirs' : ['<(module_root_dir)/deps/lib'],
           'variables': {
             'tensorflow-library-target': 'windows'
           },
@@ -98,56 +85,24 @@
             # UDT 'TF_WhileParams' which is incompatible with C.
             # (in include/tensorflow/c/c_api.h)
             4190
-          ],
-          'actions': [
-            {
-              'action_name': 'deps-stage',
-              'inputs': [
-                '<(module_root_dir)/scripts/deps-stage.js'
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/tensorflow.dll',
-              ],
-              'action': [
-                'node',
-                '<@(_inputs)',
-                '<@(tensorflow-library-action)',
-                '<(PRODUCT_DIR)'
-              ]
-            },
-            {
-              'action_name': 'generate_def',
-              'inputs': [
-                '<(module_root_dir)/scripts/generate_defs.js',
-                '<@(tensorflow_headers)',
-                "<(PRODUCT_DIR)/tensorflow.dll"
-              ],
-              'outputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.def'
-              ],
-              'action': [
-                'cmd',
-                '/c node --max-old-space-size=4096 <@(_inputs) > <@(_outputs)'
-              ]
-            },
-            {
-              'action_name': 'build-tensorflow-lib',
-              'inputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.def'
-              ],
-              'outputs': [
-                '<(INTERMEDIATE_DIR)/tensorflow.lib'
-              ],
-              'action': [
-                'lib',
-                '/def:<@(_inputs)',
-                '/out:<@(_outputs)',
-                '/machine:<@(target_arch)'
-              ]
-            },
-          ],
+          ]
         },
       ]
     ],
-  }]
+  }
+  , {
+      "target_name": "action_after_build",
+      "type": "none",
+      "dependencies": [ "<(module_name)" ],
+      "copies": [
+        {
+          "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
+          "destination": "<(module_path)"
+        }
+      ]
+    }
+    ],
+  "defines": [
+      "NAPI_VERSION=<(napi_build_version)"
+  ]
 }
