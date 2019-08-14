@@ -19,7 +19,8 @@
 import {BackendTimingInfo, DataMover, DataType, fill, KernelBackend, ones, Rank, rsqrt, Scalar, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 import {EPSILON_FLOAT32} from '@tensorflow/tfjs-core/dist/backends/backend';
 import {Conv2DInfo, Conv3DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
-import {Activation} from '@tensorflow/tfjs-core/dist/ops/fused_util';
+// tslint:disable-next-line: max-line-length
+import {Activation, FusedBatchMatMulConfig} from '@tensorflow/tfjs-core/dist/ops/fused_util';
 import {Tensor5D} from '@tensorflow/tfjs-core/dist/tensor';
 import {BackendValues, upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {isNullOrUndefined} from 'util';
@@ -288,30 +289,22 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[],
-      beginMask: number, endMask: number, ellipsisMask: number,
-      newAxisMask: number, shrinkAxisMask: number): T {
+      x: T, begin: number[], end: number[], strides: number[]): T {
     const beginTensor = tensor1d(begin, 'int32');
+    for (let axis = 0; axis < end.length; axis++) {
+      if (strides[axis] < 0 && end[axis] === -1) {
+        end[axis] -= x.shape[axis];
+      }
+    }
     const endTensor = tensor1d(end, 'int32');
     const stridesTensor = tensor1d(strides, 'int32');
     const opAttrs = [
       createTypeOpAttr('T', x.dtype), createTypeOpAttr('Index', 'int32'),
-      {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: beginMask},
-      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: endMask}, {
-        name: 'ellipsis_mask',
-        type: this.binding.TF_ATTR_INT,
-        value: ellipsisMask
-      },
-      {
-        name: 'new_axis_mask',
-        type: this.binding.TF_ATTR_INT,
-        value: newAxisMask
-      },
-      {
-        name: 'shrink_axis_mask',
-        type: this.binding.TF_ATTR_INT,
-        value: shrinkAxisMask
-      }
+      {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'ellipsis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'new_axis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'shrink_axis_mask', type: this.binding.TF_ATTR_INT, value: 0}
     ];
     return this.executeSingleOutput(
                'StridedSlice', opAttrs,
@@ -369,9 +362,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   fusedBatchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
-      bias?: Tensor, activation?: Activation,
-      preluActivationWeights?: Tensor): Tensor3D {
+      {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
+          FusedBatchMatMulConfig): Tensor3D {
     // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
     // achieve the same results:
     let result = this.batchMatMul(a, b, transposeA, transposeB);
