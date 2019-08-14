@@ -1678,7 +1678,7 @@ export class NodeJSKernelBackend extends KernelBackend {
       progressive: boolean = false, optimize_size: boolean = false,
       chroma_downsampling: boolean = true, density_unit: 'in' | 'cm' = 'in',
       x_density: number = 300, y_density: number = 300, xmp_metadata: string = ''
-      ): string {
+      ): Uint8Array {
     const opAttrs = [
       {name: 'format', type: this.binding.TF_ATTR_STRING, value: format},
       {name: 'quality', type: this.binding.TF_ATTR_INT, value: quality},
@@ -1693,9 +1693,13 @@ export class NodeJSKernelBackend extends KernelBackend {
 
     // TODO: how to create a uint8 tensor?
     const inputTensorId = this.binding.createTensor(image.shape, this.binding.TF_UINT8, new Uint8Array(image.dataSync()));
-    const outputMetadata = this.binding.executeOp(
-      'EncodeJpeg', opAttrs, [inputTensorId], 1);
-    return this.createOutputTensor(outputMetadata[0]).dataSync()[0] as any as string;
+    const outputMetadata = this.binding.executeOp('EncodeJpeg', opAttrs, [inputTensorId], 1);
+
+    const outputTensorInfo = outputMetadata[0]
+    // prevent the tensor data from being converted to a UTF8 string, since
+    // the encoded data is not valid UTF8
+    outputTensorInfo.dtype = this.binding.TF_UINT8
+    return this.createOutputTensor(outputTensorInfo).dataSync()[0] as any as Uint8Array;
   }
 
   // ------------------------------------------------------------

@@ -18,7 +18,7 @@
 import {Tensor3D} from '@tensorflow/tfjs-core';
 import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
 
-export function encodeJpeg(image: Tensor3D): string {
+export function encodeJpeg(image: Tensor3D): Uint8Array {
   ensureTensorflowBackend();
   return nodeBackend().encodeJpeg(image);
 }
