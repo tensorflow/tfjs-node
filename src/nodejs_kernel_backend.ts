@@ -36,8 +36,8 @@ type TensorInfo = {
 };
 
 class SavedModelSession {
-  private id: number;
-  private backend: NodeJSKernelBackend;
+  private readonly id: number;
+  private readonly backend: NodeJSKernelBackend;
   private deleted: boolean;
 
   constructor(id: number, backend: NodeJSKernelBackend) {

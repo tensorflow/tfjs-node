@@ -63,14 +63,21 @@ class TFJSBackend {
                        napi_value op_attr_inputs, napi_value input_tensor_ids,
                        napi_value num_output_values);
 
-  // load a SavedModel from a path:
+  // Load a SavedModel from a path:
   // - export_dir (string)
   napi_value LoadSessionFromSavedModel(napi_env env, napi_value export_dir);
 
+  // Execute a session with the provided input/output name:
+  // - session_id (number)
+  // - input_tensor_ids (array of input tensor IDs)
+  // - input_op_name (string)
+  // - output_op_name (string)
   napi_value RunSession(napi_env env, napi_value session_id,
                         napi_value input_tensor_ids, napi_value input_op_name,
                         napi_value output_op_name);
 
+  // Delete the corresponding TF_Session and TF_Graph
+  // - session_id (number)
   void DeleteSession(napi_env env, napi_value session_id);
 
  private:

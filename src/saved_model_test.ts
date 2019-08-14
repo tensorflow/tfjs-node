@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {tensor1d, test_util} from '@tensorflow/tfjs-core';
+import {tensor1d, tensor2d, test_util} from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
 import {promisify} from 'util';
 import * as tf from './index';
@@ -40,7 +40,7 @@ describe('SavedModel', () => {
     tf.test_util.expectArraysClose(await output.data(), [123.4 * 3]);
   });
 
-  fit('load saved model no signature', async () => {
+  it('load saved model no signature', async () => {
     const session =
         tf.node.loadSavedModel(__dirname.slice(0, -3) + 'module_no_signatures');
     const input = tensor1d([123.4], 'float32');
@@ -58,11 +58,19 @@ describe('SavedModel', () => {
     tf.test_util.expectArraysClose(await output.data(), [123.4 * 3]);
   });
 
-  fit('load saved model with signature', async () => {
+  it('load saved model with signature', async () => {
     const session =
         tf.node.loadSavedModel(__dirname.slice(0, -3) + 'half_plus_two');
     const input = tensor1d([123.4], 'float32');
     const output = session.run([input], 'x', 'y');
     tf.test_util.expectArraysClose(await output.data(), [123.4 / 2 + 2]);
+  });
+
+  fit('load tf v1 saved model with signature', async () => {
+    const session = tf.node.loadSavedModel(__dirname.slice(0, -3) + 'tfv1');
+    const input = tensor2d([1.0, 2.0, 3.0, 4.0], [2, 2]);
+    const output = session.run([input], 'a/Const', 'a/MatMul');
+    const y = tf.matMul(tensor2d([[2.0, 2.0], [2.0, 2.0]], [2, 2]), input);
+    tf.test_util.expectArraysClose(await output.data(), await y.data());
   });
 });
