@@ -14,22 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
+import * as tf from '.';
+import {getImageType, ImageType} from './decode_image';
 
-import {test_util} from '@tensorflow/tfjs-core';
-import * as tf from './index';
-import {getUint8ArrayFromImage} from './decode_image_test';
 
 fdescribe('encode images', () => {
   it('encodeJpeg', async () => {
-    const uint8array =
-        await getUint8ArrayFromImage('test_images/image_png_test.png');
-    const jpegTensor = tf.tensor3d(new Uint8Array([238, 101, 0, 50, 50, 50, 100, 50, 0, 200, 100, 50]), [2, 2, 3]);
-    const jpegString = await tf.node.encodeJpeg(jpegTensor);
-    jpegTensor.dispose();
-    console.log(jpegString)
-    // TODO
-    test_util.expectArraysEqual(
-        new Uint8Array(Buffer.from(jpegString).buffer),
-        uint8array);
+    const imageTensor = tf.tensor3d(new Uint8Array([239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const jpegEncodedData = await tf.node.encodeJpeg(imageTensor);
+    imageTensor.dispose();
+    expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
   });
 });
