@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor3D} from '@tensorflow/tfjs-core';
+import {Tensor, Tensor3D, Rank} from '@tensorflow/tfjs-core';
 import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
 
 export async function encodeJpeg(
@@ -26,14 +26,32 @@ export async function encodeJpeg(
   ): Promise<Uint8Array> {
   ensureTensorflowBackend();
 
-  const imageData = new Uint8Array(await image.data())
-  const encodedJpegTensor = nodeBackend().encodeJpeg(
-    imageData, image.shape, format, quality,
-    progressive, optimize_size, chroma_downsampling, density_unit, x_density,
-    y_density, xmp_metadata);
+  const backendEncodeImage = (imageData: Uint8Array) =>
+    nodeBackend().encodeJpeg(
+      imageData, image.shape, format, quality, progressive, optimize_size,
+      chroma_downsampling, density_unit, x_density, y_density, xmp_metadata);
 
-  const encodedJpegData = (
-    await encodedJpegTensor.data())[0] as any as Uint8Array;
-  encodedJpegTensor.dispose();
-  return encodedJpegData;
+    return encodeImage(image, backendEncodeImage);
+}
+
+export async function encodePng(
+  image: Tensor3D, compression: number = 1
+  ): Promise<Uint8Array> {
+  ensureTensorflowBackend();
+
+  const backendEncodeImage = (imageData: Uint8Array) => nodeBackend().encodePng(
+    imageData, image.shape, compression);
+  return encodeImage(image, backendEncodeImage);
+}
+
+async function encodeImage(
+  image: Tensor3D, backendEncodeImage: (imageData: Uint8Array) => Tensor<Rank>
+  ): Promise<Uint8Array> {
+  const encodedDataTensor = backendEncodeImage(new Uint8Array(
+    await image.data()));
+
+  const encodedPngData = (
+    await encodedDataTensor.data())[0] as any as Uint8Array;
+  encodedDataTensor.dispose();
+  return encodedPngData;
 }

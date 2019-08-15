@@ -25,4 +25,10 @@ fdescribe('encode images', () => {
     imageTensor.dispose();
     expect(getImageType(jpegEncodedData)).toEqual(ImageType.JPEG);
   });
+  it('encodePng', async () => {
+    const imageTensor = tf.tensor3d(new Uint8Array([239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
+    const pngEncodedData = await tf.node.encodePng(imageTensor);
+    imageTensor.dispose();
+    expect(getImageType(pngEncodedData)).toEqual(ImageType.PNG);
+  });
 });
