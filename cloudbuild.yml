@@ -1,18 +1,31 @@
 steps:
+# Install dev deps.
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
+
+# Run unit tests.
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
   waitFor: ['yarn']
+
+# Run integration tests.
 - name: 'node:10'
   entrypoint: 'yarn'
   id: 'test-ts-integration'
   args: ['test-ts-integration']
   waitFor: ['yarn', 'test']
+
+# Run travis
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'test-travis'
+  args: ['test-travis']
+  waitFor: ['yarn']
+
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 options:
