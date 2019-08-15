@@ -30,7 +30,7 @@
     "test": "ts-node src/run_tests.ts",
     "test-ci": "./scripts/test-ci.sh",
     "test-ts-integration": "./scripts/test-ts-integration.sh",
-    "test-travis": "./scripts/test-travis.sh",
+    "test-travis": "./scripts/test-travis.js",
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat",
     "upload-windows-addon-gpu": "./scripts/build-and-upload-windows-addon-gpu.bat"
   },
@@ -41,7 +41,7 @@
     "@types/rimraf": "~2.0.2",
     "clang-format": "~1.2.2",
     "jasmine": "~3.1.0",
-    "node-fetch": "^2.3.0",
+    "node-fetch": "^2.6.0",
     "nyc": "^13.3.0",
     "tmp": "^0.0.33",
     "ts-node": "^5.0.1",
