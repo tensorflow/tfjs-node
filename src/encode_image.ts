@@ -18,7 +18,22 @@
 import {Tensor3D} from '@tensorflow/tfjs-core';
 import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
 
-export function encodeJpeg(image: Tensor3D): Uint8Array {
+export async function encodeJpeg(
+  image: Tensor3D, format: '' | 'grayscale' | 'rgb' = '', quality: number = 95,
+  progressive: boolean = false, optimize_size: boolean = false,
+  chroma_downsampling: boolean = true, density_unit: 'in' | 'cm' = 'in',
+  x_density: number = 300, y_density: number = 300, xmp_metadata: string = ''
+  ): Promise<Uint8Array> {
   ensureTensorflowBackend();
-  return nodeBackend().encodeJpeg(image);
+
+  const imageData = new Uint8Array(await image.data())
+  const encodedJpegTensor = nodeBackend().encodeJpeg(
+    imageData, image.shape, format, quality,
+    progressive, optimize_size, chroma_downsampling, density_unit, x_density,
+    y_density, xmp_metadata);
+
+  const encodedJpegData = (
+    await encodedJpegTensor.data())[0] as any as Uint8Array;
+  encodedJpegTensor.dispose();
+  return encodedJpegData;
 }
