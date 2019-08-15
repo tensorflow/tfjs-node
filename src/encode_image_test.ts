@@ -18,7 +18,7 @@ import * as tf from '.';
 import {getImageType, ImageType} from './decode_image';
 
 
-fdescribe('encode images', () => {
+describe('encode images', () => {
   it('encodeJpeg', async () => {
     const imageTensor = tf.tensor3d(new Uint8Array(
       [239, 100, 0, 46, 48, 47, 92, 49, 0, 194, 98, 47]), [2, 2, 3]);
