@@ -1680,19 +1680,19 @@ export class NodeJSKernelBackend extends KernelBackend {
       imageShape, this.binding.TF_UINT8, imageData);
     const outputMetadata = this.binding.executeOp(
       name, opAttrs, [inputTensorId], 1);
-    const outputTensorInfo = outputMetadata[0]
+    const outputTensorInfo = outputMetadata[0];
     // prevent the tensor data from being converted to a UTF8 string, since
     // the encoded data is not valid UTF8
-    outputTensorInfo.dtype = this.binding.TF_UINT8
+    outputTensorInfo.dtype = this.binding.TF_UINT8;
     return this.createOutputTensor(outputTensorInfo);
   }
 
   encodeJpeg(
       imageData: Uint8Array, imageShape: number[],
       format: '' | 'grayscale' | 'rgb', quality: number, progressive: boolean,
-      optimize_size: boolean, chroma_downsampling: boolean,
-      density_unit: 'in' | 'cm', x_density: number, y_density: number,
-      xmp_metadata: string
+      optimizeSize: boolean, chromaDownsampling: boolean,
+      densityUnit: 'in' | 'cm', xDensity: number, yDensity: number,
+      xmpMetadata: string
       ): Tensor<Rank> {
     const opAttrs = [
       {name: 'format', type: this.binding.TF_ATTR_STRING, value: format},
@@ -1705,24 +1705,24 @@ export class NodeJSKernelBackend extends KernelBackend {
       {
         name: 'optimize_size',
         type: this.binding.TF_ATTR_BOOL,
-        value: optimize_size
+        value: optimizeSize
       },
       {
         name: 'chroma_downsampling',
         type: this.binding.TF_ATTR_BOOL,
-        value: chroma_downsampling
+        value: chromaDownsampling
       },
       {
         name: 'density_unit',
         type: this.binding.TF_ATTR_STRING,
-        value: density_unit
+        value: densityUnit
       },
-      {name: 'x_density', type: this.binding.TF_ATTR_INT, value: x_density},
-      {name: 'y_density', type: this.binding.TF_ATTR_INT, value: y_density},
+      {name: 'x_density', type: this.binding.TF_ATTR_INT, value: xDensity},
+      {name: 'y_density', type: this.binding.TF_ATTR_INT, value: yDensity},
       {
         name: 'xmp_metadata',
         type: this.binding.TF_ATTR_STRING,
-        value: xmp_metadata
+        value: xmpMetadata
       }
     ];
     return this.executeEncodeImageOp(

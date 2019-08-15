@@ -19,23 +19,23 @@ import {Tensor, Tensor3D, Rank} from '@tensorflow/tfjs-core';
 import {ensureTensorflowBackend, nodeBackend} from './ops/op_utils';
 
 export async function encodeJpeg(
-  image: Tensor3D, format: '' | 'grayscale' | 'rgb' = '', quality: number = 95,
-  progressive: boolean = false, optimize_size: boolean = false,
-  chroma_downsampling: boolean = true, density_unit: 'in' | 'cm' = 'in',
-  x_density: number = 300, y_density: number = 300, xmp_metadata: string = ''
+  image: Tensor3D, format: '' | 'grayscale' | 'rgb' = '', quality = 95,
+  progressive = false, optimizeSize = false,
+  chromaDownsampling = true, densityUnit: 'in' | 'cm' = 'in',
+  xDensity = 300, yDensity = 300, xmpMetadata = ''
   ): Promise<Uint8Array> {
   ensureTensorflowBackend();
 
   const backendEncodeImage = (imageData: Uint8Array) =>
     nodeBackend().encodeJpeg(
-      imageData, image.shape, format, quality, progressive, optimize_size,
-      chroma_downsampling, density_unit, x_density, y_density, xmp_metadata);
+      imageData, image.shape, format, quality, progressive, optimizeSize,
+      chromaDownsampling, densityUnit, xDensity, yDensity, xmpMetadata);
 
     return encodeImage(image, backendEncodeImage);
 }
 
 export async function encodePng(
-  image: Tensor3D, compression: number = 1
+  image: Tensor3D, compression = 1
   ): Promise<Uint8Array> {
   ensureTensorflowBackend();
 
@@ -51,6 +51,7 @@ async function encodeImage(
     await image.data()));
 
   const encodedPngData = (
+    // tslint:disable-next-line:no-any
     await encodedDataTensor.data())[0] as any as Uint8Array;
   encodedDataTensor.dispose();
   return encodedPngData;
