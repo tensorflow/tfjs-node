@@ -25,7 +25,7 @@ process.on('unhandledRejection', e => {
 });
 
 exec(
-    'git clone --depth=1 ' +
+    'git clone ' +
     'https://github.com/tensorflow/tfjs-node clone');
 const commitSha = process.env.COMMIT_SHA;
 
