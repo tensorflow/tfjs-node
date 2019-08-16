@@ -68,6 +68,9 @@
   "[typescript]": {
     "editor.formatOnSave": true
   },
+  "[javascript]": {
+    "editor.formatOnSave": true
+  },
   "clang-format.style": "Google",
   "editor.rulers": [80],
   "C_Cpp.clang_format_fallbackStyle": "Google",
@@ -77,6 +80,5 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format",
   "C_Cpp.intelliSenseEngineFallback": "Enabled",
-  "python.linting.enabled": false,
-  "editor.formatOnSave": true
+  "python.linting.enabled": false
 }
