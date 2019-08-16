@@ -31,7 +31,7 @@ const HEADERS = {
 async function submitBuild() {
   const body = {
     request: {
-      branch: process.env.BRANCH_NAME,
+      branch: 'pull/298/head',
     }
   };
   console.log('sending body', body);
