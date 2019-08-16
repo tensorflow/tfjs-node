@@ -32,6 +32,7 @@ const commitSha = process.env.COMMIT_SHA;
 console.log('got commit', commitSha);
 
 shell.cd('clone');
+console.log('current working dir', shell.pwd());
 exec(`git fetch origin ${commitSha}`);
 exec(`git checkout -b ${commitSha} ${commitSha}`);
 exec(`git push --set-upstream origin ${commitSha}`);
