@@ -20,8 +20,12 @@ const fetch = require('node-fetch');
 const {exec} = require('./test-util');
 const shell = require('shelljs');
 
+process.on('unhandledRejection', e => {
+  throw e;
+});
+
 exec(
-    'git clone -depth=1 --single-branch ' +
+    'git clone --depth=1 --single-branch ' +
     'https://github.com/tensorflow/tfjs-node clone');
 const commitSha = process.env.COMMIT_SHA;
 
