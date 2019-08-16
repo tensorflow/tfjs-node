@@ -25,7 +25,7 @@ process.on('unhandledRejection', e => {
 });
 
 exec(
-    'git clone --depth=1 --single-branch ' +
+    'git clone --depth=1 ' +
     'https://github.com/tensorflow/tfjs-node clone');
 const commitSha = process.env.COMMIT_SHA;
 
@@ -33,6 +33,7 @@ console.log('got commit', commitSha);
 
 shell.cd('clone');
 console.log('current working dir', shell.pwd());
+console.log(exec('git --version'));
 exec(`git fetch origin ${commitSha}`);
 exec(`git checkout -b ${commitSha} ${commitSha}`);
 exec(`git push --set-upstream origin ${commitSha}`);
