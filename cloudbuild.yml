@@ -24,7 +24,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-travis'
   args: ['test-travis']
-  env: ['BRANCH_NAME=$BRANCH_NAME']
+  env: ['BRANCH_NAME=$BRANCH_NAME', 'COMMIT_SHA=$COMMIT_SHA']
   waitFor: ['yarn']
 
 timeout: 1800s

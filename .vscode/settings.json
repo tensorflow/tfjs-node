@@ -59,13 +59,14 @@
     "**/bundle.js": true,
     "**/yarn.lock": true
   },
-  "tslint.enable": true,
-  "tslint.run": "onType",
   "tslint.configFile": "tslint.json",
   "files.trimTrailingWhitespace": true,
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
     "editor.formatOnSave": true
   },
   "clang-format.style": "Google",
@@ -77,6 +78,4 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format",
   "C_Cpp.intelliSenseEngineFallback": "Enabled",
-  "python.linting.enabled": false,
-  "editor.formatOnSave": true
 }

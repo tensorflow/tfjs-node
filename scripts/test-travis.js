@@ -28,10 +28,12 @@ const HEADERS = {
   'Authorization': 'token INKvoqirQIBD805HgU3Gew'
 };
 
+console.log('commit sha', process.env.COMMIT_SHA);
+
 async function submitBuild() {
   const body = {
     request: {
-      branch: 'pull/298/head',
+      branch: process.env.COMMIT_SHA,
     }
   };
   console.log('sending body', body);
