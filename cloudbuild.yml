@@ -25,8 +25,13 @@ steps:
   id: 'test-travis'
   args: ['test-travis']
   env: ['BRANCH_NAME=$BRANCH_NAME', 'COMMIT_SHA=$COMMIT_SHA']
+  secretEnv: ['GITHUB_KEY']
   waitFor: ['yarn']
 
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    GITHUB_KEY: CiQAkwyoIbkOtRqtoxsJqUCtM/Wr3UPcsVzsT4Psd/Cc7gq0QD4SUQAD8BdZ7x8/cAwCt31bYhuNScaXl6wrePVWHI3vyt7lXbCh5VhaMRczMiJmpsaNeMfLtA5Z7DUR5vKPBWOc30EV791YOOiolJmv89u5EH9rgw==
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 options:
